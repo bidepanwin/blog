@@ -9,7 +9,7 @@ import Chip from "@components/atoms/action/Chip.astro";
 import Card from "@components/atoms/display/Card.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import Icon from "@iconify/svelte";
+import Icon from "@components/atoms/display/Icon.svelte";
 import { getCategoryList } from "@utils/content-utils";
 import { pathsEqual, url } from "@utils/url-utils";
 
@@ -42,7 +42,7 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 <nav
 	id="category-bar-region"
 	aria-label={i18n(I18nKey.categories)}
-	class:list={{ hidden: Astro.url.pathname.startsWith("/categories") || Astro.url.pathname.startsWith("/tags") }}
+	class:list={{ hidden: pathsEqual(pathname, url("/categories/")) || pathsEqual(pathname, url("/tags/")) }}
 >
 	<Card color="var(--card-bg)" radius="l" class="category-bar onload-animation mb-4 p-2" id="category-bar">
 		<div class="category-bar-inner flex gap-2 items-center">
@@ -102,6 +102,9 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 </style>
 
 <script>
+	import { url } from "@utils/url-utils";
+	const homePath = url("/").replace(/\/+$/, "") || "/";
+	const archivePath = url("/archive/").replace(/\/+$/, "");
 	// 高亮同步：分类栏静态渲染在 Swup 容器外，导航后不重渲染，
 	// 因此强高亮（首页/归档/分类筛选）与弱高亮（文章页所属分类）都要在这里维护。
 	// 文章页所属分类从 #swup-container 的 data-current-post-category 读取。
@@ -122,11 +125,11 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 		const categoryParam = params.get("category");
 
 		let active: string;
-		if (pathname === "/") {
+		if (pathname === homePath) {
 			active = "__home__";
 		} else if (categoryParam) {
 			active = `category=${categoryParam}`;
-		} else if (pathname === "/archive") {
+		} else if (pathname === archivePath) {
 			active = "__archive__";
 		} else {
 			active = "";
@@ -134,7 +137,7 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 
 		// 弱高亮只在无强高亮的页面出现（文章页所属分类，与 SSR soft 逻辑一致）
 		const softCategory =
-			active === "" && postCategory && pathname !== "/" && pathname !== "/archive"
+			active === "" && postCategory && pathname !== homePath && pathname !== archivePath
 				? postCategory
 				: "";
 
@@ -146,7 +149,7 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 				active === ""
 					? false
 					: active === "__home__"
-					? normalizedHref === "/"
+					? normalizedHref === homePath
 					: active === "__archive__"
 						? href.includes("/archive/") && !href.includes("category=") && !href.includes("tag=")
 						: href.includes(`category=${encodeURIComponent(categoryParam!)}`);

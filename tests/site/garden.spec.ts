@@ -25,6 +25,7 @@ test("reference banner, full navigation, and both sidebars render on desktop", a
 
 test("article navigation updates the persistent banner, navigation, and TOC", async ({ page }) => {
   await open(page);
+  await expect(page.locator(`#category-bar a[href='${sitePath()}']`)).toHaveClass(/m3-chip--selected/);
   await page.locator(`#post-list a[href='${sitePath("/posts/astro-notes/")}']`).first().click();
   await expect(page).toHaveURL(/\/posts\/astro-notes\//);
   await expect(page.locator("#swup-container h1")).toContainText("用 Astro");
@@ -33,6 +34,7 @@ test("article navigation updates the persistent banner, navigation, and TOC", as
   await page.locator(`#navbar nav a[href='${sitePath()}']`).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator("#navbar nav a[aria-current='page']")).toHaveText("首页");
+  await expect(page.locator(`#category-bar a[href='${sitePath()}']`)).toHaveClass(/m3-chip--selected/);
   await expect(page.locator("#post-list > article")).toHaveCount(6);
 });
 
