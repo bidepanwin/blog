@@ -1,0 +1,88 @@
+---
+import Icon from "@components/atoms/display/Icon.svelte";
+import SidebarTOC from "@components/molecules/SidebarTOC.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { getSortedPosts } from "@utils/content-utils";
+import { getCategoryUrl, getTagUrl, url } from "@utils/url-utils";
+import type { MarkdownHeading } from "astro";
+import type { SidebarPage } from "@/types/sidebarConfig";
+import { profileConfig } from "@/config/profileConfig";
+
+interface Props {
+	headings?: MarkdownHeading[];
+	currentPage?: SidebarPage;
+}
+const { headings = [], currentPage } = Astro.props;
+const posts = await getSortedPosts();
+const categories = new Map<string, number>();
+const tags = new Map<string, number>();
+for (const post of posts) {
+	if (post.data.category)
+		categories.set(
+			post.data.category,
+			(categories.get(post.data.category) || 0) + 1,
+		);
+	for (const tag of post.data.tags) tags.set(tag, (tags.get(tag) || 0) + 1);
+}
+const tagList = [...tags.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+---
+
+<aside class="garden-sidebar" aria-label={i18n(I18nKey.about)}>
+	<section class="garden-profile garden-panel">
+		<div class="garden-profile__topline"><span class="garden-eyebrow">{i18n(I18nKey.gardenAboutMe)}</span><Icon icon="material-symbols:asterisk-rounded" /></div>
+		<a class="garden-profile__avatar" href={url("about/")} aria-label={i18n(I18nKey.about)}>
+			<img src={profileConfig.avatar} alt={profileConfig.name} width="80" height="80" loading="eager" />
+			<span class="garden-profile__status" aria-hidden="true"></span>
+		</a>
+		<h2>{profileConfig.name}</h2>
+		<p class="garden-profile__bio">{profileConfig.bio}</p>
+		<div class="garden-profile__stats">
+			<a href={url("archive/")}><strong>{posts.length.toString().padStart(2, "0")}</strong><span>{i18n(I18nKey.postsCount)}</span></a>
+			<a href={url("categories/")}><strong>{categories.size.toString().padStart(2, "0")}</strong><span>{i18n(I18nKey.categories)}</span></a>
+			<a href={url("tags/")}><strong>{tags.size.toString().padStart(2, "0")}</strong><span>{i18n(I18nKey.tags)}</span></a>
+		</div>
+		<a href={url("about/")} class="garden-profile__about m3-state-layer">{i18n(I18nKey.gardenAboutMe)}<Icon icon="material-symbols:arrow-forward-rounded" /></a>
+	</section>
+
+	<section class="garden-note">
+		<div class="garden-section-label"><Icon icon="material-symbols:edit-note-rounded" /><h2>{i18n(I18nKey.gardenFieldNotes)}</h2><span class="garden-note__pin" aria-hidden="true"><Icon icon="material-symbols:keep-outline-rounded" /></span></div>
+		<p>{i18n(I18nKey.gardenFieldNoteText)}</p>
+		<a href={url("moments/")} class="garden-note__footer"><span>{i18n(I18nKey.gardenGrowing)}</span><Icon icon="material-symbols:arrow-outward-rounded" /></a>
+	</section>
+
+	<div class="garden-toc" data-garden-toc hidden={currentPage !== "post" || headings.length === 0}>
+		<SidebarTOC {headings} />
+	</div>
+
+	<section class="garden-topics garden-panel">
+		<div class="garden-section-label"><Icon icon="material-symbols:folder-open-outline-rounded" /><h2>{i18n(I18nKey.gardenExplore)}</h2><span class="garden-small-count">{categories.size}</span></div>
+		<div class="garden-topics__list">
+			{[...categories].map(([category, count], index) => <a href={getCategoryUrl(category)} class="garden-topic m3-state-layer"><span class={`garden-topic__icon garden-topic__icon--${index % 3}`}><Icon icon={index % 3 === 0 ? "material-symbols:code-rounded" : index % 3 === 1 ? "material-symbols:local-florist-outline-rounded" : "material-symbols:menu-book-outline-rounded"} /></span><span>{category}</span><span class="garden-topic__count">{count.toString().padStart(2, "0")}</span><Icon icon="material-symbols:chevron-right-rounded" /></a>)}
+		</div>
+	</section>
+
+	<section class="garden-tags garden-panel">
+		<div class="garden-section-label"><Icon icon="material-symbols:tag-rounded" /><h2>{i18n(I18nKey.gardenTags)}</h2></div>
+		<div class="garden-tags__list">{tagList.map(([tag]) => <a class="garden-tag m3-state-layer" href={getTagUrl(tag)}><span aria-hidden="true">#</span> {tag}</a>)}</div>
+	</section>
+
+	<a class="garden-rss m3-state-layer" href={url("rss/")}>
+		<span class="garden-rss__icon"><Icon icon="material-symbols:rss-feed-rounded" /></span>
+		<span><strong>{i18n(I18nKey.gardenSubscribe)}</strong><small>{i18n(I18nKey.gardenSubscribeText)}</small></span>
+		<Icon icon="material-symbols:arrow-outward-rounded" />
+	</a>
+</aside>
+
+<script>
+	function syncGardenSidebar() {
+		const page = document.getElementById("swup-container")?.dataset.currentPage;
+		if (page) document.body.dataset.currentPage = page;
+		const toc = document.querySelector<HTMLElement>("[data-garden-toc]");
+		if (toc) toc.hidden = page !== "post" || !document.querySelector("#toc a");
+	}
+	document.addEventListener("swup:page:view", syncGardenSidebar);
+	syncGardenSidebar();
+</script>
+
+

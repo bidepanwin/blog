@@ -1,0 +1,112 @@
+/* MUR DOS LOG · Giscus 主题「黑白漫画手账」— 暗色（墨黑 + 白线） */
+main {
+  --font-cjk: "Fusion Pixel", "Yozai Medium", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* 基底：墨黑 + 白线 */
+  --color-canvas-default: #10121b;
+  --color-canvas-overlay: #171a26;
+  --color-canvas-inset: #0b0d14;
+  --color-canvas-subtle: #171a26;
+  --color-fg-default: #e8e9f0;
+  --color-fg-muted: #a5a8b8;
+  --color-fg-subtle: #767a8c;
+  --color-border-default: #e8e9f0;
+  --color-border-muted: rgba(232, 233, 240, 0.22);
+  --color-neutral-muted: rgba(232, 233, 240, 0.08);
+  --color-accent-fg: #e8e9f0;
+  --color-accent-emphasis: #e8e9f0;
+  --color-accent-muted: rgba(232, 233, 240, 0.2);
+  --color-accent-subtle: rgba(232, 233, 240, 0.08);
+  --color-success-fg: #7fd4a2;
+  --color-attention-fg: #e0c07a;
+  --color-danger-fg: #f08c87;
+
+  /* 按钮：白线墨底，hover 反白 */
+  --color-btn-text: #e8e9f0;
+  --color-btn-bg: #171a26;
+  --color-btn-border: #e8e9f0;
+  --color-btn-hover-bg: #e8e9f0;
+  --color-btn-hover-border: #e8e9f0;
+  --color-btn-hover-text: #10121b;
+  --color-btn-primary-text: #10121b;
+  --color-btn-primary-bg: #e8e9f0;
+  --color-btn-primary-hover-bg: #c9cbe0;
+  --color-btn-primary-selected-bg: #e8e9f0;
+  --color-btn-primary-border: #e8e9f0;
+  --color-btn-selected-bg: #e8e9f0;
+
+  /* 输入框 */
+  --color-input-bg: #171a26;
+  --color-input-border: #e8e9f0;
+  --color-input-contrast-bg: #171a26;
+
+  font-family: var(--font-cjk);
+  color: var(--color-fg-default);
+  background: var(--color-canvas-default) !important;
+}
+
+/* —— 手绘感卡片：白线描边 + 网点 —— */
+.gsc-comment,
+.gsc-reply-box,
+.gsc-comment-box,
+.gsc-timeline > div > .gsc-comment {
+  border: 2px solid #e8e9f0 !important;
+  border-radius: 4px !important;
+  background-color: #171a26 !important;
+  background-image: radial-gradient(circle, rgba(232, 233, 240, 0.05) 1px, transparent 1px) !important;
+  background-size: 6px 6px !important;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 头像：黑白 + 白线方角 */
+.gsc-comment img,
+.gsc-reply img,
+.avatar {
+  filter: grayscale(1) contrast(1.08) !important;
+  border-radius: 3px !important;
+  border: 1.5px solid #e8e9f0 !important;
+  background: #171a26 !important;
+}
+
+/* 按钮 */
+button,
+.gsc-reply-btn,
+.gsc-reactions button {
+  border: 1.5px solid #e8e9f0 !important;
+  border-radius: 3px !important;
+  background: #171a26 !important;
+  color: #e8e9f0 !important;
+  font-family: var(--font-cjk) !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+button:hover,
+.gsc-reply-btn:hover {
+  background: #e8e9f0 !important;
+  color: #10121b !important;
+}
+
+/* 输入框 */
+textarea,
+input[type="text"] {
+  border: 1.5px solid #e8e9f0 !important;
+  border-radius: 3px !important;
+  background: #0b0d14 !important;
+  color: #e8e9f0 !important;
+  font-family: var(--font-cjk) !important;
+}
+
+/* 分割线与元信息 */
+.gsc-comment-header,
+hr {
+  border-color: rgba(232, 233, 240, 0.22) !important;
+}
+.gsc-comment-author span,
+time,
+.gsc-comment-header span {
+  color: #a5a8b8 !important;
+}
+
+body, main, p, span, a, div {
+  font-family: var(--font-cjk);
+  letter-spacing: 0.01em;
+}

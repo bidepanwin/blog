@@ -1,0 +1,265 @@
+/* 对齐 cosine（koharu 主题）代码块的真实渲染参数
+   实测自 blog.cosine.ren 的 computed style：
+   - 三键 12px，默认灰色（foreground/14%），hover 变 #ff5f56/#ffbd2e/#27c93f
+   - 工具栏 53px（min-h-13），三键 + 语言标签靠左（gap 12px）
+   - 语言标签 mono 0.6875rem uppercase tracking 0.08em muted
+   - 窗口 12px 圆角 + 轻阴影 0 1px 2px + 0 10px 24px -14px */
+
+.expressive-code figure.frame {
+	position: relative;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow:
+		rgba(0, 0, 0, 0.04) 0 1px 2px 0,
+		rgba(0, 0, 0, 0.16) 0 10px 24px -14px !important;
+	display: flex;
+	flex-direction: column;
+	background: var(--surface-container-lowest, #fff);
+}
+html.dark .expressive-code figure.frame {
+	box-shadow:
+		rgba(0, 0, 0, 0.2) 0 1px 2px 0,
+		rgba(0, 0, 0, 0.4) 0 10px 24px -14px !important;
+}
+
+/* 工具栏：53px，三键+语言标签靠左上角，复制按钮靠右 */
+.expressive-code figure.frame > figcaption.header {
+	display: flex !important;
+	align-items: center;
+	justify-content: flex-start;
+	min-height: 53px;
+	padding: 0 12px 0 16px;
+	background: var(--surface-container-low, #faf7f8);
+	border-bottom: 1px solid color-mix(in oklab, var(--outline-variant) 60%, transparent);
+	border-radius: 12px 12px 0 0;
+	flex-shrink: 0;
+	user-select: none;
+}
+html.dark .expressive-code figure.frame > figcaption.header {
+	background: var(--surface-container-highest, #2b2b2e);
+}
+
+/* 三键 + 语言标签组：靠左，gap 12px */
+.mac-dots {
+	display: inline-flex !important;
+	flex-direction: row !important;
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0;
+}
+.mac-dot {
+	display: block !important;
+	position: relative !important;
+	width: 12px !important;
+	height: 12px !important;
+	min-width: 12px !important;
+	min-height: 12px !important;
+	flex: 0 0 12px !important;
+	padding: 0 !important;
+	border: none !important;
+	margin: 0 !important;
+	border-radius: 50% !important;
+	cursor: default;
+	/* 默认灰（cosine 是 foreground/14%）；浅色深灰点 / 深色浅灰点 */
+	background: rgba(0, 0, 0, 0.14) !important;
+	transition: background-color 0.25s ease;
+}
+html.dark .mac-dot {
+	background: rgba(255, 255, 255, 0.16) !important;
+}
+.expressive-code figure.frame:hover .mac-dot,
+.expressive-code figure.frame:focus-within .mac-dot {
+	background: var(--mac-dot-color, #ffbd2e) !important;
+}
+.mac-dot--close { --mac-dot-color: #ff5f56; cursor: pointer; }
+.mac-dot--min   { --mac-dot-color: #ffbd2e; }
+.mac-dot--max   { --mac-dot-color: #27c93f; cursor: pointer; }
+
+/* hover 圆点出功能符号 */
+.mac-dot::after {
+	content: attr(data-glyph);
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 8px;
+	font-weight: 700;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.5);
+	opacity: 0;
+	transition: opacity 0.1s ease;
+	pointer-events: none;
+}
+.mac-dot:hover::after,
+.mac-dot:focus-visible::after { opacity: 1; }
+.mac-dot:active { filter: brightness(0.85); }
+.mac-dot:focus-visible { outline: 2px solid var(--primary); outline-offset: 1.5px; }
+
+/* 语言标签：mono 小字大写 muted，靠左（跟在三键后） */
+.expressive-code figure.frame > figcaption.header .mac-title {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 0.6875rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: color-mix(in oklab, var(--on-surface-variant) 80%, transparent);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* 复制按钮：整合进工具栏右侧（去掉右上角浮层） */
+.expressive-code figure.frame > figcaption.header > .copy-btn {
+	margin-left: auto !important;
+	position: static !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: 8px;
+	background: transparent !important;
+	color: var(--on-surface-variant) !important;
+	transition: background-color 0.15s, color 0.15s;
+}
+.expressive-code figure.frame > figcaption.header > .copy-btn:hover {
+	background: color-mix(in srgb, var(--on-surface) 8%, transparent) !important;
+	color: var(--on-surface) !important;
+}
+/* 隐藏代码块右上角残留的原始复制按钮（若未被移动进工具栏） */
+.expressive-code figure.frame > .copy-btn {
+	position: absolute;
+	right: 12px;
+	top: 12px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* 标题栏内 ec 自带元素 */
+.expressive-code figure.frame > figcaption.header > .title:empty { display: none; }
+.expressive-code figure.frame > figcaption.header .sr-only {
+	position: absolute !important;
+	width: 1px !important; height: 1px !important;
+	padding: 0 !important; margin: -1px !important;
+	overflow: hidden !important; clip: rect(0 0 0 0) !important;
+	white-space: nowrap !important; border: 0 !important;
+}
+
+/* 代码区：底部圆角 12px，顶部由工具栏接管 */
+.expressive-code figure.frame > pre {
+	border-top-left-radius: 0 !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-left-radius: 12px !important;
+	border-bottom-right-radius: 12px !important;
+}
+
+/* 折叠态：只剩工具栏 */
+.expressive-code figure.frame.is-collapsed { border-radius: 12px; }
+.expressive-code figure.frame.is-collapsed > figcaption.header {
+	border-radius: 12px;
+	border-bottom-color: transparent;
+}
+.expressive-code figure.frame.is-collapsed > pre,
+.expressive-code figure.frame.is-collapsed > .copy-btn { display: none !important; }
+
+/* ===== 页面内全屏 modal（对齐 cosine：不铺满屏幕） ===== */
+.code-modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(2px);
+}
+.code-modal-overlay[hidden] { display: none; }
+
+.code-modal {
+	display: flex;
+	flex-direction: column;
+	width: min(920px, 100%);
+	max-height: min(80vh, 720px);
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35), 0 10px 30px rgba(0, 0, 0, 0.2);
+	background: var(--surface-container-lowest, #fff);
+}
+
+/* modal 头部：三键 + 语言标签 + 右侧按钮（横排） */
+.code-modal-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-height: 53px;
+	padding: 0 16px;
+	background: #ececec;
+	border-bottom: 1px solid #d0d0d0;
+	flex-shrink: 0;
+}
+html.dark .code-modal-header {
+	background: #323232;
+	border-bottom-color: #2a2a2a;
+}
+
+/* 右侧操作按钮：横排 */
+.code-modal-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	margin-left: auto;
+	flex-shrink: 0;
+}
+.code-modal-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 32px;
+	padding: 0 12px;
+	border: 1px solid color-mix(in srgb, var(--on-surface) 14%, transparent);
+	border-radius: 8px;
+	background: transparent;
+	color: var(--on-surface-variant);
+	font: 500 13px/1 -apple-system, "Segoe UI", sans-serif;
+	cursor: pointer;
+	transition: background-color 0.15s, color 0.15s;
+}
+.code-modal-btn:hover {
+	background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+	color: var(--on-surface);
+}
+.code-modal-btn[aria-pressed="true"] {
+	background: var(--secondary-container, #e0e0e0);
+	color: var(--on-secondary-container, #333);
+}
+
+/* modal 代码区：可滚动 */
+.code-modal-content {
+	margin: 0;
+	flex: 1;
+	overflow: auto;
+	padding: 18px 20px;
+	background: var(--surface-container-lowest, #fff);
+	font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	tab-size: 2;
+}
+.code-modal-content code {
+	font: inherit;
+}
+html.dark .code-modal-content {
+	background: #1c1c1e;
+	color: #e1e4e8;
+}
+
+@media (max-width: 640px) {
+	.code-modal-overlay { padding: 0; align-items: flex-end; }
+	.code-modal {
+		width: 100%;
+		max-height: 85vh;
+		border-radius: 12px 12px 0 0;
+	}
+}

@@ -1,0 +1,506 @@
+---
+/**
+ * 书单页：本地 books.ts 数据 + scripts/books-sync.mjs 自动封面。
+ * 视觉：书架卡片（2:3 封面、状态 pill、评分、感想、在读进度）。
+ * 筛选：状态 chips + 题材 chips（可组合）+ 搜索框。
+ */
+import Key from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { url } from "@utils/url-utils";
+import {
+	booksData,
+	BOOK_STATUS_META,
+	bookSlug,
+	bookLink,
+} from "../data/books.ts";
+
+const pageTitle = i18n(Key.books);
+const pageDescription = i18n(Key.booksBanner);
+
+const statusOrder = ["reading", "completed", "planned", "onHold"] as const;
+const books = [...booksData].sort((a, b) => {
+	// 置顶 > 在读 > 其余按状态顺序
+	if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
+	return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+});
+const counts = Object.fromEntries(
+	statusOrder.map((s) => [s, books.filter((b) => b.status === s).length]),
+);
+const genres = [...new Set(books.flatMap((b) => b.genres))].sort();
+const total = books.length;
+const reading = counts.reading ?? 0;
+---
+
+<MainGridLayout title={pageTitle} description={pageDescription} page="books">
+	<section class="books-section" aria-label={pageTitle}>
+		<header class="books-header">
+			<div>
+				<h1 class="books-title">{pageTitle}</h1>
+				<p class="books-subtitle">{pageDescription}</p>
+			</div>
+			<p class="books-stats">
+				<span class="books-stats__num">{total}</span> books ·
+				<span class="books-stats__num">{reading}</span> reading
+			</p>
+		</header>
+
+		<div class="books-toolbar">
+			<nav class="books-filter" aria-label="Filter by status">
+				<button class="books-chip is-active" data-filter="all" data-kind="status">
+					All <span class="books-chip-count">{total}</span>
+				</button>
+				{
+					statusOrder.map((s) => (
+						<button class="books-chip" data-filter={s} data-kind="status">
+							{BOOK_STATUS_META[s].label}
+							<span class="books-chip-count">{counts[s]}</span>
+						</button>
+					))
+				}
+			</nav>
+
+			<div class="books-toolbar__row">
+				<nav class="books-filter books-filter--genres" aria-label="Filter by genre">
+					<button class="books-chip books-chip--genre is-active" data-filter="all" data-kind="genre">
+						All topics
+					</button>
+					{
+						genres.map((g) => (
+							<button class="books-chip books-chip--genre" data-filter={g} data-kind="genre">
+								{g}
+							</button>
+						))
+					}
+				</nav>
+				<label class="books-search">
+					<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+						<path
+							fill="currentColor"
+							d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14"
+						></path>
+					</svg>
+					<input id="books-search" type="search" aria-label={i18n(Key.search)} placeholder="Search title / author…" autocomplete="off" />
+				</label>
+			</div>
+		</div>
+
+		<div class="books-grid" id="books-grid">
+			{
+				books.map((book) => {
+					const meta = BOOK_STATUS_META[book.status];
+					const slug = bookSlug(book);
+					const link = bookLink(book);
+					const searchText = `${book.title} ${book.originalTitle ?? ""} ${book.author ?? ""}`.toLowerCase();
+					return (
+						<article
+							class="book-card"
+							data-status={book.status}
+							data-genres={book.genres.join("|")}
+							data-search={searchText}
+							id={`book-${slug}`}
+						>
+							{link ? (
+								<a
+									class="book-card__cover"
+									href={link}
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label={book.title}
+								>
+									{book.cover ? (
+										<img
+											src={url(book.cover)}
+											alt={book.title}
+											width="240"
+											height="360"
+											loading="lazy"
+											decoding="async"
+										/>
+									) : (
+										<span class="book-card__placeholder" aria-hidden="true">
+											{book.title.slice(0, 1)}
+										</span>
+									)}
+									<span class={`book-card__status book-card__status--${book.status}`}>
+										{meta.label}
+									</span>
+								</a>
+							) : (
+								<div class="book-card__cover">
+									{book.cover ? (
+										<img
+											src={url(book.cover)}
+											alt=""
+											width="240"
+											height="360"
+											loading="lazy"
+											decoding="async"
+										/>
+									) : (
+										<span class="book-card__placeholder" aria-hidden="true">
+											{book.title.slice(0, 1)}
+										</span>
+									)}
+									<span class={`book-card__status book-card__status--${book.status}`}>
+										{meta.label}
+									</span>
+								</div>
+							)}
+							<div class="book-card__body">
+								<h2 class="book-card__title">{book.title}</h2>
+								{book.originalTitle && (
+									<p class="book-card__original">{book.originalTitle}</p>
+								)}
+								{book.author && <p class="book-card__author">{book.author}</p>}
+								{book.rating > 0 && (
+									<p class="book-card__rating" aria-label={`Rating ${book.rating} / 10`}>
+										{"★".repeat(Math.round(book.rating / 2))}
+										<span class="book-card__rating-num">{book.rating.toFixed(1)}</span>
+									</p>
+								)}
+								{book.description && (
+									<p class="book-card__desc">{book.description}</p>
+								)}
+								{book.status === "reading" && typeof book.progress === "number" && (
+									<div class="book-card__progress" aria-label={`Progress ${book.progress}%`}>
+										<div class="book-card__progress-track">
+											<div class="book-card__progress-bar" style={`width:${book.progress}%`}></div>
+										</div>
+										<span class="book-card__progress-num">{book.progress}%</span>
+									</div>
+								)}
+								<p class="book-card__meta">
+									{[book.yearPublished ?? book.year, ...book.genres].filter(Boolean).join(" · ")}
+								</p>
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+		<p class="books-empty" id="books-empty" hidden>No books matched your filter.</p>
+	</section>
+</MainGridLayout>
+
+<script>
+	function setupBooksFilter() {
+		const grid = document.getElementById("books-grid") as HTMLElement | null;
+		if (!grid) return;
+		const chips = Array.from(document.querySelectorAll<HTMLElement>(".books-chip"));
+		const search = document.getElementById("books-search") as HTMLInputElement | null;
+		const empty = document.getElementById("books-empty") as HTMLElement | null;
+		const state = { status: "all", genre: "all", q: "" };
+
+		function apply() {
+			let shown = 0;
+			grid!.querySelectorAll<HTMLElement>(".book-card").forEach((card) => {
+				const el = card;
+				const statusOk = state.status === "all" || el.dataset.status === state.status;
+				const genreOk =
+					state.genre === "all" ||
+					(el.dataset.genres || "").split("|").includes(state.genre);
+				const qOk = !state.q || (el.dataset.search || "").includes(state.q);
+				const visible = statusOk && genreOk && qOk;
+				el.hidden = !visible;
+				if (visible) shown += 1;
+			});
+			if (empty) empty.hidden = shown !== 0;
+		}
+
+		chips.forEach((chip) => {
+			chip.addEventListener("click", () => {
+				const kind = (chip.dataset.kind === "genre" ? "genre" : "status") as "status" | "genre";
+				const value = chip.dataset.filter || "all";
+				state[kind] = value;
+				chips
+					.filter((c) => (c.dataset.kind || "status") === kind)
+					.forEach((c) => c.classList.toggle("is-active", c === chip));
+				apply();
+			});
+		});
+
+		search?.addEventListener("input", () => {
+			state.q = search.value.trim().toLowerCase();
+			apply();
+		});
+	}
+
+	setupBooksFilter();
+	document.addEventListener("swup:contentReplaced", setupBooksFilter);
+</script>
+
+<style>
+	.books-section {
+		padding-bottom: 2rem;
+	}
+	.books-header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+		flex-wrap: wrap;
+	}
+	.books-title {
+		font: var(--m3e-type-headline-large, 700 2rem/1.3 sans-serif);
+		color: var(--on-surface);
+		margin: 0;
+	}
+	.books-subtitle {
+		font: var(--m3e-type-body-medium, 400 0.875rem/1.6 sans-serif);
+		color: var(--on-surface-variant);
+		margin: 0.25rem 0 0;
+	}
+	.books-stats {
+		font: var(--m3e-type-label-medium, 500 0.8rem/1.4 sans-serif);
+		color: var(--on-surface-variant);
+		margin: 0;
+		white-space: nowrap;
+	}
+	.books-stats__num {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.books-toolbar {
+		margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+	.books-toolbar__row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+	.books-filter {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+	.books-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.875rem;
+		border-radius: var(--shape-corner-full, 999px);
+		border: 1px solid var(--outline-variant, rgba(128, 128, 128, 0.3));
+		background: transparent;
+		color: var(--on-surface-variant);
+		font: var(--m3e-type-label-large, 500 0.875rem/1.4 sans-serif);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+	.books-chip:hover {
+		border-color: var(--primary);
+		color: var(--primary);
+	}
+	.books-chip.is-active {
+		background: var(--secondary-container, var(--primary-container));
+		color: var(--on-secondary-container, var(--on-primary-container));
+		border-color: transparent;
+	}
+	.books-chip-count {
+		opacity: 0.7;
+		font-size: 0.8em;
+	}
+	.books-chip--genre {
+		padding: 0.25rem 0.625rem;
+		font-size: 0.75rem;
+	}
+	.books-search {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		border-radius: var(--shape-corner-full, 999px);
+		border: 1px solid var(--outline-variant, rgba(128, 128, 128, 0.3));
+		color: var(--on-surface-variant);
+		flex-shrink: 0;
+	}
+	.books-search input {
+		border: none;
+		background: transparent;
+		color: var(--on-surface);
+		font: var(--m3e-type-body-small, 400 0.8rem/1.4 sans-serif);
+		outline: none;
+		width: 11rem;
+	}
+	.books-search:focus-within {
+		border-color: var(--primary);
+	}
+
+	.books-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+		gap: 1.25rem;
+	}
+	@media (max-width: 480px) {
+		.books-grid {
+			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+			gap: 1rem;
+		}
+	}
+
+	.book-card {
+		display: flex;
+		flex-direction: column;
+		border-radius: var(--shape-corner-l, 1rem);
+		background: var(--card-bg, var(--surface-container-low));
+		overflow: hidden;
+		transition:
+			transform 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.book-card:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--m3e-elevation-2, 0 4px 16px rgba(0, 0, 0, 0.12));
+	}
+	.book-card[hidden] {
+		display: none;
+	}
+
+	.book-card__cover {
+		position: relative;
+		display: block;
+		aspect-ratio: 2 / 3;
+		background: linear-gradient(
+			135deg,
+			var(--primary-container, #334),
+			var(--surface-container-high, #223)
+		);
+		overflow: hidden;
+	}
+	.book-card__cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: transform 0.35s ease;
+	}
+	.book-card:hover .book-card__cover img {
+		transform: scale(1.04);
+	}
+	.book-card__placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		font: 700 3.5rem/1 Georgia, serif;
+		color: var(--on-primary-container, #fff);
+		opacity: 0.55;
+	}
+	.book-card__status {
+		position: absolute;
+		top: 0.5rem;
+		left: 0.5rem;
+		padding: 0.15rem 0.55rem;
+		border-radius: var(--shape-corner-full, 999px);
+		font: var(--m3e-type-label-small, 600 0.65rem/1.4 sans-serif);
+		backdrop-filter: blur(6px);
+		background: rgba(20, 20, 24, 0.55);
+		color: #fff;
+		letter-spacing: 0.03em;
+	}
+	.book-card__status--reading {
+		background: color-mix(in oklab, var(--primary, #7c9ef5) 75%, transparent);
+	}
+	.book-card__status--completed {
+		background: color-mix(in oklab, #3f9d6e 75%, transparent);
+	}
+	.book-card__status--planned {
+		background: color-mix(in oklab, #8a7bd8 75%, transparent);
+	}
+	.book-card__status--onHold {
+		background: color-mix(in oklab, #9a9a9a 75%, transparent);
+	}
+
+	.book-card__body {
+		padding: 0.75rem 0.875rem 0.875rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		flex: 1;
+	}
+	.book-card__title {
+		font: var(--m3e-type-title-small, 600 0.875rem/1.4 sans-serif);
+		color: var(--on-surface);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.book-card__original {
+		font: var(--m3e-type-body-small, 400 0.75rem/1.4 sans-serif);
+		color: var(--on-surface-variant);
+		margin: 0;
+	}
+	.book-card__author {
+		font: var(--m3e-type-body-small, 400 0.75rem/1.4 sans-serif);
+		color: var(--on-surface-variant);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.book-card__rating {
+		font-size: 0.8rem;
+		color: var(--tertiary, #e2b765);
+		margin: 0.125rem 0 0;
+		letter-spacing: 0.05em;
+	}
+	.book-card__rating-num {
+		margin-left: 0.375rem;
+		font-size: 0.75rem;
+		color: var(--on-surface-variant);
+	}
+	.book-card__desc {
+		font: var(--m3e-type-body-small, 400 0.75rem/1.55 sans-serif);
+		color: var(--on-surface-variant);
+		margin: 0.25rem 0 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.book-card__progress {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.375rem;
+	}
+	.book-card__progress-track {
+		flex: 1;
+		height: 4px;
+		border-radius: 999px;
+		background: var(--surface-container-highest, rgba(128, 128, 128, 0.25));
+		overflow: hidden;
+	}
+	.book-card__progress-bar {
+		height: 100%;
+		border-radius: 999px;
+		background: var(--primary, #7c9ef5);
+	}
+	.book-card__progress-num {
+		font: var(--m3e-type-label-small, 500 0.65rem/1 sans-serif);
+		color: var(--on-surface-variant);
+	}
+	.book-card__meta {
+		font: var(--m3e-type-label-small, 400 0.65rem/1.5 sans-serif);
+		color: var(--on-surface-variant);
+		margin: auto 0 0;
+		padding-top: 0.5rem;
+	}
+	.books-empty {
+		text-align: center;
+		padding: 3rem 0;
+		color: var(--on-surface-variant);
+		font: var(--m3e-type-body-medium, 400 0.875rem/1.6 sans-serif);
+	}
+</style>

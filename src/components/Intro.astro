@@ -1,0 +1,652 @@
+---
+// 自指开场动画（intro overlay）——「自指的机器 → 自指的少女」
+// 三段式：终端 quine（代码=输出逐字重合）→ glitch 崩解为漫画格 → 少女对话框硬核符号
+// 时长 17s（质数编排：3/5/2/5/2，行号高亮 2/3/5/7/11/13/17）
+// 挂 Swup 容器外（body 直子元素），Swup 切页不销毁不重播
+// sessionStorage 每会话一次；#intro 强制重播；prefers-reduced-motion 直接不播
+// SKIP：点击 / Esc / Enter / Space；播放期隐藏 #navbar 与 #floating-controls
+// window.__introPlayed 播放期间为 true（供彩蛋 canvas 协调）
+// 素材：/assets/chars/godel-gaze.webp（11_v3，凝视终端屏幕）/assets/chars/eyes-only-v2.webp（02 修手版，备用）
+---
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    var seen = sessionStorage.getItem("introPlayed") === "1";
+    var force = location.hash === "#intro";
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var play = (!seen || force) && !reduced;
+    root.classList.add(play ? "intro-on" : "intro-seen");
+    if (reduced) root.classList.add("intro-reduced");
+  })();
+</script>
+
+<div class="intro" id="intro" aria-hidden="true">
+  <!-- 幕1 终端 -->
+  <div class="sr-term" id="srTerm">
+    <div class="sr-term__win">
+      <div class="sr-term__bar"><i></i><i></i><i></i><span>murdo@amayo — tty1</span></div>
+      <div class="sr-term__body" id="srTermBody"></div>
+    </div>
+  </div>
+
+  <!-- 转场 glitch 切片容器 -->
+  <canvas class="sr-glitch" id="srGlitch" aria-hidden="true"></canvas>
+
+  <!-- 幕3 漫画格 -->
+  <div class="sr-manga" id="srManga" aria-hidden="true">
+    <div class="sr-manga__grid">
+      <div class="sr-manga__cell sr-manga__cell--main">
+        <img class="sr-manga__girl" src="/assets/chars/godel-gaze.webp" alt="" draggable="false" />
+        <div class="sr-manga__bubble" id="srBubble">
+          <p class="sr-manga__bubble-line" data-full="给定可证性谓词 Prov，存在 G 使 G ↔ ¬Prov(⌜G⌝)。"></p>
+          <p class="sr-manga__bubble-line" data-full="若 ⊢ G，则 ⊢ ¬Prov(⌜G⌝)，矛盾于一致性。"></p>
+          <p class="sr-manga__bubble-line" data-full="于是 T ⊬ G 且 T ⊬ ¬G。下一句话，在这一行之外。"></p>
+        </div>
+      </div>
+      <div class="sr-manga__cell sr-manga__cell--side sr-manga__cell--formula">
+        <span class="sr-manga__cell-label">G ↔ ¬Prov(⌜G⌝)</span>
+      </div>
+      <div class="sr-manga__cell sr-manga__cell--side sr-manga__cell--num">
+        <span class="sr-manga__cell-num">4768482518…8416000000000</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 终幕 -->
+  <div class="sr-title">
+    <h1 class="sr-title__main">MUR DOS LOG</h1>
+    <p class="sr-title__sub">Intellectual growth should commence at birth and cease only at death.</p>
+    <span class="sr-title__hint">— enter —</span>
+  </div>
+
+  <button class="sr-skip" id="srSkip" type="button" tabindex="-1">SKIP</button>
+</div>
+
+<style>
+  /* 根遮罩：双主题变量（默认深夜暗色；html 无 .dark 即浅色主题时覆盖为纸白） */
+  .intro {
+    --sr-bg: #07080d;
+    --sr-text: #e8e9f0;
+    --sr-term-bg: linear-gradient(180deg, #0b0d16 0%, #090a12 100%);
+    --sr-term-border: rgba(232, 233, 240, 0.22);
+    --sr-term-bar-bg: rgba(255, 255, 255, 0.03);
+    --sr-term-bar-border: rgba(255, 255, 255, 0.07);
+    --sr-term-title: rgba(232, 233, 240, 0.4);
+    --sr-caret: #fff;
+    --sr-prompt: #5ddc89;
+    --sr-cmd: #e8e9f0;
+    --sr-output: #8b9bff;
+    --sr-prime-text: #fff;
+    --sr-prime-output: #c9d4ff;
+    --sr-title-bg: radial-gradient(ellipse at center, rgba(20, 22, 36, 0.94) 0%, #07080d 74%);
+    --sr-title-text: #f2f3fa;
+    --sr-title-sub: rgba(232, 233, 240, 0.55);
+    --sr-title-hint: rgba(232, 233, 240, 0.28);
+    --sr-skip-text: rgba(232, 233, 240, 0.4);
+    --sr-skip-border: rgba(232, 233, 240, 0.18);
+    --sr-skip-hover: #fff;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--sr-bg);
+    display: none;
+    overflow: hidden;
+    font-family: "Fusion Pixel", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--sr-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* 浅色主题（站点切到亮色）覆盖为纸白 */
+  :global(html:not(.dark)) .intro {
+    --sr-bg: #f4f3ee;
+    --sr-text: #1a1c26;
+    --sr-term-bg: linear-gradient(180deg, #ffffff 0%, #f2f1ec 100%);
+    --sr-term-border: rgba(18, 19, 26, 0.18);
+    --sr-term-bar-bg: rgba(18, 19, 26, 0.04);
+    --sr-term-bar-border: rgba(18, 19, 26, 0.1);
+    --sr-term-title: rgba(18, 19, 26, 0.5);
+    --sr-caret: #1a1c26;
+    --sr-prompt: #1a7f4b;
+    --sr-cmd: #1a1c26;
+    --sr-output: #4a5cc8;
+    --sr-prime-text: #0a0c14;
+    --sr-prime-output: #3a4a9f;
+    --sr-title-bg: radial-gradient(ellipse at center, rgba(244, 243, 238, 0.94) 0%, #f4f3ee 74%);
+    --sr-title-text: #12131a;
+    --sr-title-sub: rgba(18, 19, 26, 0.6);
+    --sr-title-hint: rgba(18, 19, 26, 0.35);
+    --sr-skip-text: rgba(18, 19, 26, 0.5);
+    --sr-skip-border: rgba(18, 19, 26, 0.25);
+    --sr-skip-hover: #000;
+  }
+  :global(html.intro-on) .intro { display: block; }
+  :global(html.intro-on #navbar),
+  :global(html.intro-on #floating-controls) { display: none !important; }
+
+  /* ============ 幕1 终端 ============ */
+  .sr-term {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4vmin;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .intro.scene-term .sr-term { opacity: 1; }
+  .sr-term__win {
+    width: min(880px, 92vw);
+    max-height: 82vh;
+    border: 1px solid var(--sr-term-border);
+    border-radius: 10px;
+    background: var(--sr-term-bg);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 24px 80px rgba(0,0,0,.7), 0 0 60px rgba(150,170,255,.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .sr-term__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--sr-term-bar-bg);
+    border-bottom: 1px solid var(--sr-term-bar-border);
+  }
+  .sr-term__bar i {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .sr-term__bar i:nth-child(1) { background: #ff5f57; }
+  .sr-term__bar i:nth-child(2) { background: #febc2e; }
+  .sr-term__bar i:nth-child(3) { background: #28c840; }
+  .sr-term__bar span {
+    margin-left: 10px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--sr-term-title);
+  }
+  .sr-term__body {
+    padding: 18px 22px 22px;
+    font-size: clamp(11px, 1.6vmin, 14.5px);
+    line-height: 1.75;
+    overflow: hidden;
+    min-height: 52vh;
+  }
+  .sr-term__body::after {
+    content: "_";
+    color: var(--sr-caret);
+    animation: sr-blink 1s steps(1) infinite;
+  }
+  @keyframes sr-blink { 50% { opacity: 0; } }
+
+  .sr-ln { white-space: pre-wrap; word-break: break-all; }
+  .sr-ln .p { color: var(--sr-prompt); }
+  .sr-ln .c { color: var(--sr-cmd); }
+  .sr-ln .o { color: var(--sr-output); }
+  .sr-ln.prime { color: var(--sr-prime-text); text-shadow: 0 0 12px rgba(150,170,255,0.5); }
+  .sr-ln.prime .o { color: var(--sr-prime-output); }
+
+  /* ============ 转场 glitch ============ */
+  .sr-glitch {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .intro.scene-glitch .sr-glitch { opacity: 1; }
+
+  /* ============ 幕3 漫画格 ============ */
+  /* 主题变量：默认深夜暗调（与终端段一致），html:not(.dark) 时纸白。可调节=跟随站点明暗 */
+  .sr-manga {
+    --manga-bg: #10121b;
+    --manga-cell: #171a26;
+    --manga-ink: #e8e9f0;
+    --manga-line: #e8e9f0;
+    --manga-bubble-bg: #1b1d2a;
+    --manga-bubble-ink: #e8e9f0;
+    --manga-shadow: rgba(0, 0, 0, 0.5);
+    --manga-side-bg1: rgba(232, 233, 240, 0.06);
+    --manga-side-bg2: rgba(232, 233, 240, 0.05);
+    position: absolute;
+    inset: 0;
+    background: var(--manga-bg);
+    opacity: 0;
+    transition: opacity 0.7s ease;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  :global(html:not(.dark)) .sr-manga {
+    --manga-bg: #f4f3ee;
+    --manga-cell: #ffffff;
+    --manga-ink: #12131a;
+    --manga-line: #12131a;
+    --manga-bubble-bg: #ffffff;
+    --manga-bubble-ink: #12131a;
+    --manga-shadow: rgba(18, 19, 26, 0.16);
+    --manga-side-bg1: rgba(18, 19, 26, 0.08);
+    --manga-side-bg2: rgba(18, 19, 26, 0.05);
+  }
+  .intro.scene-manga .sr-manga { opacity: 1; }
+  .sr-manga__grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 0.42fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    padding: 12px;
+    background: var(--manga-bg);
+  }
+  .sr-manga__cell {
+    border: 2px solid var(--manga-line);
+    background: var(--manga-cell);
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 4px 4px 0 var(--manga-shadow);
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .intro.scene-manga .sr-manga__cell--main { opacity: 1; transform: none; transition-delay: 0.1s; }
+  .intro.scene-manga .sr-manga__cell--side:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.32s; }
+  .intro.scene-manga .sr-manga__cell--side:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.52s; }
+  .sr-manga__cell--main {
+    grid-row: 1 / 3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .sr-manga__cell--side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(120px 60px at 70% 30%, var(--manga-side-bg1), transparent 70%),
+      repeating-linear-gradient(45deg, transparent 0 6px, var(--manga-side-bg2) 6px 8px),
+      var(--manga-cell);
+  }
+  .sr-manga__cell-label {
+    font-family: "Fusion Pixel", ui-monospace, monospace;
+    font-size: clamp(0.8rem, 2.4vmin, 1.5rem);
+    font-weight: 600;
+    color: var(--manga-line);
+    letter-spacing: 0.04em;
+    padding: 0 10px;
+    text-align: center;
+  }
+  .sr-manga__cell--num .sr-manga__cell-num {
+    font-size: clamp(0.55rem, 1.3vmin, 0.8rem);
+    color: var(--manga-line);
+    opacity: 0.6;
+    word-break: break-all;
+    padding: 0 12px;
+    text-align: center;
+    font-family: ui-monospace, monospace;
+  }
+  .sr-manga__girl {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    height: 100%;
+    object-fit: contain;
+    /* 透明底立绘直接显示：不加 mix-blend-mode，人物在任何底色上都不被染色 */
+    pointer-events: none;
+    user-select: none;
+    filter: contrast(1.04);
+  }
+
+  /* 对话框（漫画气泡，硬核符号） */
+  .sr-manga__bubble {
+    position: absolute;
+    top: 6%;
+    left: 5%;
+    max-width: 46%;
+    background: var(--manga-bubble-bg);
+    border: 2.5px solid var(--manga-bubble-ink);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 5px 5px 0 var(--manga-shadow);
+    font-size: clamp(10px, 1.75vmin, 14px);
+    line-height: 1.85;
+    color: var(--manga-bubble-ink);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  /* 气泡由 JS 打字开始时才浮现（不再靠固定 CSS delay，避免"先出现空气泡"） */
+  .sr-manga__bubble.show { opacity: 1; transform: none; }
+  .sr-manga__bubble::after {
+    content: "";
+    position: absolute;
+    right: -14px;
+    bottom: 26%;
+    width: 24px;
+    height: 24px;
+    background: var(--manga-bubble-bg);
+    border-right: 2.5px solid var(--manga-bubble-ink);
+    border-bottom: 2.5px solid var(--manga-bubble-ink);
+    transform: rotate(-45deg);
+  }
+  .sr-manga__bubble-line { margin: 0; white-space: pre-wrap; min-height: 1.85em; }
+  .sr-manga__bubble-line + .sr-manga__bubble-line { margin-top: 8px; }
+  .sr-manga__bubble-line::after { content: ""; display: inline-block; width: 0.55em; }
+  .sr-manga__bubble-line.typing::after { content: "▍"; animation: sr-blink 0.7s steps(1) infinite; }
+
+  /* ============ 终幕 ============ */
+  .sr-title {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: var(--sr-title-bg);
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .intro.scene-title .sr-title { opacity: 1; }
+  .sr-title__main {
+    margin: 0;
+    font-size: clamp(2.6rem, 9.5vmin, 6.5rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--sr-title-text);
+    text-shadow: 0 0 40px rgba(150, 170, 255, 0.22);
+  }
+  .sr-title__sub {
+    margin: 1.4rem 0 0;
+    font-size: clamp(0.8rem, 2.2vmin, 1.05rem);
+    color: var(--sr-title-sub);
+    letter-spacing: 0.06em;
+    max-width: 78vw;
+  }
+  .sr-title__hint {
+    margin-top: 3rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.4em;
+    color: var(--sr-title-hint);
+  }
+
+  /* SKIP */
+  .sr-skip {
+    position: fixed;
+    right: 22px;
+    bottom: 20px;
+    z-index: 10000;
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--sr-skip-text);
+    background: none;
+    border: 1px solid var(--sr-skip-border);
+    border-radius: 6px;
+    padding: 8px 14px 8px 16px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .sr-skip:hover { color: var(--sr-skip-hover); border-color: var(--sr-skip-text); }
+  :global(html:not(.intro-on)) .sr-skip { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sr-term__body::after, .sr-manga__bubble-line::after { animation: none; }
+    .sr-term, .sr-manga, .sr-title, .sr-manga__cell, .sr-manga__bubble { transition: none; }
+  }
+
+  @media (max-width: 640px) {
+    .sr-manga__grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+    .sr-manga__cell--main { grid-row: auto; min-height: 58vh; }
+    .sr-manga__cell--side { display: none; }
+    .sr-manga__bubble { max-width: 86%; top: 4%; left: 6%; }
+    .sr-manga__bubble::after { right: auto; left: 30%; top: 100%; transform: rotate(45deg); }
+  }
+</style>
+
+<script>
+  const intro = document.getElementById('intro')!;
+  const rootEl = document.documentElement;
+  const termBody = document.getElementById('srTermBody')!;
+  const glitchCv = document.getElementById('srGlitch') as HTMLCanvasElement;
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  let runId = 0;
+
+  /* ---------- 终端逐字渲染 ---------- */
+  function ln(html: string, prime = false) {
+    const d = document.createElement('div');
+    d.className = 'sr-ln' + (prime ? ' prime' : '');
+    d.innerHTML = html;
+    termBody.appendChild(d);
+    return d;
+  }
+  async function typeIn(el: HTMLElement, text: string, speed = 26) {
+    for (const ch of text) {
+      el.textContent += ch;
+      await wait(speed + Math.random() * 16);
+      if (el.dataset.killed) return;
+    }
+  }
+
+  // 真实运行的内容（quine + pygodel 哥德尔数）
+  const QUINE_SRC = "s = 's = %r\\nprint(s %% s)'";
+  const QUINE_CALL = "print(s % s)";
+  const QUINE_OUT_A = "s = 's = %r\\nprint(s %% s)'";
+  const QUINE_OUT_B = "print(s % s)";
+  const GODEL_SEQ = "∃ x ¬ ( x = 0 )";
+  const GODEL_NUM = "4768482518156198743355301619904160977248815307515073921292435114564654908416000000000";
+  const PRIME_LINES = new Set([2, 3, 5, 7, 11, 13, 17]);
+  let lineNo = 0;
+
+  async function sceneQuine() {
+    // $ cat quine.py  （读源码）
+    lineNo++;
+    ln(`<span class="p">murdo@amayo:~$</span> <span class="c">cat quine.py</span>`, PRIME_LINES.has(lineNo));
+    await wait(420); if (!window.__introPlayed) return;
+    lineNo++;
+    ln(`<span class="o">${QUINE_SRC}</span>`, PRIME_LINES.has(lineNo));
+    await wait(300); if (!window.__introPlayed) return;
+    lineNo++;
+    ln(`<span class="o">${QUINE_CALL}</span>`, PRIME_LINES.has(lineNo));
+    await wait(500); if (!window.__introPlayed) return;
+
+    // $ python3 quine.py  （运行，输出逐字与源码重合）
+    lineNo++;
+    ln(`<span class="p">murdo@amayo:~$</span> <span class="c">python3 quine.py</span>`, PRIME_LINES.has(lineNo));
+    await wait(520); if (!window.__introPlayed) return;
+    lineNo++;
+    const o1 = ln(`<span class="o"></span>`, PRIME_LINES.has(lineNo));
+    await typeIn(o1.querySelector('.o') as HTMLElement, QUINE_OUT_A, 18);
+    if (!window.__introPlayed) return;
+    lineNo++;
+    const o2 = ln(`<span class="o"></span>`, PRIME_LINES.has(lineNo));
+    await typeIn(o2.querySelector('.o') as HTMLElement, QUINE_OUT_B, 18);
+    if (!window.__introPlayed) return;
+    await wait(400);
+  }
+
+  async function sceneFormal() {
+    lineNo++;
+    ln(`<span class="p">murdo@amayo:~$</span> <span class="c">python3 -c 'godel(∃x¬(x=0))'</span>`, PRIME_LINES.has(lineNo));
+    await wait(600); if (!window.__introPlayed) return;
+    lineNo++;
+    ln(`<span class="o">${GODEL_SEQ}</span>`, PRIME_LINES.has(lineNo));
+    await wait(700); if (!window.__introPlayed) return;
+    lineNo++;
+    const g = ln(`<span class="o"></span>`, PRIME_LINES.has(lineNo));
+    await typeIn(g.querySelector('.o') as HTMLElement, GODEL_NUM, 6);
+    if (!window.__introPlayed) return;
+    await wait(900);
+  }
+
+  /* ---------- glitch 崩解 → 漫画格 ---------- */
+  function glitchIntoManga(): Promise<void> {
+    return new Promise((resolve) => {
+      const ctx = glitchCv.getContext('2d');
+      if (!ctx) { resolve(); return; }
+      const w = (glitchCv.width = innerWidth);
+      const h = (glitchCv.height = innerHeight);
+      // 读主题变量调色板，转场颜色全程跟随明暗
+      const csIntro = getComputedStyle(intro);
+      const gv = (el: HTMLElement, name: string, fb: string) =>
+        (getComputedStyle(el).getPropertyValue(name) || fb).trim();
+      const mangaEl = document.getElementById('srManga')!;
+      const C = {
+        bg: gv(intro, '--sr-bg', '#07080d'),
+        output: gv(intro, '--sr-output', '#8b9bff'),
+        primeOut: gv(intro, '--sr-prime-output', '#c9d4ff'),
+        mangaBg: gv(mangaEl, '--manga-bg', '#10121b'),
+      };
+      ctx.fillStyle = C.bg;
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = '13px ui-monospace, monospace';
+      ctx.fillStyle = C.output;
+      let ty = h * 0.2;
+      ctx.fillText('murdo@amayo:~$ python3 quine.py', w * 0.16, ty);
+      ctx.fillText(QUINE_OUT_A, w * 0.16, (ty += 26));
+      ctx.fillText(QUINE_OUT_B, w * 0.16, (ty += 26));
+      ctx.fillText('', w * 0.16, (ty += 26));
+      ctx.fillText('murdo@amayo:~$ python3 -c \'godel(∃x¬(x=0))\'', w * 0.16, (ty += 26));
+      ctx.fillStyle = C.primeOut;
+      ctx.fillText(GODEL_NUM.slice(0, 64), w * 0.16, (ty += 26));
+      ctx.fillText(GODEL_NUM.slice(64), w * 0.16, (ty += 26));
+
+      const t0 = performance.now();
+      const DUR = 2000;
+      const SLICES = 12;
+      (function frame(now: number) {
+        if (!window.__introPlayed) { resolve(); return; }
+        const t = (now - t0) / DUR;
+        ctx.fillStyle = C.bg;
+        ctx.fillRect(0, 0, w, h);
+        if (t < 0.55) {
+          // 撕裂抖动：切片错位
+          const amp = (1 - t / 0.55) * 34;
+          for (let i = 0; i < SLICES; i++) {
+            const sy = (h / SLICES) * i;
+            const off = (Math.random() - 0.5) * amp * (i % 2 ? 1 : -1);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, sy, w, h / SLICES);
+            ctx.clip();
+            ctx.translate(off, 0);
+            // 重画终端内容（平移错位）
+            ctx.font = '13px ui-monospace, monospace';
+            ctx.fillStyle = C.output;
+            let y2 = h * 0.2;
+            ctx.fillText('murdo@amayo:~$ python3 quine.py', w * 0.16, y2);
+            ctx.fillText(QUINE_OUT_A, w * 0.16, (y2 += 26));
+            ctx.fillText(QUINE_OUT_B, w * 0.16, (y2 += 26));
+            ctx.fillStyle = C.primeOut;
+            ctx.fillText(GODEL_NUM.slice(0, 64), w * 0.16, (y2 += 26));
+            ctx.restore();
+          }
+          requestAnimationFrame(frame);
+        } else {
+          // 落定：淡出为漫画底（颜色跟随主题变量，深色不突兀）
+          const k = Math.min(1, (t - 0.55) / 0.45);
+          ctx.globalAlpha = k;
+          ctx.fillStyle = C.mangaBg;
+          ctx.fillRect(0, 0, w, h);
+          ctx.globalAlpha = 1;
+          if (k < 1) requestAnimationFrame(frame);
+          else resolve();
+        }
+      })(t0);
+    });
+  }
+
+  /* ---------- 少女对话框打字机（气泡随打字开始才浮现，逐字打出） ---------- */
+  async function typeBubble() {
+    const bubble = document.getElementById('srBubble');
+    const lines = Array.from(document.querySelectorAll<HTMLElement>('.sr-manga__bubble-line'));
+    // 清空残留（重播时上一次的成品文字），保证每次从空开始逐字
+    lines.forEach((el) => { el.textContent = ''; el.classList.remove('typing'); });
+    // 气泡先浮现（空），再逐行逐字
+    if (bubble) bubble.classList.add('show');
+    await wait(240);
+    for (const el of lines) {
+      const full = el.dataset.full || '';
+      el.classList.add('typing');
+      for (let i = 0; i <= full.length; i++) {
+        if (!window.__introPlayed) { el.classList.remove('typing'); return; }
+        el.textContent = full.slice(0, i);
+        await wait(15 + Math.random() * 9);   // 加速：三句控制在幕3 的 5s 窗口内
+      }
+      el.classList.remove('typing');
+      await wait(220);
+    }
+  }
+
+  /* ---------- 主流程 ---------- */
+  async function play() {
+    const token = ++runId;
+    window.__introPlayed = true;
+    termBody.innerHTML = '';
+    lineNo = 0;
+    intro.className = 'intro';
+    rootEl.classList.remove('intro-seen', 'intro-finished');
+    rootEl.classList.add('intro-on');
+
+    // 幕1a：终端亮起 + quine（0–3s，用播放起点对齐刻度）
+    const startAt = performance.now();
+    intro.classList.add('scene-term');
+    await sceneQuine(); if (token !== runId) return;
+    const padTo3s = Math.max(0, 3000 - (performance.now() - startAt));
+    await wait(padTo3s);
+
+    // 幕1b：形式化推导（3–8s）
+    await sceneFormal(); if (token !== runId) return;
+    const padTo8s = Math.max(0, 8000 - (performance.now() - startAt));
+    await wait(padTo8s);
+
+    // 转场：崩解为纸（8–10s）
+    intro.classList.add('scene-glitch');
+    await glitchIntoManga(); if (token !== runId) return;
+    const padTo10s = Math.max(0, 10000 - (performance.now() - startAt));
+    await wait(padTo10s);
+
+    // 幕3：少女登场 + 对话框（10–15s）
+    intro.classList.remove('scene-term', 'scene-glitch');
+    intro.classList.add('scene-manga');
+    glitchCv.getContext('2d')?.clearRect(0, 0, glitchCv.width, glitchCv.height);
+    await wait(700);
+    if (token !== runId) return;
+    await typeBubble(); if (token !== runId) return;
+    const padTo15s = Math.max(0, 15000 - (performance.now() - startAt));
+    await wait(padTo15s);
+
+    // 终幕（15–17s）
+    intro.classList.add('scene-title');
+    await wait(2000);
+    if (token !== runId) return;
+    finish();
+  }
+
+  function finish() {
+    runId++;
+    window.__introPlayed = false;
+    intro.classList.add('is-done');
+    rootEl.classList.remove('intro-on');
+    rootEl.classList.add('intro-finished');
+    sessionStorage.setItem('introPlayed', '1');
+  }
+
+  document.getElementById('srSkip')!.addEventListener('click', finish);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' && e.key !== 'Enter' && e.key !== ' ') return;
+    if (!rootEl.classList.contains('intro-on') || intro.classList.contains('is-done')) return;
+    e.preventDefault();
+    finish();
+  });
+  document.addEventListener('intro:replay', () => {
+    sessionStorage.removeItem('introPlayed');
+    play();
+  });
+
+  if (rootEl.classList.contains('intro-on') && !rootEl.classList.contains('intro-reduced')) {
+    requestAnimationFrame(play);
+  }
+</script>

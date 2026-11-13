@@ -1,0 +1,115 @@
+/**
+ * 番剧收藏数据（本地数据源）。
+ * 用于番剧页：src/pages/anime.astro → organisms/AnimeSection → molecules/AnimeCard。
+ *
+ * 添加条目：在 animeData 中追加一项即可，状态筛选 chips 与计数自动生成。
+ * - cover 省略时卡片显示主题色渐变占位（补图前不破版）；
+ * - link 省略时封面不可点；rating 为 0-10 个人评分；
+ * - progress 是结构化追番进度，watching 状态在卡片上渲染进度条。
+ * JSON 数据源（外部收藏服务拉取）见 utils/anime-data.ts 的 AnimeSource 分发。
+ */
+
+import type { AnimeIdentity } from "../types/animeConfig.ts";
+
+/** 收藏状态（Bangumi 领域通行五态） */
+export type AnimeStatus =
+	| "watching"
+	| "completed"
+	| "planned"
+	| "onHold"
+	| "dropped";
+
+export interface AnimeItem {
+	title: string;
+	/** 封面图地址（相对 /public 或绝对 URL）；省略 = 渐变占位 */
+	cover?: string;
+	/** 条目外链（Bangumi/官方站等）；省略则封面不可点 */
+	link?: string;
+	status: AnimeStatus;
+	/** 个人评分 0-10 */
+	rating: number;
+	/** 追番进度：已看 / 总集数（未知时可选省略） */
+	progress?: { watched: number; total: number };
+	/** 一句话感想 */
+	description?: string;
+	/** 放送年份（展示用） */
+	year: string;
+	/** 制作公司 */
+	studio?: string;
+	/** 题材标签 */
+	genres: string[];
+	/** 观看时间段（年-月） */
+	period?: { start: string; end: string };
+	/** 条目来源身份标识（可选，用于跨源去重与归档） */
+	identity?: AnimeIdentity;
+}
+
+export const animeData: AnimeItem[] = [
+	// 占位：数据源待用户决定（本地手维护 / Bangumi 快照 / Bilibili 快照，见 animeConfig.ts）
+	{
+		title: "Lycoris Recoil",
+		cover: "/assets/anime/lkls.webp",
+		link: "https://www.bilibili.com/bangumi/media/md28338623",
+		status: "completed",
+		rating: 9.0,
+		progress: { watched: 13, total: 13 },
+		description: "少女们的咖啡馆日常，与不动声色的枪战。",
+		year: "2022",
+		studio: "A-1 Pictures",
+		genres: ["Action", "Slice of Life"],
+		period: { start: "2022-07", end: "2022-09" },
+	},
+	// 占位：数据源待用户决定
+	{
+		title: "Bocchi the Rock!",
+		// 封面暂缺，卡片使用主题色渐变占位
+		link: "https://bgm.tv/subject/328609",
+		status: "completed",
+		rating: 9.0,
+		progress: { watched: 12, total: 12 },
+		description: "社恐吉他手与结束乐队。",
+		year: "2022",
+		studio: "CloverWorks",
+		genres: ["Music", "Comedy"],
+		period: { start: "2022-10", end: "2022-12" },
+	},
+	// 占位：数据源待用户决定
+	{
+		title: "Frieren: Beyond Journey’s End",
+		// 封面暂缺，卡片使用主题色渐变占位
+		link: "https://bgm.tv/subject/400602",
+		status: "completed",
+		rating: 9.5,
+		progress: { watched: 28, total: 28 },
+		description: "勇者一行之后，魔法使漫长的余生。",
+		year: "2023",
+		studio: "Madhouse",
+		genres: ["Fantasy", "Adventure"],
+		period: { start: "2023-09", end: "2024-03" },
+	},
+	// 占位：数据源待用户决定
+	{
+		title: "Laid-Back Camp",
+		// 封面暂缺，卡片使用主题色渐变占位
+		link: "https://bgm.tv/subject/207195",
+		status: "watching",
+		rating: 0,
+		progress: { watched: 5, total: 12 },
+		description: "冬夜、篝火与慢悠悠的露营。",
+		year: "2018",
+		studio: "C-Station",
+		genres: ["Slice of Life", "Healing"],
+	},
+	// 占位：数据源待用户决定
+	{
+		title: "K-ON!",
+		// 封面暂缺，卡片使用主题色渐变占位
+		link: "https://bgm.tv/subject/1424",
+		status: "planned",
+		rating: 0,
+		description: "放学后的轻音部茶会。",
+		year: "2009",
+		studio: "Kyoto Animation",
+		genres: ["Music", "Slice of Life"],
+	},
+];

@@ -1,0 +1,33 @@
+---
+/**
+ * 页脚范畴论签名（交换图）：
+ *   思想 —f→ 工具      g: 工具→世界
+ *    ↓h        ↓g       h: 思想→随笔  k: 随笔→世界
+ *   随笔 —k→ 世界      此图交换：g ∘ f = k ∘ h
+ * 移植自旧站 BaseLayout.astro；箭头直接内联绘制（页脚在桌面/移动各渲染一次，
+ * 避免 SVG marker id 重复）。颜色全走 M3 CSS 变量。
+ */
+---
+
+<div class="math-sig" aria-hidden="true">
+	<svg viewBox="0 0 240 96" width="240" height="96" role="img">
+		<text x="24" y="24" text-anchor="middle">思想</text>
+		<text x="216" y="24" text-anchor="middle">工具</text>
+		<text x="24" y="84" text-anchor="middle">随笔</text>
+		<text x="216" y="84" text-anchor="middle">世界</text>
+		<line x1="44" y1="20" x2="190" y2="20"></line>
+		<line x1="44" y1="80" x2="190" y2="80"></line>
+		<line x1="24" y1="32" x2="24" y2="66"></line>
+		<line x1="216" y1="32" x2="216" y2="66"></line>
+		<!-- 箭头（内联三角，随线色） -->
+		<path d="M 190 16 L 198 20 L 190 24 z"></path>
+		<path d="M 190 76 L 198 80 L 190 84 z"></path>
+		<path d="M 20 66 L 24 74 L 28 66 z"></path>
+		<path d="M 212 66 L 216 74 L 220 66 z"></path>
+		<text x="120" y="14" text-anchor="middle" class="sig-edge">f</text>
+		<text x="120" y="94" text-anchor="middle" class="sig-edge">k</text>
+		<text x="12" y="56" text-anchor="middle" class="sig-edge">h</text>
+		<text x="230" y="56" text-anchor="middle" class="sig-edge">g</text>
+	</svg>
+	<p class="sig-caption">g ∘ f = k ∘ h · in the category of Murdo</p>
+</div>

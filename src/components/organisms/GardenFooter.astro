@@ -1,0 +1,17 @@
+---
+import Icon from "@components/atoms/display/Icon.svelte";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { profileConfig } from "@/config/profileConfig";
+import { siteConfig } from "@/config/siteConfig";
+import { url } from "@utils/url-utils";
+const year = new Intl.DateTimeFormat("en", {
+	year: "numeric",
+	timeZone: siteConfig.timeZone,
+}).format(new Date());
+---
+
+<footer class="garden-footer">
+	<div class="garden-footer__left"><span>© {year} {profileConfig.name}</span><span class="garden-footer__dot" aria-hidden="true">·</span><span>{i18n(I18nKey.gardenSiteDescription)}</span></div>
+	<div class="garden-footer__right"><a href={url("rss/")} aria-label={i18n(I18nKey.rss)}><Icon icon="material-symbols:rss-feed-rounded" />RSS</a><span>Astro <span aria-hidden="true">×</span> <a href="https://github.com/LyraVoid/Shirone" target="_blank" rel="noopener noreferrer">Shirone</a></span><a class="garden-footer__top m3-state-layer" href="#navbar" aria-label={i18n(I18nKey.backToTop)}><Icon icon="material-symbols:arrow-upward-rounded" /></a></div>
+</footer>

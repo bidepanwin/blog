@@ -1,0 +1,159 @@
+---
+/**
+ * 思考专栏首页：50 位思想者 × 2 篇（什么是学习 / 怎么学习），按学派分组。
+ * 数据来自 thinking collection（Obsidian 03 thinking 导入）。
+ */
+import Key from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getCollection } from "astro:content";
+import { url } from "@utils/url-utils";
+
+const notes = await getCollection("thinking");
+
+// 按 school 分组（无 school 归入其他）
+const groups = new Map<string, typeof notes>();
+for (const n of notes) {
+	const school = n.data.school || "其他";
+	if (!groups.has(school)) groups.set(school, []);
+	groups.get(school)!.push(n);
+}
+// 每组内按人物名聚合成对（"X-什么是学习" / "X-怎么学习"）
+type Pair = {
+	who: string;
+	what?: (typeof notes)[number];
+	how?: (typeof notes)[number];
+};
+const pairMap = new Map<string, Map<string, Pair>>();
+for (const [school, list] of groups) {
+	const pairs = new Map<string, Pair>();
+	for (const n of list) {
+		const m = n.id.match(/^(.*?)-(什么是学习|怎么学习)$/);
+		const who = m ? m[1] : n.id;
+		const kind = m ? m[2] : "";
+		if (!pairs.has(who)) pairs.set(who, { who });
+		const p = pairs.get(who)!;
+		if (kind === "什么是学习") p.what = n;
+		else if (kind === "怎么学习") p.how = n;
+	}
+	pairMap.set(school, pairs);
+}
+
+const schoolOrder = [
+	"科学巨匠派",
+	"计算机与 AI 先驱",
+	"AI 科学家",
+	"AI 建造者",
+	"投资/风险",
+	"企业经营",
+	"行动/建造",
+	"效率/务实",
+	"东方心性派",
+	"意识科学",
+];
+const schools = [...pairMap.keys()].sort((a, b) => {
+	const ia = schoolOrder.indexOf(a),
+		ib = schoolOrder.indexOf(b);
+	return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+});
+
+const schoolMeta: Record<string, { philosophy: string; action: string }> = {
+	科学巨匠派: {
+		philosophy: "跟问题待得足够久",
+		action: "观察、思想实验、积累",
+	},
+	"计算机与 AI 先驱": {
+		philosophy: "智能与学习是可精确描述的机制",
+		action: "建模、试错、表征",
+	},
+	"AI 科学家": {
+		philosophy: "智能 = 学会如何学习",
+		action: "复现、推导、追问机制",
+	},
+	"AI 建造者": {
+		philosophy: "在真实反馈中长出来",
+		action: "做产品、快速迭代、犯错",
+	},
+	"投资/风险": {
+		philosophy: "避开蠢比追求聪明简单",
+		action: "逆向、能力圈、复利",
+	},
+	企业经营: {
+		philosophy: "向一切强者学，然后行动",
+		action: "对标、复盘、在战争中学",
+	},
+	"行动/建造": { philosophy: "做出来才算", action: "实践、项目、调查" },
+	"效率/务实": { philosophy: "学习换来选择权", action: "压缩经验、学硬技能" },
+	东方心性派: {
+		philosophy: "知行合一，学为成人",
+		action: "事上磨、时习、自省",
+	},
+	意识科学: {
+		philosophy: "意识是整合/广播/预测的信息结构",
+		action: "深度编码、自动化、利用误差",
+	},
+};
+
+const total = notes.length;
+---
+
+<MainGridLayout title={i18n(Key.blogThinking)} description={i18n(Key.blogThinkingIntro)} page="thinking">
+	<section class="thinking-intro">
+		<h1 class="thinking-title">{i18n(Key.blogThinking)}</h1>
+		<p class="thinking-lead">{i18n(Key.blogThinkingIntro)}</p>
+		<p class="thinking-meta">{i18n(Key.blogEntryCount).replace("{count}", String(total))}</p>
+	</section>
+
+	<section class="thinking-schools">
+		{
+			schools.map((school) => {
+				const meta = schoolMeta[school];
+				const pairs = [...(pairMap.get(school)?.values() ?? [])];
+				return (
+					<div class="thinking-school">
+						<header class="thinking-school__head">
+							<h2>{school}</h2>
+							{meta && (
+								<p class="thinking-school__meta">
+									<span>{meta.philosophy}</span>
+									<span class="thinking-school__action">{meta.action}</span>
+								</p>
+							)}
+						</header>
+						<ul class="thinking-people">
+							{pairs.map((p) => (
+								<li>
+									<span class="thinking-who">{p.who}</span>
+									<span class="thinking-links">
+										{p.what && <a href={url(`/thinking/${encodeURIComponent(p.what.id)}/`)}>What</a>}
+										{p.what && p.how && <span class="thinking-dot">·</span>}
+										{p.how && <a href={url(`/thinking/${encodeURIComponent(p.how.id)}/`)}>How</a>}
+									</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				);
+			})
+		}
+	</section>
+</MainGridLayout>
+
+<style>
+	.thinking-intro { margin: 0 0 2.5rem; }
+	.thinking-title { font: var(--m3e-type-headline-large); margin: 0 0 0.75rem; }
+	.thinking-lead { font: var(--m3e-type-body-large); color: var(--on-surface-variant); margin: 0 0 0.5rem; }
+	.thinking-meta { font: var(--m3e-type-label-medium); color: var(--on-surface-variant); margin: 0; }
+	.thinking-schools { display: flex; flex-direction: column; gap: 2rem; }
+	.thinking-school__head { margin-bottom: 0.75rem; }
+	.thinking-school__head h2 { font: var(--m3e-type-title-large); margin: 0; }
+	.thinking-school__meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0.25rem 0 0; font: var(--m3e-type-body-small); color: var(--on-surface-variant); }
+	.thinking-school__action { opacity: 0.7; }
+	.thinking-people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.25rem 1.5rem; }
+	.thinking-people li { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; padding: 0.35rem 0; border-bottom: 1px dashed color-mix(in oklab, var(--on-surface) 10%, transparent); }
+	.thinking-who { font: var(--m3e-type-body-medium); }
+	.thinking-links { font: var(--m3e-type-label-medium); white-space: nowrap; }
+	.thinking-links a { color: var(--primary); text-decoration: none; }
+	.thinking-links a:hover { text-decoration: underline; }
+	.thinking-dot { opacity: 0.4; margin: 0 0.25rem; }
+</style>

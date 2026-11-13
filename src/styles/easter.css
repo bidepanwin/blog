@@ -1,0 +1,202 @@
+/* ============================================================
+   彩蛋层（Task 5）：五角色素描立绘 + Gray-Scott / 二十面体 /
+   页脚交换图 / Konami。颜色全部走 M3 CSS 变量，跟随明暗主题。
+   ============================================================ */
+
+/* ---- Gray-Scott 反应扩散背景：暗色专属，位于纹理层(-z-20)之上 ---- */
+.grayscott-canvas {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: -10;
+	opacity: 0;
+	transition: opacity 0.8s ease;
+}
+html.dark .grayscott-canvas.is-active {
+	opacity: 1;
+}
+
+/* ---- 素描立绘通用：暗色反白成白描 + 紫罗兰轮廓光，浅色即纸上铅笔 ---- */
+.char-figure {
+	margin: 0;
+	line-height: 0;
+	pointer-events: none;
+}
+.char-figure img {
+	width: 100%;
+	height: auto;
+	transition: filter 0.35s ease, opacity 0.35s ease;
+}
+html.dark .char-figure img {
+	filter: invert(0.88) brightness(1.04)
+		drop-shadow(0 0 6px rgba(139, 155, 255, 0.35));
+}
+html:not(.dark) .char-figure img {
+	opacity: 0.85;
+}
+
+/* 首页站名旁：AI 少女叙述者（BannerStage 首页文案右侧） */
+.char-narrator {
+	position: absolute;
+	right: clamp(0.5rem, 4vw, 3rem);
+	bottom: 0.6rem;
+	height: clamp(84px, 14vh, 150px);
+	width: auto;
+}
+.char-narrator img {
+	height: 100%;
+	width: auto;
+}
+@media (max-width: 640px) {
+	.char-narrator {
+		height: 84px;
+		opacity: 0.85;
+	}
+}
+
+/* 内容页角色（projects 炼金术士 / about 窗边读书少女） */
+.char-page {
+	height: 96px;
+	width: max-content;
+	margin: 0 auto 0.25rem;
+}
+.char-page img {
+	height: 96px;
+	width: auto;
+}
+
+/* 404 迷路小魔女 */
+.char-404 {
+	height: 168px;
+	width: max-content;
+	margin: 0 auto 0.5rem;
+}
+.char-404 img {
+	height: 168px;
+	width: auto;
+}
+.goedel-note {
+	margin-top: 0.75rem;
+	font-family: var(--m3e-font-mono, monospace);
+	font-size: 0.72rem;
+	letter-spacing: 0.06em;
+	color: var(--on-surface-variant);
+	opacity: 1;
+}
+
+/* 页脚右侧：雨中少女坐在分割线上（墨线剪影，颜色烘焙在图内） */
+.char-footer {
+	position: relative;
+}
+.char-footer__figure {
+	position: absolute;
+	right: clamp(0.5rem, 4vw, 3rem);
+	bottom: 100%;
+	height: 104px;
+	width: auto;
+	opacity: 0.5;
+	filter: drop-shadow(0 0 14px rgba(123, 92, 255, 0.3));
+	pointer-events: none;
+}
+.char-footer__figure img {
+	height: 104px;
+	width: auto;
+}
+html:not(.dark) .char-footer__figure {
+	opacity: 0.35;
+	filter: none;
+}
+@media (max-width: 640px) {
+	.char-footer__figure,
+	.char-footer__figure img {
+		height: 78px;
+	}
+}
+
+/* ---- 首页数学角：二十面体 ---- */
+.math-corner {
+	margin-top: 3rem;
+	text-align: center;
+	pointer-events: none;
+}
+.math-corner canvas {
+	opacity: 0.85;
+}
+.math-caption {
+	margin-top: 0.25rem;
+	font-family: var(--m3e-font-mono, monospace);
+	font-size: 0.66rem;
+	letter-spacing: 0.18em;
+	color: var(--on-surface-variant);
+	opacity: 1;
+}
+
+/* ---- 页脚交换图 ---- */
+.math-sig {
+	margin: 2rem auto 0;
+	text-align: center;
+	opacity: 0.85;
+	transition: opacity 0.3s ease;
+}
+.math-sig:hover {
+	opacity: 1;
+}
+.math-sig svg {
+	display: block;
+	margin: 0 auto;
+	max-width: 100%;
+	height: auto;
+}
+.math-sig text {
+	fill: var(--on-surface-variant);
+	font-size: 13px;
+}
+.math-sig .sig-edge {
+	fill: var(--primary);
+	font-size: 9px;
+	font-family: var(--m3e-font-mono, monospace);
+	opacity: 0.8;
+}
+.math-sig line {
+	stroke: var(--outline-variant);
+	stroke-width: 1;
+}
+.math-sig marker path {
+	fill: var(--outline-variant);
+}
+.sig-caption {
+	margin-top: 0.35rem;
+	font-family: var(--m3e-font-mono, monospace);
+	font-size: 0.62rem;
+	letter-spacing: 0.2em;
+	color: var(--on-surface);
+	opacity: 1;
+}
+
+/* ---- Konami toast ---- */
+.konami-toast {
+	position: fixed;
+	left: 50%;
+	top: 18%;
+	transform: translateX(-50%) translateY(-8px);
+	z-index: 60;
+	padding: 0.6rem 1.4rem;
+	border: 1px solid var(--outline-variant);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--surface-container-high) 82%, transparent);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	font-family: var(--m3e-font-mono, monospace);
+	font-size: 0.8rem;
+	letter-spacing: 0.25em;
+	color: var(--on-surface);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.konami-toast.show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}

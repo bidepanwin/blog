@@ -1,0 +1,34 @@
+name: Personal blog checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blog-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm astro check
+      - run: pnpm design:lint
+      - run: pnpm check:manifest
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chrome
+      - run: pnpm exec playwright test tests/site/garden.spec.ts tests/site/albums.spec.ts tests/site/a11y.spec.ts

@@ -1,0 +1,111 @@
+---
+/**
+ * /wiki/：全站知识索引（Karpathy LLM Wiki 的 index.md 概念）。
+ * 结构由链接派生：按连接度排序、孤岛页面单独列出、断链作为 lint 报告。
+ */
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { buildWikiGraph } from "@utils/wiki-links";
+import { url } from "@utils/url-utils";
+
+const graph = await buildWikiGraph();
+const rows = [...graph.nodes.values()].map((n) => ({
+	...n,
+	inCount: graph.backlinks.get(n.id)?.length ?? 0,
+	outCount: graph.outlinks.get(n.id)?.length ?? 0,
+}));
+const connected = rows
+	.filter((r) => r.inCount + r.outCount > 0)
+	.sort((a, b) => b.inCount + b.outCount - (a.inCount + a.outCount));
+const islands = rows.filter((r) => r.inCount + r.outCount === 0);
+const brokenByTarget = new Map<string, number>();
+for (const b of graph.broken) {
+	brokenByTarget.set(b.target, (brokenByTarget.get(b.target) ?? 0) + 1);
+}
+const totalLinks = [...graph.outlinks.values()].reduce(
+	(s, a) => s + a.length,
+	0,
+);
+---
+
+<MainGridLayout title="Wiki Index" description="全站知识索引：目录由双链派生" page="wiki">
+	<section class="wiki-head">
+		<h1>Wiki Index</h1>
+		<p class="wiki-meta">
+			{rows.length} pages · {totalLinks} links · {brokenByTarget.size} broken targets · {islands.length} islands
+		</p>
+		<p class="wiki-note"><a href={url("/graph/")} class="wiki-graph-link">→ 关系图 / Graph</a>　
+			目录不按文件夹分类，而由 <code>[[双链]]</code> 的密度派生——连接越多越靠前。孤岛页面（无任何链接）与断链单独列出，供补齐引用。
+		</p>
+	</section>
+
+	<section class="wiki-section">
+		<h2>Most connected</h2>
+		<ul class="wiki-rows">
+			{
+				connected.map((r) => (
+					<li>
+						<a href={r.url} class="wiki-row__title">{r.title}</a>
+						<span class="wiki-row__kind">{r.kind === "thinking" ? r.school || "thinking" : "post"}</span>
+						<span class="wiki-row__counts">
+							<span title="backlinks">← {r.inCount}</span>
+							<span title="outlinks">→ {r.outCount}</span>
+						</span>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	{
+		islands.length > 0 && (
+			<section class="wiki-section wiki-section--muted">
+				<h2>Islands <span class="wiki-badge">{islands.length}</span></h2>
+				<p class="wiki-hint">无任何链接的页面——可考虑在相关文章里加入 <code>[[引用]]</code>。</p>
+				<ul class="wiki-rows">
+					{islands.map((r) => (
+						<li>
+							<a href={r.url} class="wiki-row__title">{r.title}</a>
+							<span class="wiki-row__kind">{r.kind === "thinking" ? r.school || "thinking" : "post"}</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{
+		brokenByTarget.size > 0 && (
+			<section class="wiki-section wiki-section--warn">
+				<h2>Broken links <span class="wiki-badge">{brokenByTarget.size}</span></h2>
+				<p class="wiki-hint">指向不存在页面的链接（graph rot 防护）——补建页面或修正目标名。</p>
+				<ul class="wiki-rows">
+					{[...brokenByTarget.entries()].map(([target, count]) => (
+						<li>
+							<code class="wiki-row__title">{target}</code>
+							<span class="wiki-row__counts">×{count}</span>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+</MainGridLayout>
+
+<style>
+	.wiki-head { margin-bottom: 2rem; }
+	.wiki-head h1 { font: var(--m3e-type-headline-medium); margin: 0 0 0.5rem; }
+	.wiki-meta { font: var(--m3e-type-label-medium); color: var(--on-surface-variant); margin: 0 0 0.75rem; }
+	.wiki-note { font: var(--m3e-type-body-small); color: var(--on-surface-variant); max-width: 44rem; margin: 0; }
+	.wiki-section { margin-bottom: 2.25rem; }
+	.wiki-section h2 { font: var(--m3e-type-title-medium); margin: 0 0 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+	.wiki-section--muted h2 { color: var(--on-surface-variant); }
+	.wiki-section--warn h2 { color: var(--error, #e57373); }
+	.wiki-badge { font: var(--m3e-type-label-small); padding: 0.1rem 0.5rem; border-radius: var(--shape-corner-full, 999px); background: var(--secondary-container); color: var(--on-secondary-container); }
+	.wiki-hint { font: var(--m3e-type-body-small); color: var(--on-surface-variant); margin: 0 0 0.6rem; }
+	.wiki-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+	.wiki-rows li { display: flex; align-items: baseline; gap: 0.75rem; padding: 0.4rem 0; border-bottom: 1px dashed color-mix(in oklab, var(--on-surface) 10%, transparent); }
+	.wiki-row__title { font: var(--m3e-type-body-medium); color: var(--primary); text-decoration: none; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.wiki-row__title:hover { text-decoration: underline; }
+	.wiki-row__kind { font: var(--m3e-type-label-small); color: var(--on-surface-variant); white-space: nowrap; }
+	.wiki-row__counts { font: var(--m3e-type-label-medium); color: var(--on-surface-variant); display: flex; gap: 0.6rem; white-space: nowrap; }
+</style>

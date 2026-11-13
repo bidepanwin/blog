@@ -1,0 +1,72 @@
+---
+/**
+ * 前沿日报/周报聚合页：按发布日期倒序列出全部报告。
+ * 数据来自 reports collection（scripts/sync-reports.mjs 从 frontier-report 同步）。
+ */
+import Key from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getCollection } from "astro:content";
+import { formatDateToYYYYMMDD } from "@utils/date-utils";
+import { url } from "@utils/url-utils";
+
+const reports = (await getCollection("reports"))
+	.filter((r) => !r.data.draft)
+	.sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+
+type ReportEntry = (typeof reports)[number];
+
+/** 类型徽标：category / tags 含 weekly/周报，或文件名含 weekly → Weekly，否则 Daily */
+function reportKind(entry: ReportEntry): "Daily" | "Weekly" {
+	if (/weekly|周报/i.test(entry.data.category)) return "Weekly";
+	if (entry.data.tags.some((t) => /weekly|周报/i.test(t))) return "Weekly";
+	if (entry.id.includes("weekly")) return "Weekly";
+	return "Daily";
+}
+---
+
+<MainGridLayout title={i18n(Key.blogReports)} description={i18n(Key.blogReportsIntro)} page="reports">
+	<section class="reports-intro">
+		<h1 class="reports-title">{i18n(Key.blogReports)}</h1>
+		<p class="reports-lead">{i18n(Key.blogReportsIntro)}</p>
+		<p class="reports-meta">{i18n(Key.blogEntryCount).replace("{count}", String(reports.length))}</p>
+	</section>
+
+	<section class="reports-list">
+		{reports.length === 0 && <p class="reports-empty">No reports yet — waiting for the first sync.</p>}
+		{
+			reports.map((r) => {
+				const kind = reportKind(r);
+				const dateStr = formatDateToYYYYMMDD(r.data.published);
+				return (
+					<a class="reports-item" href={url(`/reports/${encodeURIComponent(r.id)}/`)}>
+						<span class={`reports-badge reports-badge--${kind === "Weekly" ? "weekly" : "daily"}`}>{kind}</span>
+						<span class="reports-item__main">
+							<span class="reports-item__title">{r.data.title}</span>
+							{r.data.description && <span class="reports-item__desc">{r.data.description}</span>}
+						</span>
+						<time class="reports-item__date" datetime={dateStr}>{dateStr}</time>
+					</a>
+				);
+			})
+		}
+	</section>
+</MainGridLayout>
+
+<style>
+	.reports-intro { margin: 0 0 2.5rem; }
+	.reports-title { font: var(--m3e-type-headline-large); margin: 0 0 0.75rem; }
+	.reports-lead { font: var(--m3e-type-body-large); color: var(--on-surface-variant); margin: 0 0 0.5rem; }
+	.reports-meta { font: var(--m3e-type-label-medium); color: var(--on-surface-variant); margin: 0; }
+	.reports-list { display: flex; flex-direction: column; }
+	.reports-empty { font: var(--m3e-type-body-medium); color: var(--on-surface-variant); }
+	.reports-item { display: flex; align-items: baseline; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px dashed color-mix(in oklab, var(--on-surface) 10%, transparent); text-decoration: none; color: inherit; }
+	.reports-item:hover .reports-item__title { color: var(--primary); }
+	.reports-badge { flex-shrink: 0; padding: 0.15rem 0.6rem; border-radius: var(--shape-corner-full); font: var(--m3e-type-label-medium); }
+	.reports-badge--daily { background: var(--secondary-container); color: var(--on-secondary-container); }
+	.reports-badge--weekly { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+	.reports-item__main { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+	.reports-item__title { font: var(--m3e-type-body-large); transition: color 0.15s; }
+	.reports-item__desc { font: var(--m3e-type-body-small); color: var(--on-surface-variant); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.reports-item__date { margin-left: auto; flex-shrink: 0; font: var(--m3e-type-label-medium); color: var(--on-surface-variant); }
+</style>

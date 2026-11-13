@@ -1,0 +1,13 @@
+{
+  "title": "山野与日常",
+  "description": "示例相册：记录路上的风景，也留住普通日子。",
+  "date": "2026-11-08",
+  "location": "周末散步",
+  "tags": [
+    "风景",
+    "生活"
+  ],
+  "layout": "masonry",
+  "columns": 2,
+  "hidden": false
+}

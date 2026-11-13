@@ -1,0 +1,114 @@
+/* MUR DOS LOG · Giscus 主题「黑白漫画手账」— 亮色（纸白 + 墨黑） */
+main {
+  --font-cjk: "Fusion Pixel", "Yozai Medium", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* 基底：纸白 + 墨黑 */
+  --color-canvas-default: #f4f3ee;
+  --color-canvas-overlay: #ffffff;
+  --color-canvas-inset: #efece4;
+  --color-canvas-subtle: #ffffff;
+  --color-fg-default: #12131a;
+  --color-fg-muted: #5b5d68;
+  --color-fg-subtle: #8a8c96;
+  --color-border-default: #12131a;
+  --color-border-muted: #c9c7bf;
+  --color-neutral-muted: rgba(18, 19, 26, 0.06);
+  --color-accent-fg: #12131a;
+  --color-accent-emphasis: #12131a;
+  --color-accent-muted: rgba(18, 19, 26, 0.16);
+  --color-accent-subtle: rgba(18, 19, 26, 0.06);
+  --color-success-fg: #1a7f4b;
+  --color-attention-fg: #8a5a00;
+  --color-danger-fg: #a3231f;
+
+  /* 按钮：硬边框、纸底墨字 */
+  --color-btn-text: #12131a;
+  --color-btn-bg: #ffffff;
+  --color-btn-border: #12131a;
+  --color-btn-hover-bg: #12131a;
+  --color-btn-hover-border: #12131a;
+  --color-btn-hover-text: #f4f3ee;
+  --color-btn-primary-text: #f4f3ee;
+  --color-btn-primary-bg: #12131a;
+  --color-btn-primary-hover-bg: #2a2c38;
+  --color-btn-primary-selected-bg: #12131a;
+  --color-btn-primary-border: #12131a;
+  --color-btn-selected-bg: #12131a;
+
+  /* 输入框 */
+  --color-input-bg: #ffffff;
+  --color-input-border: #12131a;
+  --color-input-contrast-bg: #ffffff;
+
+  font-family: var(--font-cjk);
+  color: var(--color-fg-default);
+  background: var(--color-canvas-default) !important;
+}
+
+/* —— 手绘感卡片：硬描边 + 错位实影 —— */
+.gsc-comment,
+.gsc-reply-box,
+.gsc-comment-box,
+.gsc-timeline > div > .gsc-comment {
+  border: 2px solid #12131a !important;
+  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  /* 网点质感（极淡点阵） */
+  background-image: radial-gradient(circle, rgba(18, 19, 26, 0.05) 1px, transparent 1px) !important;
+  background-size: 6px 6px !important;
+  box-shadow: 3px 3px 0 rgba(18, 19, 26, 0.14) !important;
+}
+
+/* 头像：黑白化 + 方角，像剪贴的小照片 */
+.gsc-comment img,
+.gsc-reply img,
+.avatar {
+  filter: grayscale(1) contrast(1.08) !important;
+  border-radius: 3px !important;
+  border: 1.5px solid #12131a !important;
+  background: #fff !important;
+}
+
+/* 按钮与链接：墨线按钮 */
+button,
+.gsc-reply-btn,
+.gsc-reactions button {
+  border: 1.5px solid #12131a !important;
+  border-radius: 3px !important;
+  background: #fff !important;
+  color: #12131a !important;
+  font-family: var(--font-cjk) !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+button:hover,
+.gsc-reply-btn:hover {
+  background: #12131a !important;
+  color: #f4f3ee !important;
+}
+
+/* 输入框：纸面 + 墨线 */
+textarea,
+input[type="text"] {
+  border: 1.5px solid #12131a !important;
+  border-radius: 3px !important;
+  background: #fff !important;
+  color: #12131a !important;
+  font-family: var(--font-cjk) !important;
+}
+
+/* 分割线与时间戳：细墨线 + 弱化 */
+.gsc-comment-header,
+hr {
+  border-color: rgba(18, 19, 26, 0.2) !important;
+}
+.gsc-comment-author span,
+time,
+.gsc-comment-header span {
+  color: #5b5d68 !important;
+}
+
+/* 中文与符号用站点字体，整体收紧行距 */
+body, main, p, span, a, div {
+  font-family: var(--font-cjk);
+  letter-spacing: 0.01em;
+}

@@ -1,0 +1,211 @@
+---
+// 洛天依 Live2D 看板娘（左下角挂件）
+// 模型：SheepLiu712/Agent-LuoTianyi（Cubism 4，MIT 仓库），本地化到 /live2d/
+// 行为：懒加载（空闲时初始化，不阻塞首屏）；目光跟随；点击随机表情+动作
+// 降级：移动端(<768px)不加载；prefers-reduced-motion 不加载；脚本加载失败静默
+---
+<div class="l2d-widget" id="l2d-widget" aria-hidden="true">
+	<canvas id="l2d-canvas"></canvas>
+</div>
+
+<style>
+	.l2d-widget {
+		position: fixed;
+		width: clamp(150px, 17vmin, 220px);
+		height: clamp(240px, 27vmin, 350px);
+		z-index: 60;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.6s ease;
+		touch-action: none;
+		user-select: none;
+	}
+	.l2d-widget.is-ready {
+		pointer-events: auto;
+		opacity: 1;
+	}
+	.l2d-widget canvas {
+		width: 100%;
+		height: 100%;
+		display: block;
+	}
+	@media (max-width: 767px) {
+		.l2d-widget { display: none; }
+	}
+</style>
+
+<script>
+	(() => {
+		const widget = document.getElementById("l2d-widget")!;
+		const canvas = document.getElementById("l2d-canvas") as HTMLCanvasElement | null;
+		if (!canvas) return;
+
+		// 降级：移动端 / 减少动效 直接不加载
+		if (window.matchMedia("(max-width: 767px)").matches) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+		const loadScript = (src: string) =>
+			new Promise((resolve, reject) => {
+				const s = document.createElement("script");
+				s.src = src;
+				s.onload = resolve;
+				s.onerror = reject;
+				document.head.appendChild(s);
+			});
+
+		const EXPRESSIONS = [
+			"normal", "like", "ease", "resonate", "sleepy", "sing", "moemoe", "dumb",
+		];
+		const MOTIONS = [
+			"Tap头", "Tap耳机", "Tap袖", "Tap辫子", "Tap左腿", "Tap8", "倾听点头",
+		];
+		const POS_KEY = "l2d-pos";
+		const DRAG_THRESHOLD = 5;
+
+		// 位置：默认左下角，localStorage 记住上次拖动位置
+		{
+			let saved = null;
+			try {
+				saved = JSON.parse(localStorage.getItem(POS_KEY) || "null");
+			} catch {}
+			if (saved && typeof saved.x === "number" && typeof saved.y === "number") {
+				widget.style.left = saved.x + "px";
+				widget.style.top = saved.y + "px";
+			} else {
+				widget.style.left = "0.75rem";
+				widget.style.bottom = "0.75rem";
+			}
+		}
+
+		let app: any, model: any;
+		const rect = () => widget.getBoundingClientRect();
+
+		function scaleModel() {
+			if (!model || !model.internalModel) return;
+			const im = model.internalModel;
+			// 用模型的原始尺寸（就绪后才有效），不依赖 PIXI bounds（未 update 前是占位值）
+			const mw = im.width || model.width;
+			const mh = im.height || model.height;
+			if (!mw || !mh) return;
+			const r = rect();
+			const s = Math.min(r.width / mw, r.height / mh);
+			if (!Number.isFinite(s) || s <= 0) return;
+			model.scale.set(s);
+			model.x = (r.width - mw * s) / 2;
+			model.y = r.height - mh * s;
+		}
+
+		function onTap() {
+			if (!model) return;
+			const motion = MOTIONS[(Math.random() * MOTIONS.length) | 0];
+			const expr = EXPRESSIONS[(Math.random() * EXPRESSIONS.length) | 0];
+			model.motion(motion);
+			model.expression(expr);
+			setTimeout(() => model.expression("normal"), 2200);
+		}
+
+		async function init() {
+			try {
+				await loadScript("/live2d/js/pixi.min.js");
+				await loadScript("/live2d/js/live2dcubismcore.min.js");
+				await loadScript("/live2d/js/cubism4.min.js");
+				const P = (window as any).PIXI;
+				if (!P || !P.live2d || !P.live2d.Live2DModel) return;
+
+				app = new P.Application({
+					view: canvas,
+					resizeTo: widget,
+					autoStart: false,
+					transparent: true,
+					backgroundAlpha: 0,
+					resolution: Math.min(window.devicePixelRatio || 1, 2),
+					autoDensity: true,
+					antialias: true,
+				});
+
+				model = await P.live2d.Live2DModel.from(
+					"/live2d/models/luo/model.model3.json",
+					{ autoInteract: false },
+				);
+				app.stage.addChild(model);
+				model.eventMode = "none";
+				model.autoUpdate = false;
+				// 不用 PIXI Ticker（实测其内部 rAF 请求会断且 start() 无法恢复）：
+				// 自建单 rAF 循环驱动 update + render，页面隐藏时浏览器自动暂停，回来续跑
+				let last = performance.now();
+				const loop = (now: number) => {
+					const dt = Math.min(now - last, 100);
+					last = now;
+					try {
+						model.update(dt);
+						app.render();
+					} catch {
+						/* 单帧异常不中断循环 */
+					}
+					requestAnimationFrame(loop);
+				};
+				requestAnimationFrame(loop);
+				// 等模型内部就绪（internalModel.ready），再做缩放与表情
+				await new Promise<void>((resolve) => {
+					let tries = 0;
+					const tick = () => {
+						const ready =
+							model.internalModel && model.internalModel.ready && model.internalModel.width > 0;
+						if (ready || ++tries > 120) resolve();
+						else requestAnimationFrame(tick);
+					};
+					tick();
+				});
+				scaleModel();
+				model.expression("normal");
+				widget.classList.add("is-ready");
+				(window as any).__l2d = { app, model, P };
+
+				window.addEventListener("resize", scaleModel);
+				// 目光跟随（转换到模型本地坐标，交给 focusController 平滑）
+				window.addEventListener("pointermove", (e) => {
+					if (!model) return;
+					const r = rect();
+					const x = e.clientX - r.left - r.width / 2;
+					const y = e.clientY - r.top - r.height / 2;
+					model.focus(x, y);
+				});
+				// 拖拽（区分点击：位移超过阈值才算拖动，否则触发点击互动）
+				let drag: { sx: number; sy: number; left: number; top: number; moved: boolean } | null = null;
+				widget.addEventListener("pointerdown", (e) => {
+					const r = rect();
+					drag = { sx: e.clientX, sy: e.clientY, left: r.left, top: r.top, moved: false };
+					widget.setPointerCapture(e.pointerId);
+				});
+				widget.addEventListener("pointermove", (e) => {
+					if (!drag) return;
+					const dx = e.clientX - drag.sx;
+					const dy = e.clientY - drag.sy;
+					if (!drag.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) drag.moved = true;
+					if (!drag.moved) return;
+					widget.style.left = drag.left + dx + "px";
+					widget.style.top = drag.top + dy + "px";
+					widget.style.bottom = "auto";
+				});
+				widget.addEventListener("pointerup", () => {
+					if (!drag) return;
+					if (drag.moved) {
+						const r = rect();
+						localStorage.setItem(POS_KEY, JSON.stringify({ x: r.left, y: r.top }));
+					} else {
+						onTap();
+					}
+					drag = null;
+				});
+			} catch (err) {
+				// 加载失败：打印真实错误（便于排查），隐藏挂件但不删除（保留 DOM 便于诊断）
+				console.error("[l2d] init failed:", err);
+				widget.style.display = "none";
+			}
+		}
+
+		// 懒加载：首屏空闲后再初始化
+		const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
+		idle(() => init());
+	})();
+</script>

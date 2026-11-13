@@ -1,0 +1,109 @@
+---
+/**
+ * BacklinksPanel：双链详情页底部的「Linked from / Links to」面板。
+ * 无任何链接时不渲染（零 DOM）。
+ */
+import type { WikiNode } from "@utils/wiki-links";
+
+interface Props {
+	backlinks?: WikiNode[];
+	outlinks?: WikiNode[];
+	class?: string;
+}
+
+const { backlinks = [], outlinks = [], class: className } = Astro.props;
+const hasAny = backlinks.length > 0 || outlinks.length > 0;
+---
+
+{
+	hasAny && (
+		<aside class:list={["wiki-panel", className]} aria-label="Wiki links">
+			{backlinks.length > 0 && (
+				<section class="wiki-panel__group">
+					<h2 class="wiki-panel__title">
+						<span class="wiki-panel__count">{backlinks.length}</span> Linked from
+					</h2>
+					<ul class="wiki-panel__list">
+						{backlinks.map((n) => (
+							<li>
+								<a href={n.url}>{n.title}</a>
+								{n.school && <span class="wiki-panel__hint">{n.school}</span>}
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+			{outlinks.length > 0 && (
+				<section class="wiki-panel__group">
+					<h2 class="wiki-panel__title">
+						<span class="wiki-panel__count">{outlinks.length}</span> Links to
+					</h2>
+					<ul class="wiki-panel__list">
+						{outlinks.map((n) => (
+							<li>
+								<a href={n.url}>{n.title}</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			)}
+		</aside>
+	)
+}
+
+<style>
+	.wiki-panel {
+		margin: 2.5rem 0 1rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid color-mix(in oklab, var(--on-surface) 12%, transparent);
+		display: grid;
+		gap: 1.25rem;
+	}
+	.wiki-panel__title {
+		margin: 0 0 0.5rem;
+		font: var(--m3e-type-title-small);
+		color: var(--on-surface-variant);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.wiki-panel__count {
+		font: var(--m3e-type-label-small);
+		min-width: 1.5rem;
+		height: 1.5rem;
+		padding: 0 0.45rem;
+		border-radius: var(--shape-corner-full, 999px);
+		background: var(--secondary-container);
+		color: var(--on-secondary-container);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.wiki-panel__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+		gap: 0.15rem 1.25rem;
+	}
+	.wiki-panel__list li {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		padding: 0.2rem 0;
+	}
+	.wiki-panel__list a {
+		font: var(--m3e-type-body-medium);
+		color: var(--primary);
+		text-decoration: none;
+	}
+	.wiki-panel__list a:hover {
+		text-decoration: underline;
+	}
+	.wiki-panel__hint {
+		font: var(--m3e-type-label-small);
+		color: var(--on-surface-variant);
+		opacity: 0.6;
+	}
+</style>

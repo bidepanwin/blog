@@ -1,0 +1,225 @@
+---
+/**
+ * Gray-Scott 反应扩散斑图（图灵形态发生）
+ * ∂u/∂t = Dᵤ∇²u − uv² + F(1−u) ; ∂v/∂t = Dᵥ∇²v + uv² − (F+k)v
+ *
+ * 移植自旧站 Ambient.astro（2026-10 版），只保留反应扩散层：
+ * - 暗色专属：浅色主题不启动（html.dark），主题切换 MutationObserver 起停
+ * - intro 播放期间（window.__introPlayed === true）冻结，不与开场遮罩抢戏
+ * - prefers-reduced-motion 或 html.motion-reduced：完全不启动
+ * - 单 rAF、模拟 30Hz 封顶（每次 6 步有限差分）、DPR≤1.5、
+ *   128×128 离屏小画布 drawImage 放大、IntersectionObserver/页面隐藏暂停
+ * - 斑图颜色读 CSS 变量 --primary（靛蓝紫，hue 231），无硬编码颜色
+ * - Konami 秘籍触发时额外播种（document 'konami' 事件）
+ */
+---
+
+<canvas
+	class="grayscott-canvas"
+	id="grayscottCanvas"
+	aria-hidden="true"
+></canvas>
+
+<script>
+	const canvas = document.getElementById(
+		"grayscottCanvas",
+	) as HTMLCanvasElement | null;
+
+	const prefersReduced = window.matchMedia(
+		"(prefers-reduced-motion: reduce)",
+	).matches;
+	const manuallyReduced = () =>
+		document.documentElement.classList.contains("motion-reduced");
+
+	if (canvas && !prefersReduced && !manuallyReduced()) {
+		const cv: HTMLCanvasElement = canvas;
+		const ctx = cv.getContext("2d", { alpha: true })!;
+		let w = 0;
+		let h = 0;
+		let dpr = 1;
+		let dark = document.documentElement.classList.contains("dark");
+		let last = 0;
+		let simAcc = 0;
+		let seedTimer = 0;
+		let onScreen = true;
+		let sized = false;
+
+		// ====== Gray-Scott 反应扩散（迷宫纹 regime，参数原样搬自旧站） ======
+		const GW = 128;
+		const GH = 128;
+		const DU = 0.16;
+		const DV = 0.08;
+		const FEED = 0.0545;
+		const KILL = 0.062;
+		let U = new Float32Array(GW * GH).fill(1);
+		let V = new Float32Array(GW * GH);
+		const U2 = new Float32Array(GW * GH);
+		const V2 = new Float32Array(GW * GH);
+		const rdCv = document.createElement("canvas");
+		rdCv.width = GW;
+		rdCv.height = GH;
+		const rdCtx = rdCv.getContext("2d")!;
+		const rdImg = rdCtx.createImageData(GW, GH);
+
+		// --primary 是 oklch，canvas ImageData 需要 RGB：用探针元素读计算色
+		const probe = document.createElement("span");
+		probe.style.color = "var(--primary)";
+		probe.style.display = "none";
+		document.body.appendChild(probe);
+		function readPrimary(): [number, number, number] {
+			const m = getComputedStyle(probe).color.match(
+				/\d+(\.\d+)?/g,
+			);
+			if (!m) return [139, 155, 255];
+			return [
+				Math.round(Number(m[0])),
+				Math.round(Number(m[1])),
+				Math.round(Number(m[2])),
+			];
+		}
+		let rdColor = readPrimary();
+
+		function rdSeed(cx?: number, cy?: number) {
+			const x0 = cx ?? 10 + Math.random() * (GW - 20);
+			const y0 = cy ?? 10 + Math.random() * (GH - 20);
+			const r = 2 + Math.random() * 3;
+			for (
+				let y = Math.max(0, y0 - r | 0);
+				y < Math.min(GH, y0 + r);
+				y++
+			) {
+				for (
+					let x = Math.max(0, x0 - r | 0);
+					x < Math.min(GW, x0 + r);
+					x++
+				) {
+					const dx = x - x0;
+					const dy = y - y0;
+					if (dx * dx + dy * dy < r * r) {
+						const i = y * GW + x;
+						V[i] = 0.5 + Math.random() * 0.5;
+						U[i] = 0.5;
+					}
+				}
+			}
+		}
+
+		function rdInit() {
+			U.fill(1);
+			V.fill(0);
+			for (let i = 0; i < 12; i++) rdSeed();
+		}
+
+		function rdStep() {
+			for (let y = 0; y < GH; y++) {
+				const yu = ((y + GH - 1) % GH) * GW;
+				const yd = ((y + 1) % GH) * GW;
+				const row = y * GW;
+				for (let x = 0; x < GW; x++) {
+					const i = row + x;
+					const xl = row + ((x + GW - 1) % GW);
+					const xr = row + ((x + 1) % GW);
+					const lapU = U[xl] + U[xr] + U[yu + x] + U[yd + x] - 4 * U[i];
+					const lapV = V[xl] + V[xr] + V[yu + x] + V[yd + x] - 4 * V[i];
+					const uvv = U[i] * V[i] * V[i];
+					U2[i] = U[i] + DU * lapU - uvv + FEED * (1 - U[i]);
+					V2[i] = V[i] + DV * lapV + uvv - (FEED + KILL) * V[i];
+				}
+			}
+			U.set(U2);
+			V.set(V2);
+		}
+
+		function rdRender() {
+			const d = rdImg.data;
+			const [r, g, b] = rdColor;
+			for (let i = 0; i < GW * GH; i++) {
+				// α ≤ 12%：背景里"活着"但极淡的迷宫纹
+				const a = Math.min(V[i] * 1.5, 1) * 30;
+				d[i * 4] = r;
+				d[i * 4 + 1] = g;
+				d[i * 4 + 2] = b;
+				d[i * 4 + 3] = a;
+			}
+			rdCtx.putImageData(rdImg, 0, 0);
+			ctx.clearRect(0, 0, w, h);
+			ctx.imageSmoothingEnabled = true;
+			ctx.drawImage(rdCv, 0, 0, w, h);
+		}
+
+		function resize() {
+			if (cv.clientWidth === 0) return;
+			dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+			w = cv.clientWidth;
+			h = cv.clientHeight;
+			cv.width = Math.round(w * dpr);
+			cv.height = Math.round(h * dpr);
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			sized = true;
+		}
+
+		function introPlaying() {
+			return window.__introPlayed === true;
+		}
+
+		function tick(now: number) {
+			requestAnimationFrame(tick);
+			const visible =
+				dark && onScreen && !document.hidden && !introPlaying();
+			if (!visible) {
+				last = now;
+				simAcc = 0;
+				return;
+			}
+			if (!sized) resize();
+			if (!sized) return;
+			cv.classList.add("is-active");
+
+			const dt = Math.min((now - last) / 16.67, 3) || 1;
+			last = now;
+
+			simAcc += dt;
+			if (simAcc >= 2) {
+				simAcc = 0;
+				for (let s = 0; s < 6; s++) rdStep();
+				seedTimer -= 1;
+				if (seedTimer <= 0) {
+					rdSeed();
+					seedTimer = 60 + Math.random() * 90;
+				}
+			}
+			rdRender();
+		}
+
+		// Konami：斑图同时播种
+		document.addEventListener("konami", () => {
+			if (!dark) return;
+			for (let i = 0; i < 8; i++) rdSeed();
+		});
+
+		// 明暗主题 / 手动减弱动效开关
+		new MutationObserver(() => {
+			dark = document.documentElement.classList.contains("dark");
+			rdColor = readPrimary();
+			if (!dark) {
+				ctx.clearRect(0, 0, w, h);
+				cv.classList.remove("is-active");
+			}
+		}).observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class", "data-theme"],
+		});
+
+		new IntersectionObserver((entries) => {
+			onScreen = entries[0]?.isIntersecting ?? true;
+			if (!onScreen) cv.classList.remove("is-active");
+		}).observe(cv);
+
+		window.addEventListener("resize", resize);
+		rdInit();
+		requestAnimationFrame((t) => {
+			last = t;
+			tick(t);
+		});
+	}
+</script>

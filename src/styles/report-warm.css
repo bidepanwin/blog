@@ -1,0 +1,157 @@
+/* MUR DOS LOG · 前沿日报/周报详情页「暖陶暗色」主题
+   与 frontier-report 邮件 HTML 的 warm_theme 色板逐字一致。 */
+.report-warm {
+  --rw-outer: #211e1b;
+  --rw-panel: #26221f;
+  --rw-card: #322d29;
+  --rw-signal: #2e2925;
+  --rw-brand: #ede6db;
+  --rw-title: #f2ede5;
+  --rw-card-title: #f0eae0;
+  --rw-body: #c6bfb3;
+  --rw-lead: #beb7ac;
+  --rw-muted: #9c9488;
+  --rw-signal-t: #b7b0a4;
+  --rw-right: #87807a;
+  --rw-footer: #7d766c;
+  --rw-accent: #cc785c;
+  --rw-accent-soft: #e09a82;
+  --rw-gold: #d9b98a;
+  --rw-gold-soft: #ddb391;
+  --rw-quote-bar: #8a5541;
+
+  background: var(--rw-outer);
+  color: var(--rw-body);
+  border-radius: 16px;
+  padding: 28px 30px;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.75;
+}
+
+/* 标题：Georgia 衬线，邮件同款 */
+.report-warm h1 {
+  font-family: Georgia, "Songti SC", serif;
+  color: var(--rw-title);
+  font-size: 1.55rem;
+  line-height: 1.35;
+  margin: 0 0 6px;
+  letter-spacing: 0.2px;
+}
+.report-warm .report-article__head .report-article__meta {
+  color: var(--rw-right);
+  font-size: 0.78rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+.report-warm .report-badge {
+  background: var(--rw-card);
+  color: var(--rw-gold);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 99px;
+  padding: 2px 12px;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+}
+.report-warm time { color: var(--rw-right); }
+
+/* 章节标题（## 今日要闻速览 / 一、领军人物动态 …）→ 邮件 kicker 橙色 */
+.report-warm .report-article__body h2 {
+  color: var(--rw-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  margin: 26px 0 12px;
+  padding: 0;
+  text-transform: none;
+  border: none;
+}
+
+/* 子块（### 基础层/技术层/应用层）→ 金色 */
+.report-warm .report-article__body h3 {
+  color: var(--rw-gold);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 18px 0 8px;
+}
+
+/* 正文与列表 */
+.report-warm .report-article__body p,
+.report-warm .report-article__body li {
+  color: var(--rw-body);
+  font-size: 0.92rem;
+  line-height: 1.85;
+}
+.report-warm .report-article__body li {
+  background: var(--rw-card);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 7px 0;
+  list-style: none;
+}
+.report-warm .report-article__body ul,
+.report-warm .report-article__body ol {
+  padding-left: 0;
+  margin: 8px 0;
+}
+
+/* 引言段（首段） */
+.report-warm .report-article__body > p:first-of-type {
+  color: var(--rw-lead);
+}
+
+/* 强调与链接 */
+.report-warm .report-article__body strong { color: var(--rw-card-title); font-weight: 600; }
+.report-warm .report-article__body a { color: var(--rw-accent-soft); text-decoration: none; }
+.report-warm .report-article__body a:hover { text-decoration: underline; }
+.report-warm .report-article__body code {
+  background: var(--rw-signal);
+  color: var(--rw-gold-soft);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.report-warm .report-article__body blockquote {
+  border-left: 3px solid var(--rw-quote-bar);
+  background: var(--rw-card);
+  border-radius: 0 12px 12px 0;
+  color: var(--rw-lead);
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+.report-warm .report-article__body hr {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 22px 0;
+}
+
+/* 返回链接 */
+.report-warm .report-article__foot .report-back {
+  color: var(--rw-footer);
+  font-size: 0.8rem;
+}
+.report-warm .report-article__foot .report-back:hover { color: var(--rw-gold); }
+
+/* 窄屏 */
+@media (max-width: 640px) {
+  .report-warm { padding: 18px 16px; border-radius: 12px; }
+  .report-warm h1 { font-size: 1.25rem; }
+}
+
+/* 云端生成的完整暖陶面板（scripts/ai_report）*/
+/* 外层 #211E1B + 640 主面板 #26221F，与邮件 panel_page 完全一致；
+   面板内部全部为内联样式，邮件与博客共用同一份 HTML。 */
+.rw-shell {
+  background: var(--rw-outer);
+  border-radius: 16px;
+  padding: 24px 12px;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.rw-panel {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--rw-panel);
+  border-radius: 16px;
+  padding: 30px 30px 26px;
+}
+.rw-panel a { color: var(--rw-gold); text-decoration: none; }
+.rw-panel a:hover { text-decoration: underline; }

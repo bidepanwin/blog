@@ -1,0 +1,76 @@
+---
+import Icon from "@components/atoms/display/Icon.svelte";
+import GardenSearch from "@components/organisms/GardenSearch.svelte";
+import LightDarkSwitch from "@components/organisms/LightDarkSwitch.svelte";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { resolveNavBarLinks, resolvePageKey } from "@utils/nav-utils";
+import { url } from "@utils/url-utils";
+import { siteConfig } from "@/config/siteConfig";
+import { navBarConfig } from "@/config/navBarConfig";
+import { getSortedPosts } from "@utils/content-utils";
+import { getPostUrl } from "@utils/url-utils";
+
+const links = resolveNavBarLinks(navBarConfig.links);
+const currentPageKey = resolvePageKey(Astro.url);
+const searchEntries = (await getSortedPosts()).map((post) => ({
+	title: post.data.title,
+	href: getPostUrl(post),
+	description: post.data.description,
+	category: post.data.category || "",
+	text: `${post.data.description} ${post.data.tags.join(" ")} ${post.body || ""}`,
+}));
+---
+
+<a class="garden-skip" href="#swup-container">{i18n(I18nKey.gardenReadMore)}</a>
+<header class="garden-header" id="navbar">
+	<div class="garden-header__inner">
+		<a class="garden-brand" href={url("/")} aria-label={siteConfig.title}>
+			<span class="garden-brand__mark" aria-hidden="true"><Icon icon="material-symbols:eco-outline-rounded" /></span>
+			<span class="garden-brand__copy"><strong>{siteConfig.title}</strong><small>{i18n(I18nKey.gardenHeroEyebrow)}</small></span>
+		</a>
+		<nav class="garden-nav" aria-label={i18n(I18nKey.gardenMainNav)}>
+			{links.map((link) => <a
+				href={link.external ? link.url : url(link.url || "/")}
+				class:list={["garden-nav__link m3-state-layer", { "is-active": link.pageKey === currentPageKey }]}
+				aria-current={link.pageKey === currentPageKey ? "page" : undefined}
+				data-garden-nav={link.pageKey}
+			>{link.icon && <Icon icon={link.icon} />}<span>{link.name}</span></a>)}
+		</nav>
+		<div class="garden-header__actions">
+			<div class="garden-search"><GardenSearch client:load entries={searchEntries} /></div>
+			<span class="garden-action-divider" aria-hidden="true"></span>
+			<LightDarkSwitch client:load />
+			<details class="garden-mobile-menu">
+				<summary aria-label={i18n(I18nKey.gardenMainNav)}><Icon icon="material-symbols:menu-rounded" /></summary>
+				<nav aria-label={i18n(I18nKey.gardenMainNav)}>
+					{links.map((link) => <a class="m3-state-layer" href={link.external ? link.url : url(link.url || "/")} data-garden-nav={link.pageKey} aria-current={link.pageKey === currentPageKey ? "page" : undefined}>{link.icon && <Icon icon={link.icon} />}{link.name}</a>)}
+				</nav>
+			</details>
+		</div>
+	</div>
+</header>
+
+<script>
+	import { resolvePageKey } from "@utils/nav-utils";
+	function syncGardenNavigation() {
+		const current = resolvePageKey(new URL(window.location.href));
+		document.querySelectorAll<HTMLElement>("[data-garden-nav]").forEach((link) => {
+			const active = link.dataset.gardenNav === current;
+			link.classList.toggle("is-active", active);
+			if (active) link.setAttribute("aria-current", "page");
+			else link.removeAttribute("aria-current");
+		});
+		document.querySelectorAll<HTMLDetailsElement>(".garden-mobile-menu").forEach((menu) => { menu.open = false; });
+	}
+	document.addEventListener("swup:page:view", syncGardenNavigation);
+	document.addEventListener("click", (event) => {
+		if (!(event.target instanceof Element)) return;
+		if (event.target.closest(".garden-mobile-menu a") || !event.target.closest(".garden-mobile-menu")) document.querySelector<HTMLDetailsElement>(".garden-mobile-menu")?.removeAttribute("open");
+	});
+	document.addEventListener("keydown", (event) => {
+		if (event.key !== "Escape") return;
+		const menu = document.querySelector<HTMLDetailsElement>(".garden-mobile-menu[open]");
+		if (menu) { menu.open = false; menu.querySelector<HTMLElement>("summary")?.focus(); }
+	});
+</script>

@@ -1,0 +1,21 @@
+/* Keep the reference theme's banner, navigation, cards, and dual sidebars.
+   These refinements improve keyboard access and compact desktop navigation. */
+#swup-container { scroll-margin-top: 5rem; }
+#nav-drawer-switch.blog-drawer-switch { display: inline-flex; }
+@media (min-width: 1200px) {
+  #nav-drawer-switch.blog-drawer-switch { display: none; }
+}
+.blog-skip {
+  position: fixed; left: var(--m3e-space-4); top: var(--m3e-space-3); z-index: 100;
+  transform: translateY(-200%); padding: var(--m3e-space-3) var(--m3e-space-4);
+  background: var(--primary); color: var(--on-primary); border-radius: var(--shape-corner-m);
+}
+.blog-skip:focus { transform: translateY(0); }
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .top-app-bar__nav-link { padding-inline: var(--m3e-space-2); gap: var(--m3e-space-1); }
+  .garden-search-trigger kbd, .garden-search-trigger span { display: none; }
+  .garden-search-trigger { border: 0; background: transparent; padding-inline: var(--m3e-space-2); }
+}
+@media (max-width: 1199px) {
+  .top-app-bar__nav { display: none; }
+}
