@@ -71,9 +71,9 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 			subtitle: "记录探索，保持好奇。Keep exploring, keep creating.",
 			typewriter: {
 				// 副标题逐字显示；关闭后直接显示完整副标题。
-				enable: false,
+				enable: true,
 				// 打字速度（每个字符间隔，毫秒）。
-				speed: 100,
+				speed: 80,
 				// 回退反向删除速度（每个字符间隔，毫秒）。
 				deleteSpeed: 50,
 				// 打字完成后停顿时间，单位为毫秒。
