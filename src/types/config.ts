@@ -46,6 +46,8 @@ export type BannerConfig = {
 		subtitle: string | string[];
 		typewriter: {
 			enable: boolean;
+			/** 标题是否参与打字：先显示标题，再显示副标题（默认 false） */
+			includeTitle?: boolean;
 			/** 打字速度（每个字符间隔，毫秒，默认 120） */
 			speed: number;
 			/** 回退反向删除速度（每个字符间隔，毫秒，默认 50） */

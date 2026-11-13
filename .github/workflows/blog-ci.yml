@@ -31,4 +31,4 @@ jobs:
       - run: pnpm check:manifest
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chrome
-      - run: pnpm exec playwright test tests/site/garden.spec.ts tests/site/albums.spec.ts tests/site/a11y.spec.ts
+      - run: pnpm exec playwright test tests/site/garden.spec.ts tests/site/albums.spec.ts tests/site/banner-typewriter.spec.ts tests/site/a11y.spec.ts

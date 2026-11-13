@@ -70,8 +70,10 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 			title: "LIN'S LOG",
 			subtitle: "记录探索，保持好奇。Keep exploring, keep creating.",
 			typewriter: {
-				// 副标题逐字显示；关闭后直接显示完整副标题。
+				// 首页文字逐字显示；关闭后直接显示完整文字。
 				enable: true,
+				// 标题和副标题依次打出，并在同一轮动画中回退。
+				includeTitle: true,
 				// 打字速度（每个字符间隔，毫秒）。
 				speed: 80,
 				// 回退反向删除速度（每个字符间隔，毫秒）。
@@ -79,7 +81,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 				// 打字完成后停顿时间，单位为毫秒。
 				pauseTime: 2000,
 				// 完成后是否循环播放；关闭表示只播放一次。
-				loop: false,
+				loop: true,
 			},
 		},
 		carousel: {

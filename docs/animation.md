@@ -87,3 +87,9 @@ enterers.forEach((el, i) => revealIn(el, { delay: i * 50 }));
   swup 触发时机不可控，不做动画中间值采样（避免 flake），锁定终态。
 
 新增动效组件时，在此文件追加对应场景。
+
+`tests/site/banner-typewriter.spec.ts` 锁定首页两行打字循环：
+
+- `homeText.typewriter.includeTitle: true` 时依次打出标题、副标题，停留后依次删除副标题、标题；`loop: true` 重播。省略 `includeTitle` 保持原有仅副标题打字行为。
+- 共用单一定时器与代际保护；Swup 离开首页时取消，返回时重新开始。
+- 完整文本预留排版空间；系统或站内减少动效偏好下直接展示完整文字，可访问名称始终保持完整。
