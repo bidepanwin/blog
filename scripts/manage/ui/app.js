@@ -1,3 +1,5 @@
+import { createMediaPicker } from "./media-picker.js";
+
 (() => {
 	const $ = (id) => document.getElementById(id);
 	const token =
@@ -55,6 +57,11 @@
 		previewAbort: null,
 		toastTimer: null,
 	};
+	const mediaPicker = createMediaPicker({
+		api,
+		getMedia: () => state.media,
+		onUpload: () => refreshState(true),
+	});
 	const knownLabels = {
 		title: "站点标题",
 		subtitle: "站点副标题",
@@ -480,6 +487,10 @@
 		$("settings-fields").hidden = !isSettings;
 		$("body-editor").hidden = isSettings;
 		$("body-label").hidden = isSettings;
+		$("insert-image-button").hidden = isSettings;
+		$("insert-image-button").textContent = isDocument
+			? "插入图片"
+			: "插入图片路径";
 		$("body-label").textContent = structured ? "Markdown 正文" : "源文件内容";
 		$("editor-help").textContent = isSettings
 			? "这些字段直接来自配置文件。未展示的表达式与其他代码会保留；高级修改可切换到源文件。"
@@ -488,6 +499,12 @@
 				: "直接编辑原始文件。Ctrl / ⌘ + S 保存，Tab 插入缩进；修改配置后请运行检查。";
 		if (isDocument) {
 			const frontmatter = current.document.frontmatter || {};
+			const isMoment = current.path.startsWith("src/content/moments/");
+			$("meta-image").closest(".field-wide").hidden = isMoment;
+			$("moment-images-field").hidden = !isMoment;
+			$("meta-images").value = (frontmatter.images || [])
+				.map((image) => image.src)
+				.join("\n");
 			const supportsDraft = /^src\/content\/(posts|moments|reports)\//.test(
 				current.path,
 			);
@@ -535,17 +552,134 @@
 		if (canPreview) schedulePreview();
 	}
 
+	function imageLines(value) {
+		return value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+	}
+
+	function isImageSetting(field) {
+		if (field.type !== "string" && field.type !== "string[]") return false;
+		return /(?:^|\.)(?:avatar|image|cover|thumbnail|poster|ogImage|logo|backgroundImage)$/.test(field.key)
+			|| /^banner\.src\.(desktop|mobile)$/.test(field.key)
+			|| /^banner\.pageImages\.[^.]+\.(desktop|mobile)$/.test(field.key);
+	}
+
+	async function universalImage(result) {
+		if (!result.path?.startsWith("src/")) return result;
+		const imported = await api("/api/media/import", {
+			method: "POST",
+			body: JSON.stringify({ reference: result.path, documentPath: state.current?.path }),
+		});
+		await refreshState(true);
+		return imported;
+	}
+
+	async function resolveImageReference(reference) {
+		if (!reference.trim()) return "";
+		const result = await api("/api/media/resolve", {
+			method: "POST",
+			body: JSON.stringify({ reference, documentPath: state.current?.path }),
+		});
+		return (await universalImage(result)).reference;
+	}
+
+	async function chooseImageFor(input, append = false) {
+		if (!state.current || state.saving || state.job) return;
+		const current = state.current;
+		try {
+			const chosen = await mediaPicker.pick({
+				documentPath: current.path,
+				usage: input === $("meta-images") ? "随记图片" : input === $("meta-image")
+					? "封面图片" : settingLabel(input.dataset.setting || ""),
+				currentValue: append ? "" : input.value,
+			});
+			if (!chosen || state.current !== current) return;
+			const result = await universalImage(chosen);
+			if (state.current !== current) return;
+			input.value = append
+				? [...imageLines(input.value), result.reference].join("\n")
+				: result.reference;
+			input.dispatchEvent(new Event("input", { bubbles: true }));
+			input.focus();
+		} catch (error) { handleError(error); }
+	}
+
+	async function insertImage() {
+		if (!state.current || state.saving || state.job) return;
+		const current = state.current;
+		const editor = $("body-editor");
+		const start = editor.selectionStart;
+		const end = editor.selectionEnd;
+		const before = editor.value;
+		try {
+			const chosen = await mediaPicker.pick({ documentPath: current.path, usage: "正文或源文件中的图片" });
+			if (!chosen || state.current !== current) return;
+			const result = await universalImage(chosen);
+			if (state.current !== current || editor.value !== before) {
+				throw new Error("编辑内容已变化，请重新选择插入位置。");
+			}
+			const markdown = /\.mdx?$/.test(current.path);
+			const inFrontmatter = state.mode === "source" && /^---\r?\n/.test(before)
+				&& start < before.indexOf("\n---", 4) + 4;
+			let text = result.reference;
+			if (markdown && !inFrontmatter) text = `![图片描述](<${result.reference}>)`;
+			else if (!markdown) {
+				const line = before.slice(0, start).split("\n").at(-1);
+				const quoted = /(?:^|[\s:,=[(])(["'])(?:[^"'\\]|\\.)*$/.exec(line);
+				text = quoted ? result.reference.replaceAll("\\", "\\\\").replaceAll(quoted[1], `\\${quoted[1]}`)
+					: JSON.stringify(result.reference);
+			}
+			editor.setRangeText(text, start, end, "end");
+			editor.dispatchEvent(new Event("input", { bubbles: true }));
+			editor.focus();
+		} catch (error) { handleError(error); }
+	}
+
+	async function prepareImageFields() {
+		if (state.mode !== "structured") return;
+		const current = state.current;
+		const targets = [];
+		if (current.document) {
+			const frontmatter = current.document.frontmatter || {};
+			if (current.path.startsWith("src/content/moments/")) {
+				const original = (frontmatter.images || []).map((image) => image.src).join("\n");
+				if ($("meta-images").value !== original) targets.push([$("meta-images"), true]);
+			} else if ($("meta-image").value !== String(frontmatter.image || "")) {
+				targets.push([$("meta-image"), false]);
+			}
+		} else if (current.fields) {
+			for (const input of $("settings-fields").querySelectorAll("[data-image-field]")) {
+				const field = current.fields.find((field) => field.key === input.dataset.setting);
+				const array = field.type === "string[]";
+				const original = array ? field.value.join("\n") : String(field.value ?? "");
+				if (input.value !== original) targets.push([input, array]);
+			}
+		}
+		for (const [input, array] of targets) {
+			const original = input.value;
+			const values = array ? imageLines(original) : [original.trim()];
+			const references = [];
+			for (const value of values) references.push(await resolveImageReference(value));
+			if (input.value !== original || state.current !== current)
+				throw new Error("图片验证时内容已变化，请再次保存。");
+			input.value = array ? references.join("\n") : references[0];
+		}
+	}
+
 	function renderSettingsFields() {
 		$("settings-fields").replaceChildren();
 		for (const field of state.current.fields) {
 			const label = element(
-				"label",
+				"div",
 				"field" + (field.type === "boolean" ? " settings-boolean" : ""),
 			);
 			const title = element("span", "setting-label", settingLabel(field.key));
 			const key = element("span", "setting-key", field.key);
 			const array = Array.isArray(field.value) || field.type === "string[]";
 			const input = element(array ? "textarea" : "input");
+			input.id = `setting-${field.key}`;
+			const accessibleLabel = element("label", "setting-copy");
+			accessibleLabel.htmlFor = input.id;
+			accessibleLabel.append(title, key);
 			input.dataset.setting = field.key;
 			input.dataset.valueType = array ? "array" : field.type;
 			if (!array)
@@ -563,10 +697,17 @@
 					: String(field.value ?? "");
 			if (array) input.rows = Math.min(Math.max(field.value.length, 2), 6);
 			if (field.type === "boolean") {
-				const copy = element("span", "setting-copy");
-				copy.append(title, key);
-				label.append(copy, input);
-			} else label.append(title, key, input);
+				label.append(accessibleLabel, input);
+			} else label.append(accessibleLabel, input);
+			if (isImageSetting(field)) {
+				input.dataset.imageField = "true";
+				const choose = element("button", "button button-small", array
+					? "添加图片" : "选择图片");
+				choose.type = "button";
+				choose.setAttribute("aria-label", `${settingLabel(field.key)}：选择图片`);
+				choose.addEventListener("click", () => void chooseImageFor(input, array));
+				label.append(choose);
+			}
 			input.addEventListener("input", () => updateDirty());
 			$("settings-fields").append(label);
 		}
@@ -575,6 +716,15 @@
 	function collectFrontmatter() {
 		const original = state.current.document.frontmatter || {};
 		const next = { ...original };
+		if (state.current.path.startsWith("src/content/moments/")) {
+			const images = imageLines($("meta-images").value);
+			if (images.length || Object.hasOwn(original, "images")) {
+				next.images = images.map((src) => ({
+					...(original.images || []).find((image) => image.src === src),
+					src,
+				}));
+			}
+		}
 		for (const key of [
 			"title",
 			"published",
@@ -582,6 +732,8 @@
 			"description",
 			"image",
 		]) {
+			if (key === "image" && $("meta-image").closest(".field-wide").hidden)
+				continue;
 			const value = $("meta-" + key).value;
 			if (value || Object.hasOwn(original, key)) next[key] = value;
 		}
@@ -603,6 +755,14 @@
 		if (!current || !state.dirty || state.saving || state.job)
 			return !state.dirty;
 		state.saving = true;
+		try {
+			await prepareImageFields();
+		} catch (error) {
+			handleError(error);
+			state.saving = false;
+			updateDirty(state.dirty);
+			return false;
+		}
 		const version = state.editVersion;
 		const structured = state.mode === "structured";
 		let endpoint = "/api/file";
@@ -766,27 +926,27 @@
 				);
 				for (const image of parsed.querySelectorAll("img[src]")) {
 					const source = image.getAttribute("src");
-					let relativePath = "";
-					if (source && !/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(source)) {
-						relativePath = new URL(
-							source,
-							"http://manager/" + state.current.path,
-						).pathname.slice(1);
-					}
-					const media = state.media.find(
-						(file) =>
-							file.reference === source ||
-							file.path === "public" + source ||
-							file.path === relativePath,
-					);
-					if (media)
+					if (!source || /^https?:\/\//i.test(source)) continue;
+					try {
+						const media = await api("/api/media/resolve", {
+							method: "POST",
+							body: JSON.stringify({ reference: source, documentPath: state.current.path }),
+							signal: abort.signal,
+						});
+						if (!media.path) continue;
 						image.src =
 							location.origin +
 							"/api/media?path=" +
 							encodeURIComponent(media.path) +
 							"&token=" +
 							encodeURIComponent(token);
+					} catch (error) {
+						if (error.name === "AbortError") throw error;
+						image.removeAttribute("src");
+						image.alt = `图片路径不可用：${source}`;
+					}
 				}
+				if (generation !== state.previewGeneration) return;
 				container.append(...Array.from(parsed.body.childNodes));
 				frameDocument.body.append(container);
 				$("markdown-preview").srcdoc =
@@ -860,14 +1020,19 @@
 				element("code", "", file.reference || file.path),
 				element("span", "media-size", formatSize(file.size)),
 			);
-			const copy = element("button", "button button-small", "复制引用");
+			const copy = element("button", "button button-small", "复制通用路径");
 			copy.type = "button";
 			copy.addEventListener("click", async () => {
 				try {
-					await navigator.clipboard.writeText(file.reference || file.path);
-					toast("图片引用已复制。");
-				} catch {
-					showError("无法访问剪贴板，请选中图片引用后手动复制。");
+					copy.disabled = true;
+					const reference = await resolveImageReference(file.path);
+					info.querySelector("code").textContent = reference;
+					await navigator.clipboard.writeText(reference);
+					toast("通用图片路径已复制，可用于封面、正文、头像和横幅。");
+				} catch (error) {
+					showError("复制失败：" + error.message + "。也可选中卡片上的路径手动复制。");
+				} finally {
+					copy.disabled = false;
 				}
 			});
 			info.append(copy);
@@ -1288,6 +1453,13 @@
 		event.preventDefault(),
 	);
 	$("metadata-form").addEventListener("input", () => updateDirty());
+	$("choose-cover-image").addEventListener("click", () => {
+		void chooseImageFor($("meta-image"));
+	});
+	$("choose-moment-images").addEventListener("click", () => {
+		void chooseImageFor($("meta-images"), true);
+	});
+	$("insert-image-button").addEventListener("click", () => void insertImage());
 	$("body-editor").addEventListener("input", () => {
 		updateDirty();
 		countCharacters();
@@ -1367,6 +1539,7 @@
 	document.addEventListener("keydown", (event) => {
 		if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
+			if ($("media-picker-dialog").open) return;
 			void saveCurrent();
 		}
 		if (event.key === "Escape") setSidebar(false);

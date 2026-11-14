@@ -55,7 +55,11 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		// 数组顺序就是轮播顺序；只需要静态 Banner 时，每组保留一张图片即可。
 		src: {
 			desktop: [
-	"/images/covers/2026-10-18-animaeva-memory-eval.webp"
+	"/images/covers/2026-10-18-animaeva-memory-eval.webp",
+	"/images/covers/2026-10-17-hello.webp",
+	"/images/covers/2026-10-19-dsh-dotclaude.webp",
+	"/images/covers/2026-10-18-frontier-report.webp",
+	"/images/covers/2026-10-25-shardseek.webp"
 ],
 			mobile: [
 	"assets/images/banner/mobile/portrait.webp"
@@ -185,7 +189,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		homeText: {
 			// 仅在首页 Banner 中显示，标题与副标题会上下居中排列。
 			enable: true,
-			title: "PAN‘S LOG",
+			title: "PAN'S LOG",
 			subtitle: "记录探索，保持好奇。Keep exploring, keep creating.",
 			typewriter: {
 				// 首页文字逐字显示；关闭后直接显示完整文字。

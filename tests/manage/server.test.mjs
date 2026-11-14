@@ -104,6 +104,85 @@ async function request(manager, method, route, body, overrides = {}) {
 	});
 }
 
+test("image resolve and import endpoints normalize references and record imported bytes", async (t) => {
+	const manager = await fixture(t);
+	const source = "src/assets/images/封面 test.png";
+	const png = Buffer.from(
+		"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j9mQAAAAASUVORK5CYII=",
+		"base64",
+	);
+	await mkdir(path.join(manager.root, "src/assets/images"), {
+		recursive: true,
+	});
+	await writeFile(path.join(manager.root, source), png);
+	const resolved = await request(manager, "POST", "/api/media/resolve", {
+		reference: "封面 test.png",
+		prefix: "src/assets/images",
+		documentPath: examplePath,
+	});
+	assert.equal(resolved.status, 200, resolved.text);
+	assert.equal(resolved.json.path, source);
+	assert.equal(
+		resolved.json.markdownReference,
+		"../../assets/images/封面 test.png",
+	);
+	assert.equal(manager.recorded.length, 0);
+	const imported = await request(manager, "POST", "/api/media/import", {
+		reference: source,
+	});
+	assert.equal(imported.status, 200, imported.text);
+	assert.match(
+		imported.json.reference,
+		/^\/images\/uploads\/[a-f0-9]{64}\.png$/,
+	);
+	assert.equal(imported.json.markdownReference, imported.json.reference);
+	assert.deepEqual(
+		await readFile(path.join(manager.root, imported.json.path)),
+		png,
+	);
+	assert.equal(manager.recorded[0][0], imported.json.path);
+	const deployed = await request(manager, "POST", "/api/media/resolve", {
+		reference: `/blog${imported.json.reference}`,
+	});
+	assert.equal(deployed.status, 200, deployed.text);
+	assert.equal(deployed.json.reference, imported.json.reference);
+	const state = await request(manager, "GET", "/api/state");
+	assert.equal(state.json.base, "/blog/");
+	assert.equal(state.json.siteUrl, "https://example.test/blog/");
+	assert.equal(manager.recorded.length, 1);
+	for (const route of ["/api/media/resolve", "/api/media/import"]) {
+		for (const headers of [
+			{ origin: "null" },
+			{ "x-manager-token": "wrong" },
+			{ origin: "https://evil.test" },
+		]) {
+			assert.equal(
+				(await request(manager, "POST", route, { reference: source }, headers))
+					.status,
+				403,
+			);
+		}
+		assert.equal(
+			(await request(manager, "POST", route, { reference: ".env" })).status,
+			404,
+		);
+	}
+	manager.jobs.isRunning = () => true;
+	assert.equal(
+		(await request(manager, "POST", "/api/media/import", { reference: source }))
+			.status,
+		409,
+	);
+	assert.equal(
+		(
+			await request(manager, "POST", "/api/media/resolve", {
+				reference: source,
+			})
+		).status,
+		200,
+	);
+});
+
 test("local UI injects this session token and sends defensive response headers", async (t) => {
 	const manager = await fixture(t);
 	const response = await request(manager, "GET", "/", undefined, {

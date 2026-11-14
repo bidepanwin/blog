@@ -2,9 +2,12 @@
 title: "给日常工作流做一次减法"
 published: 2026-11-09
 description: "工具越多，注意力未必越集中。试着从一个收件箱、一份清单和一段专注时间开始。"
-image: ../../assets/images/post-covers/information-stream.webp
+image: /images/uploads/5e502c41f438c7d5f671222a5a62e859c50d2189d854089ef2a4607a4c228f5c.webp
 category: 技术
-tags: [效率, 工具, 工作流]
+tags:
+  - 效率
+  - 工具
+  - 工作流
 pinned: false
 draft: false
 comment: false

@@ -120,6 +120,7 @@ export function createManagerServer({
 		const base = typeof value("base") === "string" ? value("base") : "/blog/";
 		return {
 			siteUrl: value("site") || "https://bidepanwin.github.io/blog/",
+			base,
 			previewUrl: `http://127.0.0.1:4321${base === "/" ? "/" : `/${base.replace(/^\/+|\/+$/g, "")}/`}`,
 			timeZone: value("timeZone") || "Asia/Shanghai",
 		};
@@ -285,6 +286,29 @@ export function createManagerServer({
 					});
 					return res.end(await readFile(path.join(root, file.path)));
 				}
+				if (method === "POST" && route === "/api/media/resolve") {
+					const payload = await bodyJson(req);
+					return json(await store.resolveMedia(payload, await siteInfo()));
+				}
+				if (method === "POST" && route === "/api/media/import") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => {
+							const imported = await store.importMedia(
+								payload,
+								await siteInfo(),
+							);
+							if (imported.imported) {
+								const bytes = await readFile(path.join(root, imported.path));
+								await jobs.record(
+									imported.path,
+									createHash("sha256").update(bytes).digest("hex"),
+								);
+							}
+							return imported;
+						}),
+					);
+				}
 				if (method === "GET" && route === "/api/history")
 					return json(await store.history());
 				if (method === "POST" && route === "/api/restore") {
@@ -327,6 +351,10 @@ export function createManagerServer({
 			const assets = {
 				"/": ["index.html", "text/html; charset=utf-8"],
 				"/app.js": ["app.js", "text/javascript; charset=utf-8"],
+				"/media-picker.js": [
+					"media-picker.js",
+					"text/javascript; charset=utf-8",
+				],
 				"/style.css": ["style.css", "text/css; charset=utf-8"],
 			};
 			const asset = assets[route];

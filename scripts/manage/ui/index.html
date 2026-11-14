@@ -64,11 +64,12 @@
                   <label class="field">分类<input id="meta-category" name="category" autocomplete="off"></label>
                   <label class="field field-wide">摘要<textarea id="meta-description" name="description" rows="2"></textarea></label>
                   <label class="field field-wide">标签<input id="meta-tags" name="tags" placeholder="多个标签用逗号分隔" autocomplete="off"></label>
-                  <label class="field field-wide">封面图片<input id="meta-image" name="image" placeholder="/images/…" autocomplete="off"></label>
+                  <div class="field field-wide image-field"><label for="meta-image">封面图片</label><div class="image-field-row"><input id="meta-image" name="image" placeholder="/images/…" autocomplete="off"><button class="button button-small" id="choose-cover-image" type="button">选择图片</button></div></div>
+                  <div class="field field-wide image-field" id="moment-images-field" hidden><label for="meta-images">随记图片（每行一个路径）</label><textarea id="meta-images" name="images" rows="3" placeholder="/images/…" autocomplete="off"></textarea><button class="button button-small" id="choose-moment-images" type="button">选择图片并追加</button></div>
                   <div class="checkbox-row field-wide"><label><input id="meta-draft" name="draft" type="checkbox">草稿</label><label><input id="meta-pinned" name="pinned" type="checkbox">置顶</label></div>
                 </form>
                 <form id="settings-fields" class="settings-fields" hidden></form>
-                <label class="body-label" id="body-label" for="body-editor">Markdown 正文</label>
+                <div class="body-heading"><label class="body-label" id="body-label" for="body-editor">Markdown 正文</label><button class="button button-small" id="insert-image-button" type="button">插入图片</button></div>
                 <textarea class="body-editor" id="body-editor" spellcheck="false" aria-describedby="editor-help"></textarea>
                 <p class="editor-help" id="editor-help">支持 Markdown。Ctrl / ⌘ + S 保存，Tab 插入缩进；其他元字段会原样保留。</p>
               </div>
@@ -85,6 +86,20 @@
     </main>
   </div>
   <dialog class="new-dialog" id="new-dialog" aria-labelledby="new-dialog-title"><form id="new-form"><div class="dialog-heading"><h2 id="new-dialog-title">开始一篇新内容</h2><button class="icon-button" id="new-close" type="button" aria-label="关闭">×</button></div><label class="field">内容类型<select id="new-collection" name="collection"><option value="posts">文章</option><option value="moments">随记</option><option value="thinking">思考</option><option value="reports">札记</option><option value="series">系列</option><option value="spec">独立页面</option></select></label><label class="field">标题<input id="new-title" name="title" required maxlength="160" autocomplete="off" placeholder="一个值得记录的想法"></label><label class="field">文件名<input id="new-slug" name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" autocomplete="off" placeholder="my-first-post"></label><p class="field-hint">使用小写字母、数字和连字符，不含文件扩展名。独立页面可维护源文件，新增页面还需配置对应路由；关于页请编辑现有 about.md。</p><p class="dialog-error" id="new-error" role="alert" hidden></p><div class="dialog-actions"><button class="button" id="new-cancel" type="button">取消</button><button class="button button-primary" id="new-submit" type="submit">创建并编辑</button></div></form></dialog>
+  <dialog class="media-picker-dialog" id="media-picker-dialog" aria-labelledby="media-picker-title" aria-describedby="media-picker-usage">
+    <div class="dialog-heading"><div><h2 id="media-picker-title">选择图片</h2><p id="media-picker-usage" class="panel-note"></p></div><button class="icon-button" id="media-picker-close" type="button" aria-label="关闭图片选择">×</button></div>
+    <fieldset class="segmented-control media-picker-modes" aria-label="图片来源"><button type="button" data-picker-mode="local" aria-pressed="true" class="is-selected">本地文件</button><button type="button" data-picker-mode="library" aria-pressed="false">已有素材</button><button type="button" data-picker-mode="path" aria-pressed="false">填写路径</button></fieldset>
+    <div class="media-picker-layout">
+      <div class="media-picker-source">
+        <section data-picker-panel="local" aria-label="选择本地图片"><label class="media-picker-drop" id="media-picker-drop" for="media-picker-local"><strong>打开本地图片文件</strong><span>点击选择，或把一张图片拖到这里</span><input id="media-picker-local" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.avif,image/jpeg,image/png,image/webp,image/gif,image/avif"><span class="field-hint">JPEG、PNG、WebP、GIF、AVIF，最大 10 MiB。选择后会复制到博客图片目录。</span></label></section>
+        <section data-picker-panel="library" aria-label="选择已有图片" hidden><label class="field">搜索图片<input id="media-picker-search" type="search" placeholder="按文件名或路径搜索" autocomplete="off"></label><p class="panel-note" id="media-picker-library-count"></p><div class="media-picker-grid" id="media-picker-grid"></div></section>
+        <section data-picker-panel="path" aria-label="填写图片路径" hidden><label class="field">路径前缀（可选）<input id="media-picker-prefix" placeholder="例如 /images/uploads/" autocomplete="off"></label><label class="field">图片路径或文件名<input id="media-picker-path" placeholder="粘贴素材引用、项目内路径或图片链接" autocomplete="off"></label><p class="field-hint">可以直接粘贴完整引用；也可以把目录填在前缀中，再填写文件名。无需手动添加 /blog/。</p><button class="button button-small" id="media-picker-resolve" type="button">检查路径并预览</button></section>
+      </div>
+      <section class="media-picker-preview" aria-label="所选图片预览"><div class="media-picker-preview-frame"><img id="media-picker-preview-image" alt="所选图片预览" referrerpolicy="no-referrer" hidden><p id="media-picker-preview-empty">选择图片后在这里预览</p></div><strong class="media-picker-preview-label">图片引用</strong><code id="media-picker-reference"></code></section>
+    </div>
+    <p class="media-picker-status" id="media-picker-status" role="status"></p><p class="dialog-error" id="media-picker-error" role="alert" hidden></p>
+    <div class="dialog-actions"><button class="button" id="media-picker-cancel" type="button">取消</button><button class="button button-primary" id="media-picker-confirm" type="button" disabled>使用图片</button></div>
+  </dialog>
   <div class="toast" id="toast" role="status" hidden></div>
 </body>
 </html>

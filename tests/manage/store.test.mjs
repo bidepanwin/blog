@@ -49,6 +49,68 @@ async function fixture() {
 	return { root, store: createStore(root) };
 }
 
+test("resolving media checks the scanner allowlist and importing source assets creates reusable public files", async () => {
+	const { root, store } = await fixture();
+	const source = "src/assets/images/封面 test.png";
+	const resolved = await store.resolveMedia({
+		reference: "assets/images/封面 test.png",
+		documentPath: POST,
+	});
+	assert.equal(resolved.path, source);
+	assert.equal(resolved.markdownReference, "../../assets/images/封面 test.png");
+	const imported = await store.importMedia({ reference: source });
+	const hash = createHash("sha256")
+		.update(Buffer.from(PNG, "base64"))
+		.digest("hex");
+	assert.equal(imported.path, `public/images/uploads/${hash}.png`);
+	assert.equal(imported.reference, `/images/uploads/${hash}.png`);
+	assert.equal(imported.markdownReference, imported.reference);
+	assert.equal(imported.imported, true);
+	assert.equal(imported.created, true);
+	assert.deepEqual(
+		await fs.readFile(join(root, imported.path)),
+		Buffer.from(PNG, "base64"),
+	);
+	const repeated = await store.importMedia({ path: source });
+	assert.equal(repeated.path, imported.path);
+	assert.equal(repeated.created, false);
+	const existingPublic = await store.importMedia({
+		reference: "/images/test.png",
+	});
+	assert.equal(existingPublic.imported, false);
+	assert.equal(existingPublic.path, "public/images/test.png");
+	const remote = await store.importMedia({
+		reference: "https://images.example.test/a.png",
+	});
+	assert.equal(remote.imported, false);
+	assert.equal(remote.path, undefined);
+	assert.equal(
+		(await fs.readdir(join(root, "public/images/uploads"))).length,
+		1,
+	);
+});
+
+test("importing source media validates content and never reads an outside path", async () => {
+	const { root, store } = await fixture();
+	await put(root, "src/assets/images/not-an-image.png", "not image bytes");
+	await assert.rejects(
+		store.importMedia({ reference: "src/assets/images/not-an-image.png" }),
+		/signature/,
+	);
+	await assert.rejects(
+		store.importMedia({ reference: join(root, "../outside.png") }),
+		(error) => [400, 404].includes(error.status),
+	);
+	await assert.rejects(store.resolveMedia({ reference: ".env" }), status(404));
+	assert.equal(
+		await fs.stat(join(root, "public/images/uploads")).then(
+			() => true,
+			() => false,
+		),
+		false,
+	);
+});
+
 function status(expected) {
 	return (error) => {
 		assert.equal(error.status, expected, error.message);

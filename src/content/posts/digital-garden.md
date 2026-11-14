@@ -2,7 +2,7 @@
 title: "你好，世界：从这里开始记录"
 published: 2026-11-13
 description: "从一个小小的个人空间开始，让想法、技术笔记与生活碎片在时间里慢慢生长。"
-image: assets/images/banner/desktop/8.webp
+image: ../../assets/images/banner/desktop/8.webp
 category: 技术
 tags:
   - 博客

@@ -13,6 +13,7 @@ import {
 import { TextDecoder } from "node:util";
 import ts from "typescript";
 import { parseDocument } from "yaml";
+import { mediaReference, resolveMediaReference } from "./media-paths.mjs";
 
 const MAX_TEXT = 1024 * 1024;
 const MAX_IMAGE = 10 * 1024 * 1024;
@@ -162,12 +163,6 @@ function groupFor(path) {
 	if (path.startsWith("src/styles/")) return "styles";
 	if (path.startsWith("public/")) return "public";
 	return path.split("/")[1];
-}
-
-function mediaReference(path) {
-	const encoded = path.split("/").slice(1).map(encodeURIComponent).join("/");
-	// Source asset references are import/glob paths, not URL-encoded public URLs.
-	return path.startsWith("public/") ? `/${encoded}` : path.slice("src/".length);
 }
 
 function imageExtension(name, data) {
@@ -609,5 +604,56 @@ export function createStore(root) {
 		return { files: files.sort((a, b) => a.path.localeCompare(b.path, "en")) };
 	}
 
-	return { catalog, read, write, remove, upload, listMedia, history, restore };
+	async function resolveMedia(input, options = {}) {
+		return resolveMediaReference(input, {
+			...options,
+			root: directory,
+			files: (await listMedia()).files,
+		});
+	}
+
+	async function importMedia(input, options = {}) {
+		const resolved = await resolveMedia(
+			{ ...input, reference: input?.reference ?? input?.path },
+			options,
+		);
+		if (resolved.kind !== "local" || resolved.path.startsWith("public/"))
+			return { ...resolved, imported: false };
+		const bytes = await readBytes(resolved.path, MAX_IMAGE);
+		const { extension } = imageExtension(
+			basename(resolved.path),
+			bytes.toString("base64"),
+		);
+		const hash = digest(bytes);
+		const destination = `public/images/uploads/${hash}${extension}`;
+		return locked(destination, async () => {
+			const existing = await inspect(destination);
+			if (existing.exists) {
+				if (digest(await readBytes(destination, MAX_IMAGE)) !== hash)
+					throw fail("已导入图片的内容发生变化，请先核对文件。", 409);
+			} else await atomicWrite(destination, bytes, { create: true });
+			const reference = mediaReference(destination);
+			return {
+				kind: "local",
+				path: destination,
+				reference,
+				markdownReference: reference,
+				imported: true,
+				created: !existing.exists,
+			};
+		});
+	}
+
+	return {
+		catalog,
+		read,
+		write,
+		remove,
+		upload,
+		listMedia,
+		resolveMedia,
+		importMedia,
+		history,
+		restore,
+	};
 }
