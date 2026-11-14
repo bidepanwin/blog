@@ -7,6 +7,10 @@
  *   也可以自己把封面放进 public/assets/books/ 并直接写 cover（同步脚本不会覆盖）。
  * - link 省略时用 douban 字段拼豆瓣搜索页；rating 为 0-10 个人评分（0 = 未评分）。
  * - status: reading 在读 / planned 想读 / completed 读过 / onHold 搁置。
+ *
+ * 当前书单主线：认知 → 实践 → 系统 → 范式 → 社会。
+ * 封面取自对应豆瓣读书条目页并已转为本地 webp；douban 为核实过的真实条目 id。
+ * 所有条目默认 planned + 未评分，阅读状态、评分与进度请按实际记录填写。
  */
 
 export type BookStatus = "reading" | "planned" | "completed" | "onHold";
@@ -56,51 +60,76 @@ export const BOOK_STATUS_META: Record<
 };
 
 export const booksData: BookItem[] = [
-	// —— 在读 ——
+	// —— 认知：先看清自己是怎么判断的 ——
 	{
-		slug: "geb",
-		title: "Gödel, Escher, Bach: An Eternal Golden Braid",
-		originalTitle: "集异璧之大成",
-		author: "Douglas R. Hofstadter",
-		cover: "/assets/books/geb.jpg",
-		isbn: "9780465026562",
-		douban: "Gödel Escher Bach 集异璧",
-		status: "reading",
-		rating: 0,
-		progress: 35,
-		description:
-			"自指、递归与意识的怪圈。从不同领域理解自指与思维，是一份值得慢慢读的书单示例。",
-		yearPublished: "1979",
-		genres: ["Math", "Cognition"],
-		featured: true,
-	},
-	// —— 想读 ——
-	{
-		slug: "consciousness-explained",
-		title: "Consciousness Explained",
-		originalTitle: "意识的解释",
-		author: "Daniel C. Dennett",
-		cover: "/assets/books/consciousness-explained.jpg",
-		isbn: "9780316180665",
-		coverId: "3964666",
-		douban: "Consciousness Explained 意识的解释",
+		slug: "thinking-fast-and-slow",
+		title: "思考，快与慢",
+		originalTitle: "Thinking, Fast and Slow",
+		author: "Daniel Kahneman",
+		isbn: "9787508633558",
+		cover: "/assets/books/thinking-fast-and-slow.webp",
+		douban: "10785583",
 		status: "planned",
 		rating: 0,
+		description: "系统 1 与系统 2：直觉替我们做了多少决定，又会在哪些地方系统性地出错。",
+		yearPublished: "2012",
+		genres: ["Psychology", "Decision"],
+	},
+	// —— 实践：从调查到方法论 ——
+	{
+		slug: "selected-works-of-mao",
+		title: "毛泽东选集",
+		author: "毛泽东",
+		cover: "/assets/books/selected-works-of-mao.webp",
+		douban: "1139360",
+		status: "planned",
+		rating: 0,
+		description: "人民出版社 1991 年第二版，按历史时期与写作年月编次，全四卷；封面为第一卷。",
 		yearPublished: "1991",
-		genres: ["Philosophy of Mind"],
+		genres: ["History", "Methodology"],
 	},
+	// —— 系统：把「头痛医头」换成看见结构 ——
 	{
-		slug: "feeling-of-what-happens",
-		title: "The Feeling of What Happens",
-		originalTitle: "感受发生的一切",
-		author: "Antonio Damasio",
-		cover: "/assets/books/feeling-of-what-happens.jpg",
-		isbn: "9780156010757",
-		douban: "The Feeling of What Happens 感受发生的一切",
+		slug: "thinking-in-systems",
+		title: "系统之美",
+		originalTitle: "Thinking in Systems: A Primer",
+		author: "Donella H. Meadows",
+		isbn: "9787213050114",
+		cover: "/assets/books/thinking-in-systems.webp",
+		douban: "11528220",
 		status: "planned",
 		rating: 0,
-		yearPublished: "1999",
-		genres: ["Neuroscience"],
+		description: "存量、流量、反馈回路与延迟：复杂问题常常不是不够努力，而是没看见结构。",
+		yearPublished: "2012",
+		genres: ["Systems", "Decision"],
+	},
+	// —— 范式：知识不是线性堆积 ——
+	{
+		slug: "structure-of-scientific-revolutions",
+		title: "科学革命的结构",
+		originalTitle: "The Structure of Scientific Revolutions",
+		author: "Thomas S. Kuhn",
+		isbn: "9787301330661",
+		cover: "/assets/books/structure-of-scientific-revolutions.webp",
+		douban: "35951747",
+		status: "planned",
+		rating: 0,
+		description: "1962 年初版的经典：范式、常规科学与危机，解释一个学科为什么会整体换框架。",
+		yearPublished: "2022",
+		genres: ["Philosophy of Science"],
+	},
+	// —— 社会：把概念放回它生长的土地 ——
+	{
+		slug: "from-the-soil",
+		title: "乡土中国",
+		author: "费孝通",
+		cover: "/assets/books/from-the-soil.webp",
+		douban: "1795079",
+		status: "planned",
+		rating: 0,
+		description: "差序格局、礼治秩序与乡土本色：四十年代讲义结集，理解中国基层社会的一组概念工具。",
+		yearPublished: "2006",
+		genres: ["Sociology", "China"],
 	},
 ];
 

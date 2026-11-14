@@ -249,7 +249,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	},
 	favicon: [
 		// 浏览器标签页图标，路径相对于 public 目录。
-		{ src: "favicon/8.webp" },
+		{ src: "/images/uploads/5bcb58080536e331bd6bf3229daea575647b48d0a1af11c57d98d1ae7fb93109.webp" },
 	],
 });
 
