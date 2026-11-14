@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 
 const SHA = /^[a-f0-9]{40}$/;
 const NETWORK =
-	/connection (?:was )?reset|recv failure|could not resolve|couldn't resolve|failed to connect|connection timed out|operation timed out|timed? ?out|tls|ssl|schannel|network is unreachable|connection refused|remote end hung up|unexpected disconnect|early eof|http (?:429|5\d\d)|returned error: (?:429|5\d\d)/i;
+	/connection (?:was )?reset|recv failure|could not resolve|couldn't resolve|failed to connect|connection timed out|operation timed out|operation too slow|less than \d+ bytes\/sec transferred|timed? ?out|tls|ssl|schannel|network is unreachable|connection refused|remote end hung up|unexpected disconnect|early eof|http (?:429|5\d\d)|returned error: (?:429|5\d\d)/i;
 const AUTH =
 	/authentication failed|could not read (?:username|password)|terminal prompts disabled|permission denied|repository not found|returned error: 40[134]|http 40[134]|access denied/i;
 const DIVERGED =

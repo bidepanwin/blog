@@ -219,6 +219,22 @@ test("transient Git failure gets one retry before changing transport", async (t)
 	assert.equal(f.apiCalls.length, 0);
 });
 
+test("Git low-speed timeout retries and falls back to API for push and remote reads", async (t) => {
+	const f = await fixture(t, {
+		nativeError: () =>
+			Object.assign(new Error("Git exited with code 128"), {
+				stderr:
+					"fatal: unable to access 'https://github.com/fixture-owner/blog.git/': Operation too slow. Less than 1024 bytes/sec transferred the last 10 seconds",
+			}),
+	});
+	assert.equal((await pushCommit(f.options)).transport, "github-api");
+	assert.equal(f.calls.filter(({ args }) => args.includes("push")).length, 2);
+	assert.deepEqual(f.sleeps, [750]);
+	assert.equal(f.remote(), f.commit);
+	assert.equal(await readRemoteCommit(f.options), f.commit);
+	assert.equal(f.calls.filter(({ args }) => args[0] === "ls-remote").length, 1);
+});
+
 for (const [name, message, code] of [
 	["authentication", "Authentication failed", "GIT_AUTH"],
 	["non-fast-forward", "rejected non-fast-forward", "GIT_DIVERGED"],
