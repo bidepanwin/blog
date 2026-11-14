@@ -7,6 +7,11 @@ import { fileURLToPath } from "node:url";
 import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
 import {
+	COLLECTION_DEFS,
+	readCollection,
+	writeCollection,
+} from "./collections.mjs";
+import {
 	newDocument,
 	readSettings,
 	splitDocument,
@@ -249,6 +254,86 @@ export function createManagerServer({
 						}),
 					);
 				}
+				if (method === "GET" && route === "/api/collection") {
+					const def = COLLECTION_DEFS[url.searchParams.get("kind")];
+					if (!def) throw fail("未知的条目类型。", 404);
+					const file = await store.read(def.path);
+					let data;
+					try {
+						data = readCollection(file.content, def.kind);
+					} catch (error) {
+						return json({
+							path: file.path,
+							hash: file.hash,
+							kind: def.kind,
+							label: def.label,
+							itemLabel: def.itemLabel,
+							fields: def.fields,
+							statuses: def.statuses,
+							items: [],
+							comments: [],
+							tailComments: [],
+							coverPaths: [],
+							unsupported: true,
+							message: error.message,
+						});
+					}
+					const byReference = new Map(
+						(await store.listMedia()).files.map((item) => [
+							item.reference,
+							item.path,
+						]),
+					);
+					const info = await siteInfo();
+					const coverPaths = [];
+					for (const item of data.items) {
+						let resolved = item.cover
+							? byReference.get(item.cover) || null
+							: null;
+						if (!resolved && item.cover) {
+							try {
+								const result = await store.resolveMedia(
+									{ reference: item.cover, documentPath: file.path },
+									info,
+								);
+								resolved = result.path || null;
+							} catch {
+								resolved = null;
+							}
+						}
+						coverPaths.push(resolved);
+					}
+					return json({
+						path: file.path,
+						hash: file.hash,
+						kind: def.kind,
+						label: def.label,
+						itemLabel: def.itemLabel,
+						fields: def.fields,
+						statuses: def.statuses,
+						...data,
+						coverPaths,
+					});
+				}
+				if (method === "PUT" && route === "/api/collection") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => {
+							const def = COLLECTION_DEFS[payload.kind];
+							if (!def) throw fail("未知的条目类型。", 404);
+							const file = await store.read(def.path);
+							return save({
+								path: file.path,
+								hash: payload.hash,
+								content: writeCollection(
+									file.content,
+									def.kind,
+									payload,
+								),
+							});
+						}),
+					);
+				}
 				if (method === "POST" && route === "/api/new") {
 					const payload = await bodyJson(req);
 					return json(
@@ -351,11 +436,15 @@ export function createManagerServer({
 			const assets = {
 				"/": ["index.html", "text/html; charset=utf-8"],
 				"/app.js": ["app.js", "text/javascript; charset=utf-8"],
-				"/media-picker.js": [
-					"media-picker.js",
-					"text/javascript; charset=utf-8",
-				],
-				"/style.css": ["style.css", "text/css; charset=utf-8"],
+			"/media-picker.js": [
+				"media-picker.js",
+				"text/javascript; charset=utf-8",
+			],
+			"/collection-editor.js": [
+				"collection-editor.js",
+				"text/javascript; charset=utf-8",
+			],
+			"/style.css": ["style.css", "text/css; charset=utf-8"],
 			};
 			const asset = assets[route];
 			if (!asset) throw fail("页面不存在。", 404);

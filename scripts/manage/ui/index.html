@@ -45,6 +45,7 @@
       <section class="editor-workspace" id="editor-workspace" aria-label="文件与编辑器">
         <aside class="file-pane" aria-label="内容文件">
           <label class="search-field"><span class="sr-only">搜索文件</span><span aria-hidden="true">⌕</span><input id="file-search" type="search" placeholder="搜索文件名或路径" autocomplete="off"></label>
+          <div class="data-shortcuts" id="data-shortcuts" hidden aria-label="常用数据快捷入口"></div>
           <label class="collection-label" for="collection-filter">内容集合</label>
           <select id="collection-filter"><option value="">全部文章与笔记</option><option value="posts">文章</option><option value="moments">随记</option><option value="thinking">思考</option><option value="reports">札记</option><option value="series">系列</option></select>
           <section class="file-list" id="file-list" aria-label="文件列表"></section>
@@ -69,6 +70,7 @@
                   <div class="checkbox-row field-wide"><label><input id="meta-draft" name="draft" type="checkbox">草稿</label><label><input id="meta-pinned" name="pinned" type="checkbox">置顶</label></div>
                 </form>
                 <form id="settings-fields" class="settings-fields" hidden></form>
+                <div class="collection-editor" id="collection-editor" hidden></div>
                 <div class="body-heading"><label class="body-label" id="body-label" for="body-editor">Markdown 正文</label><button class="button button-small" id="insert-image-button" type="button">插入图片</button></div>
                 <textarea class="body-editor" id="body-editor" spellcheck="false" aria-describedby="editor-help"></textarea>
                 <p class="editor-help" id="editor-help">支持 Markdown。Ctrl / ⌘ + S 保存，Tab 插入缩进；其他元字段会原样保留。</p>

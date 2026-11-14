@@ -1,4 +1,5 @@
 import { createMediaPicker } from "./media-picker.js";
+import { mountCollectionEditor } from "./collection-editor.js";
 
 (() => {
 	const $ = (id) => document.getElementById(id);
@@ -56,6 +57,7 @@ import { createMediaPicker } from "./media-picker.js";
 		previewTimer: null,
 		previewAbort: null,
 		toastTimer: null,
+		collectionEditor: null,
 	};
 	const mediaPicker = createMediaPicker({
 		api,
@@ -162,7 +164,49 @@ import { createMediaPicker } from "./media-picker.js";
 		const group = String(file.group || "").toLowerCase();
 		return ["content", "pages", "data", "settings"].includes(group)
 			? group
-			: "data";
+			: null;
+	}
+
+	// 数据文件快捷入口：把常用的数据源（番剧、书单、友链等）置顶成卡片。
+	const dataShortcuts = [
+		["anime.ts", "番剧收藏", "收藏的番剧与评分", "番"],
+		["books.ts", "书单", "读过的书与评分", "书"],
+		["friends.ts", "友情链接", "友链站点的名称与链接", "链"],
+		["projects.ts", "项目", "个人作品展示", "项"],
+		["skills.ts", "技能", "技能清单", "技"],
+		["timeline.ts", "时间线", "时间轴事件", "线"],
+		["compass.ts", "站点罗盘", "常逛网站导航", "罗"],
+		["games.ts", "游戏", "游戏展示", "游"],
+		["music.ts", "音乐", "侧栏本地曲目", "乐"],
+		["devices.ts", "设备", "设备展示", "备"],
+		["post-covers.ts", "文章封面", "封面图库与指派", "封"],
+	];
+	function renderDataShortcuts() {
+		const box = $("data-shortcuts");
+		if (!box) return;
+		box.replaceChildren();
+		for (const [name, title, description, symbol] of dataShortcuts) {
+			const file = state.files.find(
+				(item) => item.path === "src/data/" + name,
+			);
+			if (!file) continue;
+			const button = element("button", "data-shortcut");
+			button.type = "button";
+			const icon = element("span", "data-shortcut-symbol", symbol);
+			const copy = element("span", "data-shortcut-copy");
+			copy.append(
+				element("strong", "", title),
+				element("span", "", description),
+			);
+			button.append(icon, copy, element("span", "data-shortcut-arrow", "↗"));
+			button.addEventListener("click", () => {
+				void openFile(file.path);
+			});
+			box.append(button);
+		}
+		// 快捷卡片下方加一条分隔，说明下方列表是其余数据文件。
+		const divider = element("p", "data-divider", "其他数据文件");
+		box.append(divider);
 	}
 	function showError(message) {
 		$("error-text").textContent = message;
@@ -296,6 +340,7 @@ import { createMediaPicker } from "./media-picker.js";
 			renderPublish();
 			if (state.group === "media") renderMedia();
 			if (state.group === "settings") renderSettingsShortcuts();
+			if (state.group === "data") renderDataShortcuts();
 			if (!quiet) clearError();
 			return true;
 		} catch (error) {
@@ -309,11 +354,14 @@ import { createMediaPicker } from "./media-picker.js";
 	function renderFiles() {
 		const query = $("file-search").value.trim().toLowerCase();
 		const collection = $("collection-filter").value;
+		const isShortcut = (path) =>
+			dataShortcuts.some(([name]) => path === "src/data/" + name);
 		const items = state.files
 			.filter(
 				(file) =>
 					classify(file) === state.group &&
 					(!query || file.path.toLowerCase().includes(query)) &&
+					(state.group !== "data" || !isShortcut(file.path)) &&
 					(state.group !== "content" ||
 						!collection ||
 						file.path.startsWith("src/content/" + collection + "/")),
@@ -400,6 +448,8 @@ import { createMediaPicker } from "./media-picker.js";
 		$("file-search").value = "";
 		$("collection-filter").hidden = group !== "content";
 		document.querySelector(".collection-label").hidden = group !== "content";
+		$("data-shortcuts").hidden = group !== "data";
+		if (group === "data") renderDataShortcuts();
 		renderFiles();
 		if (group === "settings") renderSettingsShortcuts();
 		if (group === "media") renderMedia();
@@ -421,6 +471,7 @@ import { createMediaPicker } from "./media-picker.js";
 			const raw = await api("/api/file?path=" + encodeURIComponent(path));
 			let documentData = null;
 			let settingsData = null;
+			let collectionData = null;
 			if (/\.mdx?$/.test(path))
 				documentData = await api(
 					"/api/document?path=" + encodeURIComponent(path),
@@ -433,6 +484,14 @@ import { createMediaPicker } from "./media-picker.js";
 				} catch (error) {
 					if (error.status !== 400 && error.status !== 422) throw error;
 				}
+			} else if (
+				path === "src/data/anime.ts" ||
+				path === "src/data/books.ts"
+			) {
+				collectionData = await api(
+					"/api/collection?kind=" +
+						(path === "src/data/anime.ts" ? "anime" : "books"),
+				);
 			}
 			if (generation !== state.loadGeneration) return;
 			state.current = {
@@ -443,10 +502,11 @@ import { createMediaPicker } from "./media-picker.js";
 					? settingsData.fields
 					: null,
 				settingsHash: settingsData?.hash || raw.hash,
+				collection: collectionData,
 			};
 			state.mode =
 				options.mode ||
-				(documentData || settingsData?.fields?.length
+				(documentData || settingsData?.fields?.length || collectionData
 					? "structured"
 					: "source");
 			if (state.group === "settings") {
@@ -472,31 +532,102 @@ import { createMediaPicker } from "./media-picker.js";
 		}
 	}
 
+	function destroyCollectionEditor() {
+		if (state.collectionEditor) {
+			state.collectionEditor.destroy();
+			state.collectionEditor = null;
+		}
+	}
+
+	function collectionMediaUrl(path) {
+		if (!path) return "";
+		return (
+			"/api/media?path=" +
+			encodeURIComponent(path) +
+			"&token=" +
+			encodeURIComponent(token)
+		);
+	}
+
+	async function collectionResolveCover(reference) {
+		if (!reference) return null;
+		try {
+			const result = await api("/api/media/resolve", {
+				method: "POST",
+				body: JSON.stringify({
+					reference,
+					documentPath: state.current?.path,
+				}),
+			});
+			return result.path || null;
+		} catch {
+			return null;
+		}
+	}
+
+	async function collectionChooseImage(currentValue, label) {
+		if (!state.current || state.saving || state.job) return null;
+		const before = state.current;
+		const chosen = await mediaPicker.pick({
+			documentPath: before.path,
+			usage: label || "封面图片",
+			currentValue: currentValue || "",
+		});
+		if (!chosen || state.current !== before) return null;
+		const result = await universalImage(chosen);
+		if (state.current !== before) return null;
+		return result.reference;
+	}
+
+	function mountCollection() {
+		destroyCollectionEditor();
+		const current = state.current;
+		if (!current?.collection) return;
+		const container = $("collection-editor");
+		state.collectionEditor = mountCollectionEditor({
+			container,
+			data: current.collection,
+			onChange: () => updateDirty(true),
+			chooseImage: collectionChooseImage,
+			resolveCover: collectionResolveCover,
+			mediaUrl: collectionMediaUrl,
+			openSource: () => void switchMode("source"),
+			initialExpanded: null,
+		});
+		state.collectionEditor.render();
+	}
+
 	function applyEditor() {
 		const current = state.current;
 		if (!current) return;
 		const structured = state.mode === "structured";
 		const isDocument = Boolean(current.document) && structured;
 		const isSettings = Boolean(current.fields?.length) && structured;
-		$("form-mode").hidden = !current.document && !current.fields?.length;
+		const isCollection = Boolean(current.collection) && structured;
+		if (!isCollection) destroyCollectionEditor();
+		$("form-mode").hidden =
+			!current.document && !current.fields?.length && !current.collection;
 		$("form-mode").classList.toggle("is-selected", structured);
 		$("form-mode").setAttribute("aria-pressed", String(structured));
 		$("source-mode").classList.toggle("is-selected", !structured);
 		$("source-mode").setAttribute("aria-pressed", String(!structured));
 		$("metadata-form").hidden = !isDocument;
 		$("settings-fields").hidden = !isSettings;
-		$("body-editor").hidden = isSettings;
-		$("body-label").hidden = isSettings;
-		$("insert-image-button").hidden = isSettings;
+		$("collection-editor").hidden = !isCollection;
+		$("body-editor").hidden = isSettings || isCollection;
+		$("body-label").hidden = isSettings || isCollection;
+		$("insert-image-button").hidden = isSettings || isCollection;
 		$("insert-image-button").textContent = isDocument
 			? "插入图片"
 			: "插入图片路径";
 		$("body-label").textContent = structured ? "Markdown 正文" : "源文件内容";
 		$("editor-help").textContent = isSettings
 			? "这些字段直接来自配置文件。未展示的表达式与其他代码会保留；高级修改可切换到源文件。"
-			: structured
-				? "支持 Markdown。Ctrl / ⌘ + S 保存，Tab 插入缩进；其他元字段会原样保留。"
-				: "直接编辑原始文件。Ctrl / ⌘ + S 保存，Tab 插入缩进；修改配置后请运行检查。";
+			: isCollection
+				? "点击卡片展开编辑条目；改动会写入数据文件，保存后仍需「发布」才会上线。"
+				: structured
+					? "支持 Markdown。Ctrl / ⌘ + S 保存，Tab 插入缩进；其他元字段会原样保留。"
+					: "直接编辑原始文件。Ctrl / ⌘ + S 保存，Tab 插入缩进；修改配置后请运行检查。";
 		if (isDocument) {
 			const frontmatter = current.document.frontmatter || {};
 			const isMoment = current.path.startsWith("src/content/moments/");
@@ -533,6 +664,7 @@ import { createMediaPicker } from "./media-picker.js";
 			$("meta-pinned").checked = frontmatter.pinned === true;
 			$("body-editor").value = current.document.body || "";
 		} else if (isSettings) renderSettingsFields();
+		else if (isCollection) mountCollection();
 		else $("body-editor").value = current.content || "";
 		const canPreview = Boolean(current.document) && structured;
 		$("preview-toggle").hidden = !canPreview;
@@ -779,6 +911,21 @@ import { createMediaPicker } from "./media-picker.js";
 				hash: current.hash,
 				frontmatter: collectFrontmatter(),
 				body: $("body-editor").value,
+			};
+		} else if (structured && current.collection) {
+			endpoint = "/api/collection";
+			method = "PUT";
+			const collected = state.collectionEditor?.collect() || {
+				items: [],
+				comments: [],
+				tailComments: [],
+			};
+			payload = {
+				kind: current.collection.kind,
+				hash: current.hash,
+				items: collected.items,
+				comments: collected.comments,
+				tailComments: collected.tailComments,
 			};
 		} else if (structured && current.fields?.length) {
 			endpoint = "/api/settings";
