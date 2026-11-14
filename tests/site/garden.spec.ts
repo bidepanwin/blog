@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { siteConfig } from "../../src/config/siteConfig";
 import { sitePath } from "./paths";
 
 async function open(page: import("@playwright/test").Page, path = "/") {
@@ -13,7 +14,9 @@ async function open(page: import("@playwright/test").Page, path = "/") {
 test("reference banner, full navigation, and both sidebars render on desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await open(page);
-  await expect(page.locator("[data-banner-home-copy] h1")).toHaveText("LIN'S LOG");
+  await expect(page.locator("[data-banner-home-copy] h1")).toHaveText(
+    siteConfig.banner.homeText.enable ? siteConfig.banner.homeText.title : siteConfig.title,
+  );
   await expect(page.locator("#navbar nav a")).toHaveCount(12);
   await expect(page.locator("#sidebar")).toBeVisible();
   await expect(page.locator("#sidebar-secondary")).toBeVisible();
@@ -70,13 +73,13 @@ test("restored columns contain real pages and usable data", async ({ page }) => 
   for (const [path, selector, count] of [
     ["/reports/", ".reports-item", 2],
     ["/thinking/", ".thinking-people li", 2],
-    ["/wiki/", ".wiki-rows li", 10],
+    ["/wiki/", ".wiki-rows li", 11],
     ["/projects/", ".project-card", 1],
   ] as const) {
     await open(page, path);
     await expect(page.locator("#swup-container")).toBeVisible();
     if (path !== "/projects/") await expect(page.locator(selector)).toHaveCount(count);
-    else await expect(page.locator("#swup-container")).toContainText("LIN'S LOG");
+    else await expect(page.locator("#swup-container")).toContainText("PAN LOG");
   }
 });
 

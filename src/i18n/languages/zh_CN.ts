@@ -17,7 +17,7 @@ export const zh_CN: Translation = {
 	[Key.gardenArticles]: "篇文章",
 	[Key.gardenCategories]: "个分类",
 	[Key.gardenTags]: "标签",
-	[Key.gardenFieldNotes]: "林间速记",
+	[Key.gardenFieldNotes]: "随手速记",
 	[Key.gardenFieldNoteText]: "把日子过慢一点，把喜欢的事情做久一点。",
 	[Key.gardenExplore]: "随处看看",
 	[Key.gardenSubscribe]: "订阅这片小天地",

@@ -225,7 +225,7 @@
 		document.title =
 			(dirty ? "● " : "") +
 			(state.current ? fileName(state.current.path) + " · " : "") +
-			"林间本地管理台";
+			"PAN LOG 本地管理台";
 		if (dirty) $("save-status").textContent = "尚未保存到本地";
 		updateDraftNotice();
 	}

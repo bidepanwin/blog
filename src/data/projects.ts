@@ -4,7 +4,7 @@ import type { ProjectItem } from "@/types/projectsConfig";
 export const projectsData: ProjectItem[] = [
 	{
 		key: "between-leaves",
-		title: "LIN'S LOG",
+		title: "PAN LOG",
 		summary:
 			"一个记录技术、生活与阅读的个人博客，基于 Astro 与 Shirone，持续探索舒服的阅读体验。",
 		category: "lab",

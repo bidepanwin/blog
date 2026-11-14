@@ -5,8 +5,13 @@ import { withUserConfig } from "../utils/config-overlay.ts";
 export const profileConfig: ProfileConfig = withUserConfig("profile", {
 	avatar: "/images/uploads/240721f5-f590-4985-9abf-92aaad5b151d.jpg",
 	name: "bidepan",
-	bio: "写代码，也写生活。在这里，收集每一个值得记录的瞬间。",
+	bio: "do and win · 把好奇心做成项目，把探索留在 PAN LOG。",
 	links: [
+		{
+			name: "GitHub",
+			icon: "fa7-brands:github",
+			url: "https://github.com/bidepanwin",
+		},
 		{
 			name: "RSS 订阅",
 			icon: "material-symbols:rss-feed-rounded",

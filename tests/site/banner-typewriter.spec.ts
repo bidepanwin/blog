@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { siteConfig } from "../../src/config/siteConfig";
 import { sitePath } from "./paths";
 
 type Frame = {
@@ -190,7 +191,11 @@ test("title and subtitle type, erase in reverse order, and repeat", async ({
 		throw new Error("Home navigation did not return an HTTP response");
 	const html = await response.text();
 	const expected = await labels(page);
-	expect(expected.title).toBe("LIN'S LOG");
+	expect(expected.title).toBe(
+		siteConfig.banner.homeText.enable
+			? siteConfig.banner.homeText.title
+			: siteConfig.title,
+	);
 	expect(expected.subtitle.length).toBeGreaterThan(0);
 	expect(html).toContain(`data-subtitle-label="${expected.subtitle}"`);
 	expect(

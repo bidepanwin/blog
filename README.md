@@ -1,6 +1,6 @@
-# LIN'S LOG · Personal Blog
+# PAN LOG · bidepan's Personal Blog
 
-基于参考仓库 backup-blog / Shirone 的个人博客，保留二次元大幅首屏、完整顶部导航、双侧栏与文章卡片。支持真实 Markdown 内容，提供文章、随记、札记、番剧、书单、思考、知识库、相册、友链和项目示例。
+[bidepan](https://github.com/bidepanwin) 的个人博客，基于参考仓库 backup-blog / Shirone，保留二次元大幅首屏、完整顶部导航、双侧栏与文章卡片。支持真实 Markdown 内容，提供文章、随记、札记、番剧、书单、思考、知识库、相册、友链和项目示例。
 
 **[在线博客](https://bidepanwin.github.io/blog/)** · **[中文使用说明](./使用说明.md)** · 本地启动：`pnpm.cmd dev`（访问 `/blog/`） · 生产构建：`pnpm.cmd build`
 
