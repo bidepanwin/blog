@@ -6,6 +6,8 @@
 
 站名与个人资料可在 `src/config/siteConfig.ts` 和 `src/config/profileConfig.ts` 修改。推送到 `main` 后，GitHub Actions 自动构建并发布到 Pages；更换地址时同步修改 `site` 与 `base`。原作者的自动部署、报告和书单工作流已移至 `.reference-content/` 备份。下面保留上游主题说明与来源。
 
+**本地写作与定制：** 运行 `pnpm.cmd manage`，或双击 `管理博客.cmd`，打开 `http://127.0.0.1:4319/`。可维护文章、页面、资料、导航、主题设置、栏目数据与图片，保存后检查并发布。后台仅在本机运行，线上访客仍然只读。详见 [本地管理台说明](./docs/local-manager.md)。
+
 ---
 
 <div align="center">

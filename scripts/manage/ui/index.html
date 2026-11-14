@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="manager-token" content="__MANAGER_TOKEN__">
+  <meta name="color-scheme" content="light dark">
+  <title>林间 · 本地管理台</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到编辑区域</a>
+  <header class="topbar">
+    <button class="icon-button mobile-menu" id="menu-button" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="sidebar">☰</button>
+    <a class="brand" href="/" aria-label="林间本地管理台首页"><span class="brand-mark" aria-hidden="true">林</span><span>林间<span class="brand-subtitle">内容管理</span></span></a>
+    <span class="local-pill"><span aria-hidden="true"></span>仅限本机</span>
+    <div class="topbar-spacer"></div>
+    <a class="button button-quiet" id="site-link" href="https://bidepanwin.github.io/blog/" target="_blank" rel="noopener noreferrer">查看博客 ↗</a>
+    <button class="icon-button" id="theme-button" type="button" aria-label="切换深浅主题">◐</button>
+    <button class="button button-primary" id="save-button" type="button" disabled>保存<span class="shortcut">Ctrl S</span></button>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="管理导航">
+      <p class="sidebar-eyebrow">WORKSPACE</p>
+      <nav class="nav-list" id="group-nav" aria-label="内容分类">
+        <button class="nav-item is-active" type="button" data-group="content"><span class="nav-symbol" aria-hidden="true">文</span><span>文章与笔记</span><span class="nav-count" data-count="content">0</span></button>
+        <button class="nav-item" type="button" data-group="pages"><span class="nav-symbol" aria-hidden="true">页</span><span>独立页面</span><span class="nav-count" data-count="pages">0</span></button>
+        <button class="nav-item" type="button" data-group="data"><span class="nav-symbol" aria-hidden="true">数</span><span>书单与数据</span><span class="nav-count" data-count="data">0</span></button>
+        <button class="nav-item" type="button" data-group="settings"><span class="nav-symbol" aria-hidden="true">设</span><span>站点设置</span><span class="nav-count" data-count="settings">0</span></button>
+        <button class="nav-item" type="button" data-group="media"><span class="nav-symbol" aria-hidden="true">图</span><span>图片素材</span><span class="nav-count" data-count="media">0</span></button>
+        <button class="nav-item" type="button" data-group="publish"><span class="nav-symbol" aria-hidden="true">发</span><span>检查与发布</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" id="history-button" type="button"><span class="nav-symbol" aria-hidden="true">↶</span><span>备份与恢复</span></button>
+        <div class="workspace-note"><span class="connection-dot" id="connection-dot" aria-hidden="true"></span><div><strong id="connection-label">正在连接本地服务</strong><p>修改保存在本地仓库<br>发布后才会更新线上博客</p></div></div>
+      </div>
+    </aside>
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="关闭导航" hidden></button>
+    <main id="main" class="main" tabindex="-1">
+      <div class="error-banner" id="error-banner" role="alert" hidden><p id="error-text"></p><button class="button button-small" id="dismiss-error" type="button">关闭</button></div>
+      <div class="workspace-heading"><div><p class="eyebrow" id="section-eyebrow">CONTENT</p><h1 id="section-title">文章与笔记</h1><p class="section-description" id="section-description">在这里记录想法，维护博客的每一篇内容。</p></div><div class="heading-actions"><button class="button" id="refresh-button" type="button">刷新列表</button><button class="button button-primary" id="new-button" type="button">＋ 新建内容</button></div></div>
+      <section class="editor-workspace" id="editor-workspace" aria-label="文件与编辑器">
+        <aside class="file-pane" aria-label="内容文件">
+          <label class="search-field"><span class="sr-only">搜索文件</span><span aria-hidden="true">⌕</span><input id="file-search" type="search" placeholder="搜索文件名或路径" autocomplete="off"></label>
+          <label class="collection-label" for="collection-filter">内容集合</label>
+          <select id="collection-filter"><option value="">全部文章与笔记</option><option value="posts">文章</option><option value="moments">随记</option><option value="thinking">思考</option><option value="reports">札记</option><option value="series">系列</option></select>
+          <section class="file-list" id="file-list" aria-label="文件列表"></section>
+          <p class="file-total" id="file-total">正在加载文件…</p>
+        </aside>
+        <section class="editor-pane" aria-label="编辑区域">
+          <div class="empty-state" id="editor-empty"><div class="empty-symbol" aria-hidden="true">✎</div><h2>从一篇内容开始</h2><p>在左侧选择文件，或新建一篇文章。<br>保存只会修改本地文件，不会自动发布。</p><button class="button button-primary" id="empty-new-button" type="button">新建内容</button></div>
+          <div class="editor-content" id="editor-content" hidden>
+            <header class="editor-toolbar"><div class="editor-file-info"><h2 id="editor-name">内容编辑器</h2><p id="editor-path"></p></div><span class="dirty-badge" id="dirty-badge" hidden>未保存</span><button class="button button-small button-danger-quiet" id="delete-button" type="button">删除</button></header>
+            <div class="mode-bar"><fieldset class="segmented-control" aria-label="编辑模式"><button class="is-selected" id="form-mode" type="button" aria-pressed="true">内容编辑</button><button id="source-mode" type="button" aria-pressed="false">源文件</button></fieldset><button class="button button-small" id="preview-toggle" type="button" aria-pressed="true">显示预览</button><a class="button button-small" id="local-preview-link" href="http://127.0.0.1:4321/blog/" target="_blank" rel="noopener noreferrer">本地站点 ↗</a></div>
+            <div class="edit-layout" id="edit-layout">
+              <div class="edit-column">
+                <form id="metadata-form" class="metadata-form">
+                  <label class="field field-wide">标题<input id="meta-title" name="title" maxlength="300" autocomplete="off"></label>
+                  <label class="field">发布日期<input id="meta-published" name="published" type="text" placeholder="YYYY-MM-DD" autocomplete="off"></label>
+                  <label class="field">分类<input id="meta-category" name="category" autocomplete="off"></label>
+                  <label class="field field-wide">摘要<textarea id="meta-description" name="description" rows="2"></textarea></label>
+                  <label class="field field-wide">标签<input id="meta-tags" name="tags" placeholder="多个标签用逗号分隔" autocomplete="off"></label>
+                  <label class="field field-wide">封面图片<input id="meta-image" name="image" placeholder="/images/…" autocomplete="off"></label>
+                  <div class="checkbox-row field-wide"><label><input id="meta-draft" name="draft" type="checkbox">草稿</label><label><input id="meta-pinned" name="pinned" type="checkbox">置顶</label></div>
+                </form>
+                <form id="settings-fields" class="settings-fields" hidden></form>
+                <label class="body-label" id="body-label" for="body-editor">Markdown 正文</label>
+                <textarea class="body-editor" id="body-editor" spellcheck="false" aria-describedby="editor-help"></textarea>
+                <p class="editor-help" id="editor-help">支持 Markdown。Ctrl / ⌘ + S 保存，Tab 插入缩进；其他元字段会原样保留。</p>
+              </div>
+              <section class="preview-column" id="preview-column" aria-label="文章预览"><div class="preview-heading"><strong>阅读预览</strong><span id="preview-status" role="status"></span></div><iframe id="markdown-preview" title="Markdown 文章预览" sandbox="" referrerpolicy="no-referrer"></iframe></section>
+            </div>
+            <footer class="editor-status"><span id="save-status" role="status">已载入</span><span id="character-count">0 字符</span></footer>
+          </div>
+        </section>
+      </section>
+      <section class="special-panel" id="settings-panel" hidden aria-label="常用设置"><div class="shortcut-grid" id="settings-shortcuts"></div><p class="panel-note">选择设置卡片即可编辑原始配置。保存前会创建备份；完成后先运行检查，再发布到线上。</p><button class="button" id="show-settings-files" type="button">查看全部配置文件</button></section>
+      <section class="special-panel" id="media-panel" hidden aria-label="图片管理"><label class="upload-zone" id="upload-zone" for="media-upload"><span class="upload-symbol" aria-hidden="true">＋</span><strong>添加图片素材</strong><span>选择或拖入图片，上传后复制引用到文章中</span><input class="sr-only" id="media-upload" type="file" accept="image/*" multiple></label><p class="upload-status" id="upload-status" role="status"></p><div class="media-grid" id="media-grid"></div></section>
+      <section class="special-panel" id="publish-panel" hidden aria-label="检查与发布"><div class="publish-grid"><article class="panel-card"><p class="eyebrow">PUBLISH</p><h2>让新的内容上线</h2><p class="panel-description">先检查内容与站点，再提交并推送管理台保存的文件。GitHub Pages 会在推送后自动部署。</p><dl class="git-details" id="git-details"></dl><label class="field">本次更新说明<input id="commit-message" value="content: update blog via local manager" maxlength="160"></label><div class="publish-actions"><button class="button" id="validate-button" type="button">运行检查</button><button class="button button-primary" id="publish-button" type="button">提交并发布 ↗</button></div><p class="panel-note">不会提交其他来源的本地改动。公开仓库中的 Markdown 源文件和图片也会随提交公开。发布需要此电脑已登录 GitHub，并拥有仓库推送权限。</p><a class="button button-small" id="published-site-link" href="https://bidepanwin.github.io/blog/" target="_blank" rel="noopener noreferrer">打开线上博客 ↗</a></article><article class="panel-card"><h2>工作区变更<span class="count-pill" id="change-count">0</span></h2><p class="panel-note">这里展示全部变更，实际提交范围由管理台核对。</p><!-- biome-ignore lint/a11y/noNoninteractiveTabindex: The scrollable change list must be reachable by keyboard. --><section class="change-list" id="change-list" aria-label="工作区变更文件" tabindex="0"></section></article></div><section class="job-panel" id="job-panel" hidden aria-label="任务日志"><div class="job-heading"><h2 id="job-title">任务日志</h2><span class="job-state" id="job-state">执行中</span></div><section class="job-log" id="job-log" tabindex="0" aria-label="命令运行日志"></section><p id="job-message" role="status"></p></section></section>
+      <section class="special-panel" id="history-panel" hidden aria-label="备份历史"><p class="panel-note">保存与删除前会保留备份。恢复会修改本地文件，检查并发布后才会同步到线上。</p><div class="history-list" id="history-list"></div></section>
+    </main>
+  </div>
+  <dialog class="new-dialog" id="new-dialog" aria-labelledby="new-dialog-title"><form id="new-form"><div class="dialog-heading"><h2 id="new-dialog-title">开始一篇新内容</h2><button class="icon-button" id="new-close" type="button" aria-label="关闭">×</button></div><label class="field">内容类型<select id="new-collection" name="collection"><option value="posts">文章</option><option value="moments">随记</option><option value="thinking">思考</option><option value="reports">札记</option><option value="series">系列</option><option value="spec">独立页面</option></select></label><label class="field">标题<input id="new-title" name="title" required maxlength="160" autocomplete="off" placeholder="一个值得记录的想法"></label><label class="field">文件名<input id="new-slug" name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" autocomplete="off" placeholder="my-first-post"></label><p class="field-hint">使用小写字母、数字和连字符，不含文件扩展名。独立页面可维护源文件，新增页面还需配置对应路由；关于页请编辑现有 about.md。</p><p class="dialog-error" id="new-error" role="alert" hidden></p><div class="dialog-actions"><button class="button" id="new-cancel" type="button">取消</button><button class="button button-primary" id="new-submit" type="submit">创建并编辑</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

@@ -24,6 +24,8 @@
 		"tailwindcss-4"
 	],
 	"scripts": {
+		"manage": "node scripts/manage/server.mjs",
+		"manage:test": "node --test tests/manage/*.test.mjs",
 		"dev": "node scripts/content/sync.mjs && astro dev",
 		"start": "node scripts/content/sync.mjs && astro dev",
 		"check": "astro check",

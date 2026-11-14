@@ -73,6 +73,7 @@ public/assets/moments/thumbnails/*
 !public/assets/moments/thumbnails/.gitkeep
 
 # local tooling artifacts
+.local-manager/
 .zcode/
 .codex-*.log
 research/
