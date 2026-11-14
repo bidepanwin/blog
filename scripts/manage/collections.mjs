@@ -144,6 +144,45 @@ export const COLLECTION_DEFS = {
 			}),
 		],
 	},
+	music: {
+		kind: "music",
+		label: "音乐",
+		itemLabel: "曲目",
+		path: "src/data/music.ts",
+		exportName: "musicTracks",
+		statuses: [],
+		fields: [
+			field("title", "曲目标题", "string", "基本信息", {
+				required: true,
+				placeholder: "例如：world.execute (me) ;",
+			}),
+			field("artist", "艺术家", "string", "基本信息", {
+				placeholder: "例如：Mili",
+			}),
+			field("id", "唯一标识", "string", "基本信息", {
+				required: true,
+				help: "英文小写与连字符，如 world-execute；用于定位封面与曲目。",
+				placeholder: "world-execute",
+			}),
+			field("source", "音频地址", "string", "音频与封面", {
+				required: true,
+				width: "full",
+				help: "相对 /public 的路径或 http(s) 链接，如 /assets/music/url/xx.mp3。",
+				placeholder: "/assets/music/url/example.mp3",
+			}),
+			field("duration", "曲目时长", "number", "音频与封面", {
+				help: "秒数，用于显示 0:00 / 3:32；留空则播放时自动读取。",
+			}),
+			field("cover", "封面图片", "image", "音频与封面", {
+				width: "full",
+				help: "选择本地图片、已有素材或填写路径；留空时站点显示占位。",
+			}),
+			field("__comment", "分组注释", "comment", "备注", {
+				width: "full",
+				help: "保存为该条目上方的 // 注释，可用来给列表分段；不会显示在站点上。",
+			}),
+		],
+	},
 };
 
 export function collectionKindFor(path) {
@@ -332,8 +371,8 @@ function safeUrl(value, label) {
 function safeCover(value) {
 	if (value === "" || value === undefined) return;
 	if (/^https?:\/\/\S+$/i.test(value)) return;
-	if (!value.startsWith("/") || value.startsWith("//") || value.includes(".."))
-		throw fail("封面图片需填写 /assets/… 或 /images/… 这类站内路径，或 http(s) 链接。");
+	if (value.startsWith("//") || value.includes(".."))
+		throw fail("封面图片需填写站内路径（如 assets/… 或 /assets/…），或 http(s) 链接。");
 }
 
 function validateField(item, schema, statuses) {

@@ -18,12 +18,11 @@ const listValue = (value) =>
 	Array.isArray(value) ? value.join(", ") : String(value ?? "");
 
 function defaults(data) {
-	return {
-		title: "",
-		status: data.statuses[0].value,
-		rating: 0,
-		genres: [],
-	};
+	const result = { title: "" };
+	if (data.statuses?.length) result.status = data.statuses[0].value;
+	if (data.fields.some((field) => field.key === "rating")) result.rating = 0;
+	if (data.fields.some((field) => field.key === "genres")) result.genres = [];
+	return result;
 }
 
 export function mountCollectionEditor({
@@ -270,7 +269,8 @@ export function mountCollectionEditor({
 			const meta = card?.querySelector(".collection-card-meta");
 			if (meta) meta.textContent = labelFor(item, index);
 			const chip = card?.querySelector(".collection-status");
-			if (chip) chip.textContent = statusLabel(data.statuses, item.status);
+			if (chip && data.statuses?.length)
+				chip.textContent = statusLabel(data.statuses, item.status);
 		}
 	}
 
@@ -317,9 +317,10 @@ export function mountCollectionEditor({
 			node("span", "collection-card-meta", labelFor(item, index)),
 		);
 		const chips = node("div", "collection-chips");
-		chips.append(
-			node("span", "collection-status", statusLabel(data.statuses, item.status)),
-		);
+		if (data.statuses?.length)
+			chips.append(
+				node("span", "collection-status", statusLabel(data.statuses, item.status)),
+			);
 		if (Number(item.rating) > 0)
 			chips.append(node("span", "collection-rating", `★ ${item.rating}`));
 		if (!item.cover)

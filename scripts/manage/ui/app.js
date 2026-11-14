@@ -486,11 +486,16 @@ import { mountCollectionEditor } from "./collection-editor.js";
 				}
 			} else if (
 				path === "src/data/anime.ts" ||
-				path === "src/data/books.ts"
+				path === "src/data/books.ts" ||
+				path === "src/data/music.ts"
 			) {
+				const kindByPath = {
+					"src/data/anime.ts": "anime",
+					"src/data/books.ts": "books",
+					"src/data/music.ts": "music",
+				};
 				collectionData = await api(
-					"/api/collection?kind=" +
-						(path === "src/data/anime.ts" ? "anime" : "books"),
+					"/api/collection?kind=" + kindByPath[path],
 				);
 			}
 			if (generation !== state.loadGeneration) return;

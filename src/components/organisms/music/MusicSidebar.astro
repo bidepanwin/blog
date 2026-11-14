@@ -4,6 +4,7 @@ import WidgetLayout from "@components/molecules/WidgetLayout.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { resolveImageAsset } from "@utils/asset-utils";
+import { url } from "@utils/url-utils";
 import stylus from "stylus";
 import { musicConfig, resolveMusicOptions } from "@/config/musicConfig";
 import { musicTracks } from "@/data/music";
@@ -34,9 +35,21 @@ const optimizedOptions = options
 			playlist: await Promise.all(
 				options.playlist.map(async (track) => {
 					const configuredCover = configuredCovers.get(track.id) ?? track.cover;
-					if (!configuredCover) return track;
+					// 音频源在运行时直接赋给 audio.src，必须在此补上 base 前缀
+					//（例如 /assets/... → /blog/assets/...），否则 GitHub Pages 等
+					// 非根路径部署下会 404。url() 对外链与原样带 base 的路径幂等。
+					const resolvedSource = url(track.source);
+					if (!configuredCover) {
+						return resolvedSource === track.source
+							? track
+							: { ...track, source: resolvedSource };
+					}
 					const asset = await resolveImageAsset(configuredCover);
-					if (typeof asset === "string") return track;
+					if (typeof asset === "string") {
+						return resolvedSource === track.source
+							? track
+							: { ...track, source: resolvedSource };
+					}
 					const widths = [64, 128].filter((width) => width <= asset.width);
 					if (!widths.length) widths.push(asset.width);
 					const candidates = await Promise.all(
@@ -52,6 +65,7 @@ const optimizedOptions = options
 					);
 					return {
 						...track,
+						source: resolvedSource,
 						cover: candidates.at(-1)?.image.src ?? asset.src,
 						coverSrcset: candidates
 							.map(({ image, width }) => `${image.src} ${width}w`)
