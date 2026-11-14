@@ -924,18 +924,23 @@
 		const changes = Array.isArray(git.changed) ? git.changed : [];
 		const pending = pendingPush();
 		const retry = pending?.canRetry === true;
+		const prepared = retry && pending.prepared === true;
 		const unknownAhead = !pending && Number(git.ahead) > 0;
 		$("push-recovery").hidden = !pending && !unknownAhead;
 		$("push-recovery-title").textContent = pending
 			? retry
-				? "上次发布等待完成，可直接重试推送"
+				? prepared
+					? "上次发布已检查，可继续完成"
+					: "上次发布等待完成，可直接重试推送"
 				: "待推送的发布需要核对"
 			: "发现本地提交，发布前会重新核对远端";
 		const commit =
 			typeof pending?.commit === "string" ? pending.commit.slice(0, 8) : "";
 		$("push-recovery-text").textContent = pending
 			? retry
-				? `管理台已保存上次提交${commit ? ` ${commit}` : ""}。点击“重试推送”继续，不会重复构建或创建提交；之后的内容修改留待下一次发布。`
+				? prepared
+					? "管理台已保留上次检查的内容。点击“继续上次发布”完成发布，不重复构建；之后的新编辑留待下一次发布。"
+					: `管理台已保存上次提交${commit ? ` ${commit}` : ""}。点击“重试推送”继续，不会重复构建或创建提交；之后的内容修改留待下一次发布。`
 				: pending.reason ||
 					"当前版本与管理台记录不一致，已停止自动推送。请先核对这些提交。"
 			: "有本地提交待核对，发布时会重新查询远端；仅管理台已记录的失败发布能安全重试，其他提交不自动推送。";
@@ -967,7 +972,11 @@
 		$("validate-button").disabled = Boolean(state.job);
 		$("publish-button").disabled =
 			Boolean(state.job) || Boolean(pending && !retry);
-		$("publish-button").textContent = retry ? "重试推送 ↗" : "提交并发布 ↗";
+		$("publish-button").textContent = retry
+			? prepared
+				? "继续上次发布 ↗"
+				: "重试推送 ↗"
+			: "提交并发布 ↗";
 		$("commit-message-field").hidden = Boolean(pending);
 		$("commit-message").disabled = Boolean(state.job) || Boolean(pending);
 	}
@@ -976,6 +985,7 @@
 		if (state.job) return;
 		const pending = pendingPush();
 		const retry = kind === "publish" && pending?.canRetry === true;
+		const prepared = retry && pending.prepared === true;
 		if (kind === "publish" && pending && !retry) {
 			showError(pending.reason || "请先核对待推送的发布，再继续操作。");
 			return;
@@ -1001,7 +1011,9 @@
 			if (
 				!window.confirm(
 					retry
-						? "将重试推送管理台已保存的上次提交，不会重复构建或创建提交，之后的编辑会留待下一次发布。确定继续吗？"
+						? prepared
+							? "继续上次已检查的内容，不重复构建；之后的新编辑留待下一次发布。"
+							: "将重试推送管理台已保存的上次提交，不会重复构建或创建提交，之后的编辑会留待下一次发布。确定继续吗？"
 						: "将运行检查、提交并推送本管理台保存的文件，触发 GitHub Pages 更新。其他本地改动不会提交。确定发布吗？",
 				)
 			)
@@ -1021,7 +1033,9 @@
 			state.job = job.id;
 			$("job-panel").hidden = false;
 			$("job-title").textContent = retry
-				? "重试推送日志"
+				? prepared
+					? "继续发布日志"
+					: "重试推送日志"
 				: kind === "publish"
 					? "发布日志"
 					: "检查日志";
