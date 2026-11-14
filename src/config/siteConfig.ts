@@ -54,8 +54,12 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		// desktop 用于 >= 1024px；mobile 用于 < 1024px。
 		// 数组顺序就是轮播顺序；只需要静态 Banner 时，每组保留一张图片即可。
 		src: {
-			desktop: ["assets/images/banner/desktop/1.webp"],
-			mobile: ["assets/images/banner/mobile/portrait.webp"],
+			desktop: [
+	"assets/images/banner/desktop/1.webp"
+],
+			mobile: [
+	"assets/images/banner/mobile/portrait.webp"
+],
 		},
 		// 在手机端的栏目页也显示横幅；关闭则恢复仅首页显示手机横幅。
 		mobileOnAllPages: true,
@@ -63,63 +67,111 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		// dimOpacity 可单独加深亮图遮罩，确保横幅白字清晰；默认沿用全局 dim。
 		pageImages: {
 			archive: {
-				desktop: ["assets/images/banner/desktop/2.webp"],
-				mobile: ["assets/images/banner/mobile/2.webp"],
+				desktop: [
+	"assets/images/banner/desktop/2.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/2.webp"
+],
 				dimOpacity: 0.42,
 			},
 			reports: {
-				desktop: ["assets/images/banner/desktop/11.webp"],
-				mobile: ["assets/images/banner/mobile/11.webp"],
+				desktop: [
+	"assets/images/banner/desktop/11.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/11.webp"
+],
 				dimOpacity: 0.44,
 			},
 			moments: {
-				desktop: ["assets/images/banner/desktop/5.webp"],
-				mobile: ["assets/images/banner/mobile/5.webp"],
+				desktop: [
+	"assets/images/banner/desktop/5.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/5.webp"
+],
 				dimOpacity: 0.4,
 			},
 			anime: {
-				desktop: ["assets/images/banner/desktop/6.webp"],
-				mobile: ["assets/images/banner/mobile/6.webp"],
+				desktop: [
+	"assets/images/banner/desktop/6.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/6.webp"
+],
 				dimOpacity: 0.58,
 			},
 			books: {
-				desktop: ["assets/images/banner/desktop/10.webp"],
-				mobile: ["assets/images/banner/mobile/10.webp"],
+				desktop: [
+	"assets/images/banner/desktop/10.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/10.webp"
+],
 				dimOpacity: 0.58,
 			},
 			thinking: {
-				desktop: ["assets/images/banner/desktop/3.webp"],
-				mobile: ["assets/images/banner/mobile/3.webp"],
+				desktop: [
+	"assets/images/banner/desktop/3.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/3.webp"
+],
 				dimOpacity: 0.42,
 			},
 			graph: {
-				desktop: ["assets/images/banner/desktop/15.webp"],
-				mobile: ["assets/images/banner/mobile/15.webp"],
+				desktop: [
+	"assets/images/banner/desktop/15.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/15.webp"
+],
 				dimOpacity: 0.58,
 			},
 			wiki: {
-				desktop: ["assets/images/banner/desktop/16.webp"],
-				mobile: ["assets/images/banner/mobile/16.webp"],
+				desktop: [
+	"assets/images/banner/desktop/16.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/16.webp"
+],
 				dimOpacity: 0.48,
 			},
 			albums: {
-				desktop: ["assets/images/banner/desktop/8.webp"],
-				mobile: ["assets/images/banner/mobile/8.webp"],
+				desktop: [
+	"assets/images/banner/desktop/8.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/8.webp"
+],
 				dimOpacity: 0.58,
 			},
 			friends: {
-				desktop: ["assets/images/banner/desktop/12.webp"],
-				mobile: ["assets/images/banner/mobile/12.webp"],
+				desktop: [
+	"assets/images/banner/desktop/12.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/12.webp"
+],
 				dimOpacity: 0.58,
 			},
 			projects: {
-				desktop: ["assets/images/banner/desktop/14.webp"],
-				mobile: ["assets/images/banner/mobile/14.webp"],
+				desktop: [
+	"assets/images/banner/desktop/14.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/14.webp"
+],
 				dimOpacity: 0.42,
 			},
 			about: {
-				desktop: ["assets/images/banner/desktop/13.webp"],
-				mobile: ["assets/images/banner/mobile/13.webp"],
+				desktop: [
+	"assets/images/banner/desktop/13.webp"
+],
+				mobile: [
+	"assets/images/banner/mobile/13.webp"
+],
 				dimOpacity: 0.58,
 			},
 		},
@@ -163,7 +215,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		},
 		carousel: {
 			// 是否开启多张图片自动轮播；多张图片时生效，单张图片时自动降级为静态展示。
-			enable: false,
+			enable: true,
 			// 轮播切换间隔时间（毫秒），运行时最小值限制为 3000ms。
 			interval: 6000,
 			// 交叉淡入淡出（Crossfade）过渡时长（毫秒，默认 1200ms）。
@@ -179,7 +231,9 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	// Markdown 正文图片处理；仅匹配远程图片，不会产生额外网络请求或客户端代码。
 	imageOptimization: {
 		// 为需要防盗链兼容的图片 CDN 添加 referrerpolicy="no-referrer"，支持通配符。
-		noReferrerDomains: ["*.hdslb.com"],
+		noReferrerDomains: [
+	"*.hdslb.com"
+],
 	},
 	toc: {
 		enable: true, // Display the table of contents on the right side of the post
