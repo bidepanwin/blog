@@ -13,9 +13,9 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	// GitHub Pages 项目站点；site 保留完整首页地址供 RSS、sitemap 使用。
 	site: "https://bidepanwin.github.io/blog/",
 	base: "/blog/",
-	title: "LIN'S LOG",
-	subtitle: "记录探索，保持好奇。",
-	ogImage: "assets/images/banner/desktop/1.webp",
+	title: "PAN LOG",
+	subtitle: "独立思考，明辨是非。",
+	ogImage: "/images/covers/2026-10-18-animaeva-memory-eval.webp",
 	// 电脑端顶栏标题与导航内容区域："left" 左对齐，"center" 居中。
 	topAppBar: {
 		contentAlign: "left",
@@ -55,7 +55,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		// 数组顺序就是轮播顺序；只需要静态 Banner 时，每组保留一张图片即可。
 		src: {
 			desktop: [
-	"assets/images/banner/desktop/1.webp"
+	"/images/covers/2026-10-18-animaeva-memory-eval.webp"
 ],
 			mobile: [
 	"assets/images/banner/mobile/portrait.webp"
@@ -185,7 +185,7 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		homeText: {
 			// 仅在首页 Banner 中显示，标题与副标题会上下居中排列。
 			enable: true,
-			title: "LIN'S LOG",
+			title: "PAN‘S LOG",
 			subtitle: "记录探索，保持好奇。Keep exploring, keep creating.",
 			typewriter: {
 				// 首页文字逐字显示；关闭后直接显示完整文字。
