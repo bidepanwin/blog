@@ -117,7 +117,8 @@ export function resolveMediaReference(
 		} else reference = `${prefix.replace(/[\\/]+$/, "")}/${reference}`;
 	}
 
-	if (HTTP.test(reference)) {
+	const isHttpReference = HTTP.test(reference);
+	if (isHttpReference) {
 		let remote;
 		try {
 			remote = new URL(reference);
@@ -126,7 +127,13 @@ export function resolveMediaReference(
 		}
 		let ownSite = false;
 		try {
-			ownSite = Boolean(siteUrl) && remote.origin === new URL(siteUrl).origin;
+			const basePath = `/${String(base || "/").replace(/^\/+|\/+$/g, "")}`;
+			ownSite =
+				Boolean(siteUrl) &&
+				remote.origin === new URL(siteUrl).origin &&
+				(basePath === "/" ||
+					remote.pathname === basePath ||
+					remote.pathname.startsWith(`${basePath}/`));
 		} catch {}
 		if (!ownSite)
 			return {
@@ -142,33 +149,40 @@ export function resolveMediaReference(
 	const onDisk = rootRelative(value, root);
 	if (onDisk !== null) value = onDisk;
 	else value = stripBase(value, base);
-	// Query/hash delimiters belong to a URL; encoded characters in filenames
-	// are decoded only after removing these delimiters.
-	value = decode(value.split(/[?#]/, 1)[0]);
-	const clean = path.posix.normalize(value).replace(/^\.\//, "");
-	const withoutSlash = clean.replace(/^\/+/, "");
-	const candidates = [];
-	if (withoutSlash.startsWith("public/")) candidates.push(withoutSlash);
-	else if (withoutSlash.startsWith("src/assets/images/"))
-		candidates.push(withoutSlash);
-	else if (withoutSlash.startsWith("assets/images/"))
-		candidates.push(`src/${withoutSlash}`, `public/${withoutSlash}`);
-	else {
-		if (!clean.startsWith("/") && documentPath)
-			candidates.push(
-				path.posix.normalize(
-					path.posix.join(path.posix.dirname(documentPath), clean),
-				),
-			);
-		candidates.push(`public/${withoutSlash}`);
-	}
-
 	const insensitive = DRIVE.test(root) || process.platform === "win32";
 	const key = (file) => (insensitive ? file.toLowerCase() : file);
 	const allowlist = new Map(files.map((file) => [key(file.path), file]));
-	const file = candidates
-		.map((candidate) => allowlist.get(key(candidate)))
-		.find(Boolean);
+	function findFile(candidateValue) {
+		const clean = path.posix.normalize(candidateValue).replace(/^\.\//, "");
+		const withoutSlash = clean.replace(/^\/+/, "");
+		const candidates = [];
+		if (withoutSlash.startsWith("public/")) candidates.push(withoutSlash);
+		else if (withoutSlash.startsWith("src/assets/images/"))
+			candidates.push(withoutSlash);
+		else if (withoutSlash.startsWith("assets/images/"))
+			candidates.push(`src/${withoutSlash}`, `public/${withoutSlash}`);
+		else {
+			if (!clean.startsWith("/") && documentPath)
+				candidates.push(
+					path.posix.normalize(
+						path.posix.join(path.posix.dirname(documentPath), clean),
+					),
+				);
+			candidates.push(`public/${withoutSlash}`);
+		}
+		return candidates
+			.map((candidate) => allowlist.get(key(candidate)))
+			.find(Boolean);
+	}
+	// Repository and disk paths may contain literal # or %. Prefer their exact
+	// allowlisted filenames; HTTP URLs still retain URL decoding/hash semantics.
+	const literalPath =
+		!isHttpReference &&
+		(onDisk !== null ||
+			/^(?:public\/|\/?(?:src\/)?assets\/images\/)/.test(value));
+	const file =
+		(literalPath && findFile(value)) ||
+		findFile(decode(value.split(/[?#]/, 1)[0]));
 	if (!file)
 		throw fail(
 			"找不到这张本地图片。请检查前缀与文件名，或使用“选择本地图片”导入。",
@@ -178,7 +192,11 @@ export function resolveMediaReference(
 	const markdownReference =
 		file.path.startsWith("public/") || !documentPath
 			? stored
-			: path.posix.relative(path.posix.dirname(documentPath), file.path);
+			: path.posix
+					.relative(path.posix.dirname(documentPath), file.path)
+					.split("/")
+					.map(encodeURIComponent)
+					.join("/");
 	return {
 		kind: "local",
 		path: file.path,

@@ -124,7 +124,7 @@ test("image resolve and import endpoints normalize references and record importe
 	assert.equal(resolved.json.path, source);
 	assert.equal(
 		resolved.json.markdownReference,
-		"../../assets/images/封面 test.png",
+		"../../assets/images/%E5%B0%81%E9%9D%A2%20test.png",
 	);
 	assert.equal(manager.recorded.length, 0);
 	const imported = await request(manager, "POST", "/api/media/import", {

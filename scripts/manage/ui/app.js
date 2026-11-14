@@ -934,6 +934,13 @@ import { createMediaPicker } from "./media-picker.js";
 							signal: abort.signal,
 						});
 						if (!media.path) continue;
+						if (
+							media.path.startsWith("src/") &&
+							/^\/?(?:src\/)?assets\/images\//.test(source)
+						)
+							throw new Error(
+								"正文需使用相对文章的资源路径，请通过插入图片生成通用路径。",
+							);
 						image.src =
 							location.origin +
 							"/api/media?path=" +
@@ -943,7 +950,7 @@ import { createMediaPicker } from "./media-picker.js";
 					} catch (error) {
 						if (error.name === "AbortError") throw error;
 						image.removeAttribute("src");
-						image.alt = `图片路径不可用：${source}`;
+						image.alt = `图片路径不可用，请使用“插入图片”重新选择：${source}`;
 					}
 				}
 				if (generation !== state.previewGeneration) return;
@@ -1005,6 +1012,7 @@ import { createMediaPicker } from "./media-picker.js";
 			);
 		for (const file of state.media) {
 			const card = element("article", "media-card");
+			card.dataset.mediaPath = file.path;
 			const image = element("img", "media-thumbnail");
 			image.src =
 				"/api/media?path=" +
@@ -1026,7 +1034,11 @@ import { createMediaPicker } from "./media-picker.js";
 				try {
 					copy.disabled = true;
 					const reference = await resolveImageReference(file.path);
-					info.querySelector("code").textContent = reference;
+					// Importing refreshes the library, so update the visible card too.
+					const visibleCard = [...$("media-grid").children].find(
+						(item) => item.dataset.mediaPath === file.path,
+					);
+					(visibleCard || info).querySelector("code").textContent = reference;
 					await navigator.clipboard.writeText(reference);
 					toast("通用图片路径已复制，可用于封面、正文、头像和横幅。");
 				} catch (error) {

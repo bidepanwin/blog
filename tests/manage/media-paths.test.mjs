@@ -128,12 +128,117 @@ test("URL encoding is canonical for public files while source references remain 
 			reference: "assets/images/封面 test.png",
 			documentPath: "src/content/posts/example.md",
 		}).markdownReference,
-		"../../assets/images/封面 test.png",
+		"../../assets/images/%E5%B0%81%E9%9D%A2%20test.png",
 	);
 	assert.equal(
 		resolve({ reference: "/assets/moments/thumbnails/a.webp" }).path,
 		files[2].path,
 	);
+});
+
+test("literal repository and disk paths preserve filename hashes and percents", () => {
+	for (const filename of ["figure#1.webp", "progress%25.png", "100%.png"]) {
+		const file = `src/assets/images/${filename}`;
+		const settings = { ...options, files: [{ path: file }] };
+		for (const reference of [
+			mediaReference(file),
+			file,
+			`/${file}`,
+			`D:/blog project/${file}`,
+		]) {
+			const documentPath = "src/content/posts/example.md";
+			const resolved = resolveMediaReference(
+				{ reference, documentPath },
+				settings,
+			);
+			assert.equal(resolved.path, file, reference);
+			assert.equal(
+				resolved.markdownReference,
+				`../../assets/images/${encodeURIComponent(filename)}`,
+			);
+			assert.equal(
+				resolveMediaReference(
+					{ reference: resolved.markdownReference, documentPath },
+					settings,
+				).path,
+				file,
+				reference,
+			);
+		}
+		assert.equal(
+			resolveMediaReference(
+				{ prefix: "src/assets/images", reference: filename },
+				settings,
+			).path,
+			file,
+		);
+	}
+	assert.equal(
+		resolveMediaReference(
+			{ reference: "public/images/figure#1.webp" },
+			{ ...options, files: [{ path: "public/images/figure#1.webp" }] },
+		).reference,
+		"/images/figure%231.webp",
+	);
+});
+
+test("Markdown relative image paths retain URL encoding semantics with filename collisions", () => {
+	const settings = {
+		...options,
+		files: [
+			{ path: "src/assets/images/progress%.png" },
+			{ path: "src/assets/images/progress%25.png" },
+			{ path: "src/assets/images/figure#1.webp" },
+		],
+	};
+	for (const file of settings.files) {
+		const filename = file.path.split("/").at(-1);
+		assert.equal(
+			resolveMediaReference(
+				{
+					reference: `../../assets/images/${encodeURIComponent(filename)}`,
+					documentPath: "src/content/posts/example.md",
+				},
+				settings,
+			).path,
+			file.path,
+		);
+	}
+});
+
+test("URL queries, fragments and percent encoding keep URL semantics even with filename collisions", () => {
+	const extraFiles = [
+		{ path: "public/images/uploads/hello.png#variant.png" },
+		{ path: "public/images/progress%.png" },
+		{ path: "public/images/progress%25.png" },
+	];
+	const settings = { ...options, files: [...files, ...extraFiles] };
+	for (const reference of [
+		"/images/uploads/hello.png#variant.png",
+		"https://bidepanwin.github.io/blog/images/uploads/hello.png#variant.png",
+		"https://bidepanwin.github.io/blog/images/uploads/hello.png?x=1#variant.png",
+	]) {
+		assert.equal(
+			resolveMediaReference({ reference }, settings).path,
+			files[0].path,
+			reference,
+		);
+	}
+	for (const file of extraFiles) {
+		const reference = mediaReference(file.path);
+		assert.equal(
+			resolveMediaReference({ reference }, settings).path,
+			file.path,
+			reference,
+		);
+		assert.equal(
+			resolveMediaReference(
+				{ reference: `https://bidepanwin.github.io/blog${reference}` },
+				settings,
+			).path,
+			file.path,
+		);
+	}
 });
 
 test("remote URLs are retained without touching disk or fetching them", () => {
@@ -147,6 +252,28 @@ test("remote URLs are retained without touching disk or fetching them", () => {
 	);
 	assert.equal(result.markdownReference, result.reference);
 	assert.equal(result.path, undefined);
+});
+
+test("same-origin images outside this Pages base remain remote", () => {
+	for (const reference of [
+		"https://bidepanwin.github.io/other-blog/a.webp?x=1#part",
+		"https://bidepanwin.github.io/blog-other/a.webp",
+		"https://bidepanwin.github.io/images/uploads/hello.png",
+	]) {
+		const result = resolve({ reference });
+		assert.deepEqual(result, {
+			kind: "remote",
+			reference,
+			markdownReference: reference,
+		});
+	}
+	assert.equal(
+		resolveMediaReference(
+			{ reference: "https://bidepanwin.github.io/images/uploads/hello.png" },
+			{ ...options, base: "/", siteUrl: "https://bidepanwin.github.io/" },
+		).path,
+		files[0].path,
+	);
 });
 
 test("resolver denies missing media, invalid schemes, external disk paths and malformed payloads", () => {

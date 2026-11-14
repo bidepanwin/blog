@@ -57,7 +57,10 @@ test("resolving media checks the scanner allowlist and importing source assets c
 		documentPath: POST,
 	});
 	assert.equal(resolved.path, source);
-	assert.equal(resolved.markdownReference, "../../assets/images/封面 test.png");
+	assert.equal(
+		resolved.markdownReference,
+		"../../assets/images/%E5%B0%81%E9%9D%A2%20test.png",
+	);
 	const imported = await store.importMedia({ reference: source });
 	const hash = createHash("sha256")
 		.update(Buffer.from(PNG, "base64"))
