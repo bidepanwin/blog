@@ -915,14 +915,35 @@
 		}
 	}
 
+	function pendingPush() {
+		const pending = state.git.pendingPush;
+		return pending && typeof pending === "object" ? pending : null;
+	}
 	function renderPublish() {
 		const git = state.git;
 		const changes = Array.isArray(git.changed) ? git.changed : [];
+		const pending = pendingPush();
+		const retry = pending?.canRetry === true;
+		const unknownAhead = !pending && Number(git.ahead) > 0;
+		$("push-recovery").hidden = !pending && !unknownAhead;
+		$("push-recovery-title").textContent = pending
+			? retry
+				? "上次发布等待完成，可直接重试推送"
+				: "待推送的发布需要核对"
+			: "发现本地提交，发布前会重新核对远端";
+		const commit =
+			typeof pending?.commit === "string" ? pending.commit.slice(0, 8) : "";
+		$("push-recovery-text").textContent = pending
+			? retry
+				? `管理台已保存上次提交${commit ? ` ${commit}` : ""}。点击“重试推送”继续，不会重复构建或创建提交；之后的内容修改留待下一次发布。`
+				: pending.reason ||
+					"当前版本与管理台记录不一致，已停止自动推送。请先核对这些提交。"
+			: "有本地提交待核对，发布时会重新查询远端；仅管理台已记录的失败发布能安全重试，其他提交不自动推送。";
 		$("git-details").replaceChildren();
 		for (const [name, value] of [
 			["当前分支", git.branch || "尚未获取"],
-			["待推送提交", String(git.ahead ?? 0)],
-			["落后远端提交", String(git.behind ?? 0)],
+			["待推送提交（本地记录）", String(git.ahead ?? 0)],
+			["落后远端提交（本地记录）", String(git.behind ?? 0)],
 		]) {
 			$("git-details").append(
 				element("dt", "", name),
@@ -944,12 +965,22 @@
 				element("p", "list-empty", "工作区很整洁，暂时没有未提交的文件。"),
 			);
 		$("validate-button").disabled = Boolean(state.job);
-		$("publish-button").disabled = Boolean(state.job);
+		$("publish-button").disabled =
+			Boolean(state.job) || Boolean(pending && !retry);
+		$("publish-button").textContent = retry ? "重试推送 ↗" : "提交并发布 ↗";
+		$("commit-message-field").hidden = Boolean(pending);
+		$("commit-message").disabled = Boolean(state.job) || Boolean(pending);
 	}
 
 	async function runJob(kind) {
 		if (state.job) return;
-		if (state.dirty) {
+		const pending = pendingPush();
+		const retry = kind === "publish" && pending?.canRetry === true;
+		if (kind === "publish" && pending && !retry) {
+			showError(pending.reason || "请先核对待推送的发布，再继续操作。");
+			return;
+		}
+		if (state.dirty && !retry) {
 			if (
 				!window.confirm(
 					"当前还有未保存的修改。先保存再" +
@@ -960,16 +991,18 @@
 				return;
 			if (!(await saveCurrent())) return;
 		}
-		const message = $("commit-message").value.trim();
+		const message = retry ? "" : $("commit-message").value.trim();
 		if (kind === "publish") {
-			if (!message) {
+			if (!retry && !message) {
 				showError("请填写本次更新说明。");
 				$("commit-message").focus();
 				return;
 			}
 			if (
 				!window.confirm(
-					"将运行检查、提交并推送本管理台保存的文件，触发 GitHub Pages 更新。其他本地改动不会提交。确定发布吗？",
+					retry
+						? "将重试推送管理台已保存的上次提交，不会重复构建或创建提交，之后的编辑会留待下一次发布。确定继续吗？"
+						: "将运行检查、提交并推送本管理台保存的文件，触发 GitHub Pages 更新。其他本地改动不会提交。确定发布吗？",
 				)
 			)
 				return;
@@ -980,14 +1013,18 @@
 				kind === "publish" ? "/api/publish" : "/api/validate",
 				{
 					method: "POST",
-					body: JSON.stringify(kind === "publish" ? { message } : {}),
+					body: JSON.stringify(kind === "publish" && !retry ? { message } : {}),
 				},
 			);
 			const job = result.job || result;
 			if (!job.id) throw new Error("服务未返回任务编号，请查看本地终端。");
 			state.job = job.id;
 			$("job-panel").hidden = false;
-			$("job-title").textContent = kind === "publish" ? "发布日志" : "检查日志";
+			$("job-title").textContent = retry
+				? "重试推送日志"
+				: kind === "publish"
+					? "发布日志"
+					: "检查日志";
 			$("job-log").textContent = "";
 			$("job-message").textContent = "";
 			$("job-state").textContent = "执行中";
