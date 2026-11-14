@@ -4,6 +4,7 @@ import Snackbar from "@components/atoms/overlay/Snackbar.svelte";
 import ConfigCarrier from "@components/system/ConfigCarrier.astro";
 import UmamiRuntime from "@components/system/UmamiRuntime.astro";
 import { resolveAsset } from "@utils/asset-utils";
+import { selectBannerSources } from "@utils/banner-config";
 import { createDefaultSchemeStyle } from "@utils/theme-utils";
 import { pathsEqual, toAbsoluteUrl, url } from "@utils/url-utils";
 import {
@@ -92,8 +93,9 @@ const defaultTextureOpacity = textureOptions.defaultOpacity;
 const textureEnabled = textureOptions.enable;
 const umamiOptions = resolveUmamiOptions(umamiConfig);
 
-const hasDesktopBanner = hasBannerImages(siteConfig.banner.src.desktop);
-const hasMobileBanner = hasBannerImages(siteConfig.banner.src.mobile);
+const pageBannerSources = selectBannerSources(siteConfig.banner, initialPage);
+const hasDesktopBanner = hasBannerImages(pageBannerSources.desktop);
+const hasMobileBanner = hasBannerImages(pageBannerSources.mobile);
 
 let pageTitle: string;
 if (title) {
@@ -231,6 +233,7 @@ const defaultSchemeStyle = createDefaultSchemeStyle();
 		data-banner-top-app-bar="false"
 		data-banner-has-desktop={String(hasDesktopBanner)}
 		data-banner-has-mobile={String(hasMobileBanner)}
+		data-banner-mobile-all-pages={String(siteConfig.banner.mobileOnAllPages === true)}
 	>
 		<ConfigCarrier></ConfigCarrier>
 		{umamiOptions && <UmamiRuntime />}
@@ -280,6 +283,8 @@ const defaultSchemeStyle = createDefaultSchemeStyle();
 		@media (min-width: 480px) and (max-width: 767.98px) { :root { --banner-panel-overlap: var(--m3e-space-2); } }
 		html[data-wallpaper-mode="banner"] body[data-current-page="home"][data-banner-has-mobile="true"] #main-layout { top: var(--banner-content-top); }
 		html[data-wallpaper-mode="banner"] body[data-current-page="home"][data-banner-has-mobile="true"] #top-row { height: calc(var(--banner-stage-height) - 4.5rem); }
+		html[data-wallpaper-mode="banner"] body[data-banner-mobile-all-pages="true"][data-banner-has-mobile="true"] #main-layout { top: var(--banner-content-top); }
+		html[data-wallpaper-mode="banner"] body[data-banner-mobile-all-pages="true"][data-banner-has-mobile="true"] #top-row { height: calc(var(--banner-stage-height) - 4.5rem); }
 		body[data-banner-layout="compact"] #top-row { height: auto; }
 	}
 	@media (min-width: 480px) and (max-width: 767.98px) { :root { --banner-stage-height: max(75vh, 31.25rem); } }

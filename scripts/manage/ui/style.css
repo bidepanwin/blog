@@ -755,6 +755,22 @@ input[type="checkbox"] {
 	margin-top: 10px;
 	line-height: 1.8;
 }
+.draft-notice {
+	padding: 14px 22px;
+	border-bottom: 1px solid var(--line);
+	background: var(--accent-soft);
+}
+.draft-notice strong {
+	display: block;
+	color: var(--accent);
+	font-size: 12px;
+}
+.draft-notice p {
+	margin-top: 5px;
+	color: var(--text);
+	font-size: 11px;
+	line-height: 1.8;
+}
 .editor-status {
 	display: flex;
 	justify-content: space-between;
@@ -1011,6 +1027,28 @@ input[type="checkbox"] {
 	gap: 9px;
 	margin-top: 18px;
 	flex-wrap: wrap;
+}
+.publish-steps {
+	margin: 20px 0;
+	padding-left: 22px;
+	font-size: 12px;
+}
+.publish-steps li {
+	padding-left: 5px;
+	margin: 14px 0;
+}
+.publish-steps li::marker {
+	color: var(--accent);
+	font-weight: 650;
+}
+.publish-steps strong,
+.publish-steps span {
+	display: block;
+}
+.publish-steps span {
+	color: var(--muted);
+	font-size: 11px;
+	margin-top: 3px;
 }
 .count-pill {
 	display: inline-block;
@@ -1411,9 +1449,12 @@ input[type="checkbox"] {
 		font-size: 10px;
 		padding-inline: 7px;
 	}
-	.topbar .button-primary {
+	.topbar .button:not(.button-quiet) {
 		min-height: 34px;
 		padding-inline: 12px;
+	}
+	#site-link {
+		display: none;
 	}
 	.shortcut {
 		display: none;
@@ -1504,6 +1545,9 @@ input[type="checkbox"] {
 	.editor-toolbar {
 		padding: 16px 14px 12px;
 		gap: 7px;
+	}
+	.draft-notice {
+		padding: 13px 14px;
 	}
 	.editor-file-info h2 {
 		font-size: 13px;

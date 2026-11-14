@@ -457,6 +457,2060 @@
           },
           "additionalProperties": false
         },
+        "pageImages": {
+          "anyOf": [
+            {},
+            {
+              "type": "object",
+              "properties": {
+                "notFound": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "home": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "archive": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "reports": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "friends": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "moments": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "anime": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "books": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "graph": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "wiki": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "thinking": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "compass": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "skills": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "projects": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "devices": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "games": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "timeline": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "albums": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "about": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "categories": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "tags": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "series": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "rss": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "atom": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "post": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "desktop": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "mobile": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "light": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "dark": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "dimOpacity": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "description": "当前栏目遮罩浓度，适合亮色图片，范围 0–1。"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "当前栏目专用横幅；未配置的栏目沿用 src。省略 mobile 时沿用该栏目的 desktop。"
+        },
+        "mobileOnAllPages": {
+          "anyOf": [
+            {},
+            {
+              "type": "boolean",
+              "enum": [
+                false
+              ]
+            },
+            {
+              "type": "boolean",
+              "enum": [
+                true
+              ]
+            }
+          ],
+          "description": "默认仅首页在移动端显示横幅；启用后所有栏目均显示。"
+        },
+        "contextText": {
+          "anyOf": [
+            {},
+            {
+              "type": "object",
+              "properties": {
+                "typewriter": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "enable": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                false
+                              ]
+                            },
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "includeTitle": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                false
+                              ]
+                            },
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            }
+                          ],
+                          "description": "标题是否先于副标题逐字显示（默认 false）。"
+                        },
+                        "speed": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "deleteSpeed": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "pauseTime": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "loop": {
+                          "anyOf": [
+                            {},
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                false
+                              ]
+                            },
+                            {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "栏目标题及说明的打字配置；默认静态，可覆盖首页的速度等参数。"
+        },
         "position": {
           "anyOf": [
             {},
@@ -537,11 +2591,10 @@
                       ]
                     }
                   ],
-                  "description": "标题是否参与打字：先显示标题，再显示副标题（默认 false）"
+                  "description": "标题是否先于副标题逐字显示（默认 false）。"
                 },
                 "speed": {
-                  "type": "number",
-                  "description": "打字速度（每个字符间隔，毫秒，默认 120）"
+                  "type": "number"
                 },
                 "deleteSpeed": {
                   "anyOf": [
@@ -549,8 +2602,7 @@
                     {
                       "type": "number"
                     }
-                  ],
-                  "description": "回退反向删除速度（每个字符间隔，毫秒，默认 50）"
+                  ]
                 },
                 "pauseTime": {
                   "anyOf": [
@@ -558,12 +2610,10 @@
                     {
                       "type": "number"
                     }
-                  ],
-                  "description": "打字完成后等待停顿时间（毫秒，默认 2000）"
+                  ]
                 },
                 "loop": {
-                  "type": "boolean",
-                  "description": "完成后是否循环播放（默认 true）"
+                  "type": "boolean"
                 }
               },
               "additionalProperties": false

@@ -13,6 +13,7 @@ export interface BannerStateInput {
 	imageCount: number;
 	carouselEnabled: boolean;
 	reducedMotion: boolean;
+	mobileOnAllPages?: boolean;
 }
 
 export interface BannerState {
@@ -29,7 +30,7 @@ export function resolveBannerState(input: BannerStateInput): BannerState {
 	const visible =
 		input.mode === "banner" &&
 		input.imageCount > 0 &&
-		(input.viewport === "desktop" || isHome);
+		(input.viewport === "desktop" || isHome || input.mobileOnAllPages === true);
 
 	const copyMode: BannerCopyMode = !visible
 		? null

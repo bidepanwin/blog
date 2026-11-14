@@ -1,6 +1,7 @@
 export type { PermalinkConfig } from "./permalinkConfig.ts";
 
 import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
+import type { SidebarPage } from "./sidebarConfig";
 import type { TextureConfig } from "./textureConfig";
 
 export type WallpaperMode = "banner" | "none";
@@ -29,11 +30,37 @@ export type BannerThemeSource = {
 
 export type BannerSourceValue = string[] | BannerThemeSource;
 
+export type BannerTypewriterConfig = {
+	enable: boolean;
+	/** 标题是否先于副标题逐字显示（默认 false）。 */
+	includeTitle?: boolean;
+	speed: number;
+	deleteSpeed?: number;
+	pauseTime?: number;
+	loop: boolean;
+};
+
 export type BannerConfig = {
 	src: {
 		desktop: BannerSourceValue;
 		mobile: BannerSourceValue;
 	};
+	/** 当前栏目专用横幅；未配置的栏目沿用 src。省略 mobile 时沿用该栏目的 desktop。 */
+	pageImages?: Partial<
+		Record<
+			SidebarPage,
+			{
+				desktop: BannerSourceValue;
+				mobile?: BannerSourceValue;
+				/** 当前栏目遮罩浓度，适合亮色图片，范围 0–1。 */
+				dimOpacity?: number;
+			}
+		>
+	>;
+	/** 默认仅首页在移动端显示横幅；启用后所有栏目均显示。 */
+	mobileOnAllPages?: boolean;
+	/** 栏目标题及说明的打字配置；默认静态，可覆盖首页的速度等参数。 */
+	contextText?: { typewriter?: Partial<BannerTypewriterConfig> };
 	position?: "top" | "center" | "bottom";
 	dim: {
 		enable: boolean;
@@ -44,19 +71,7 @@ export type BannerConfig = {
 		title: string;
 		/** 首页副标题文本，支持单条字符串或多条交替循环的字符串数组 */
 		subtitle: string | string[];
-		typewriter: {
-			enable: boolean;
-			/** 标题是否参与打字：先显示标题，再显示副标题（默认 false） */
-			includeTitle?: boolean;
-			/** 打字速度（每个字符间隔，毫秒，默认 120） */
-			speed: number;
-			/** 回退反向删除速度（每个字符间隔，毫秒，默认 50） */
-			deleteSpeed?: number;
-			/** 打字完成后等待停顿时间（毫秒，默认 2000） */
-			pauseTime?: number;
-			/** 完成后是否循环播放（默认 true） */
-			loop: boolean;
-		};
+		typewriter: BannerTypewriterConfig;
 	};
 	carousel: {
 		enable: boolean;

@@ -1,11 +1,9 @@
 ---
-import { getImage } from "astro:assets";
 import BannerWaves from "@components/molecules/BannerWaves.astro";
 import Icon from "@components/atoms/display/Icon.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { resolveImageAsset } from "@utils/asset-utils";
-import { url } from "@utils/url-utils";
+import { createBannerMedia } from "@utils/banner-media";
 import { siteConfig } from "@/config";
 import type { SidebarPage } from "@/types/sidebarConfig";
 
@@ -14,9 +12,16 @@ interface Props {
 	title?: string;
 	description?: string;
 	date?: string;
+	media?: Awaited<ReturnType<typeof createBannerMedia>>;
 }
 
-const { page, title = "", description = "", date = "" } = Astro.props;
+const {
+	page,
+	title = "",
+	description = "",
+	date = "",
+	media: providedMedia,
+} = Astro.props;
 const normalizedTitle = title.trim();
 const normalizedDescription = description.trim();
 const initialSupportingText =
@@ -29,131 +34,13 @@ const initialLabel =
 		? normalizedTitle
 		: siteConfig.banner.homeText.title;
 
-interface ResponsiveBannerImage {
-	fallback: string;
-	avifSrcset: string;
-	webpSrcset: string;
-	width?: number;
-	height?: number;
-}
-
-const optimizeBannerImage = async (
-	src: string,
-	viewport: "desktop" | "mobile",
-): Promise<ResponsiveBannerImage> => {
-	const resolved = await resolveImageAsset(src);
-	if (typeof resolved === "string") {
-		return {
-			fallback: resolved.startsWith("/") ? url(resolved) : resolved,
-			avifSrcset: "",
-			webpSrcset: "",
-		};
-	}
-
-	const requestedWidths =
-		viewport === "desktop" ? [1280, 1600, 1920] : [640, 828, 1080];
-	const widths = [
-		...new Set([
-			...requestedWidths.filter((width) => width <= resolved.width),
-			Math.min(requestedWidths.at(-1) ?? resolved.width, resolved.width),
-		]),
-	].sort((a, b) => a - b);
-	const createCandidates = async (format: "avif" | "webp", quality: number) =>
-		Promise.all(
-			widths.map(async (width) => ({
-				width,
-				image: await getImage({ src: resolved, width, format, quality }),
-			})),
-		);
-	const [avif, webp] = await Promise.all([
-		createCandidates("avif", 55),
-		createCandidates("webp", 68),
-	]);
-	const fallback = webp.at(-1)?.image.src ?? resolved.src;
-	return {
-		fallback,
-		avifSrcset: avif
-			.map(({ image, width }) => `${image.src} ${width}w`)
-			.join(", "),
-		webpSrcset: webp
-			.map(({ image, width }) => `${image.src} ${width}w`)
-			.join(", "),
-		width: resolved.width,
-		height: resolved.height,
-	};
-};
-
-function normalizeBannerSource(
-	source: unknown,
-	name: string,
-): { light: string[]; dark: string[] } {
-	if (Array.isArray(source)) {
-		const list = source.filter(
-			(item): item is string => typeof item === "string",
-		);
-		return { light: list, dark: list };
-	}
-	if (typeof source === "object" && source !== null) {
-		const obj = source as Record<string, unknown>;
-		if (!Array.isArray(obj.light) || !Array.isArray(obj.dark)) {
-			throw new Error(
-				`[config] site.banner.src.${name} 对象形式必须同时提供 light 与 dark 数组。若亮暗两色使用相同图片，请直接使用数组形式。`,
-			);
-		}
-		return {
-			light: obj.light.filter(
-				(item): item is string => typeof item === "string",
-			),
-			dark: obj.dark.filter((item): item is string => typeof item === "string"),
-		};
-	}
-	return { light: [], dark: [] };
-}
-
-const desktopSource = normalizeBannerSource(
-	siteConfig.banner.src.desktop,
-	"desktop",
-);
-const mobileSource = normalizeBannerSource(
-	siteConfig.banner.src.mobile,
-	"mobile",
-);
-
-// 对图片按路径去重进行优化缓存
-const optimizationCache = new Map<string, Promise<ResponsiveBannerImage>>();
-const getOptimized = (src: string, viewport: "desktop" | "mobile") => {
-	const key = `${viewport}:${src}`;
-	let p = optimizationCache.get(key);
-	if (!p) {
-		p = optimizeBannerImage(src, viewport);
-		optimizationCache.set(key, p);
-	}
-	return p;
-};
-
-const desktopLightResponsive = await Promise.all(
-	desktopSource.light.map((src) => getOptimized(src, "desktop")),
-);
-const desktopDarkResponsive = await Promise.all(
-	desktopSource.dark.map((src) => getOptimized(src, "desktop")),
-);
-const mobileLightResponsive = await Promise.all(
-	mobileSource.light.map((src) => getOptimized(src, "mobile")),
-);
-const mobileDarkResponsive = await Promise.all(
-	mobileSource.dark.map((src) => getOptimized(src, "mobile")),
-);
-
-const desktopImages = {
-	light: desktopLightResponsive.map(({ fallback }) => fallback),
-	dark: desktopDarkResponsive.map(({ fallback }) => fallback),
-};
-const mobileImages = {
-	light: mobileLightResponsive.map(({ fallback }) => fallback),
-	dark: mobileDarkResponsive.map(({ fallback }) => fallback),
-};
-
-const dimOpacity = Math.min(Math.max(siteConfig.banner.dim.opacity, 0), 1);
+const media =
+	providedMedia ?? (await createBannerMedia(siteConfig.banner, page));
+const desktopImages = media.payload.desktop;
+const mobileImages = media.payload.mobile;
+const desktopLightResponsive = media.desktopResponsive.light;
+const mobileLightResponsive = media.mobileResponsive.light;
+const dimOpacity = media.payload.dimOpacity;
 const rawSubtitles = siteConfig.banner.homeText.subtitle;
 const subtitleArray = Array.isArray(rawSubtitles)
 	? rawSubtitles
@@ -164,6 +51,11 @@ const subtitlePlaceholder = subtitleArray.reduce(
 	defaultInitialSubtitle,
 );
 const typewriter = siteConfig.banner.homeText.typewriter;
+const contextTypewriter = {
+	...typewriter,
+	...siteConfig.banner.contextText?.typewriter,
+	enable: siteConfig.banner.contextText?.typewriter?.enable === true,
+};
 const carouselFadeDuration = Math.min(
 	Math.max(siteConfig.banner.carousel?.fadeDuration ?? 1200, 300),
 	3000,
@@ -175,7 +67,8 @@ const initialSrc = initialDesktopSrc || initialMobileSrc;
 const initialDesktopImage = desktopLightResponsive[0];
 const initialMobileImage = mobileLightResponsive[0];
 const initialImage = initialDesktopImage ?? initialMobileImage;
-const initialMobileBanner = page === "home";
+const initialMobileBanner =
+	page === "home" || siteConfig.banner.mobileOnAllPages === true;
 ---
 
 <section
@@ -187,11 +80,13 @@ const initialMobileBanner = page === "home";
 	data-context-motion="idle"
 	data-desktop-images={JSON.stringify(desktopImages)}
 	data-mobile-images={JSON.stringify(mobileImages)}
+	data-media={JSON.stringify(media.payload)}
+	data-mobile-all-pages={String(siteConfig.banner.mobileOnAllPages === true)}
 	data-carousel-enabled={String(siteConfig.banner.carousel.enable)}
 	data-carousel-interval={String(Math.max(siteConfig.banner.carousel.interval, 3000))}
 	data-carousel-fade-duration={String(carouselFadeDuration)}
 	data-carousel-animation={carouselAnimation}
-	style={`--banner-fade-duration: ${carouselFadeDuration}ms;`}
+	style={`--banner-fade-duration: ${carouselFadeDuration}ms; --banner-dim-opacity: ${dimOpacity}; --banner-dim-light-scale: ${media.payload.dimLightScale};`}
 	data-position={siteConfig.banner.position ?? "center"}
 	data-home-title={siteConfig.banner.homeText.title}
 	data-home-subtitles={JSON.stringify(subtitleArray)}
@@ -201,6 +96,12 @@ const initialMobileBanner = page === "home";
 	data-subtitle-typewriter-speed={String(Math.max(typewriter.speed, 1))}
 	data-subtitle-typewriter-delete-speed={String(Math.max(typewriter.deleteSpeed ?? 50, 1))}
 	data-subtitle-typewriter-pause-time={String(Math.max(typewriter.pauseTime ?? 2000, 0))}
+	data-context-typewriter-enabled={String(contextTypewriter.enable)}
+	data-context-typewriter-include-title={String(contextTypewriter.includeTitle ?? false)}
+	data-context-typewriter-loop={String(contextTypewriter.loop)}
+	data-context-typewriter-speed={String(Math.max(contextTypewriter.speed, 1))}
+	data-context-typewriter-delete-speed={String(Math.max(contextTypewriter.deleteSpeed ?? 50, 1))}
+	data-context-typewriter-pause-time={String(Math.max(contextTypewriter.pauseTime ?? 2000, 0))}
 >
 	<div class="banner-stage__media" aria-hidden="true">
 		<picture>
@@ -237,7 +138,7 @@ const initialMobileBanner = page === "home";
 		<img class="banner-stage__image banner-stage__image--back" alt="" />
 	</div>
 	{siteConfig.banner.dim.enable && (
-		<div class="banner-stage__scrim" style={`--banner-dim-opacity: ${dimOpacity}`}></div>
+		<div class="banner-stage__scrim"></div>
 	)}
 	{siteConfig.banner.homeText.enable && (
 		<div class="banner-stage__copy banner-stage__copy--home" data-banner-home-copy>
@@ -259,8 +160,8 @@ const initialMobileBanner = page === "home";
 		</div>
 	)}
 	<div class="banner-stage__copy banner-stage__copy--context" data-banner-context>
-		<div class="banner-stage__context-title" data-banner-context-title>
-			{normalizedTitle}
+		<div class="banner-stage__context-title" role="heading" aria-level="1" data-banner-context-title aria-label={normalizedTitle} data-typing-placeholder={normalizedTitle} data-title-state="complete">
+			<span data-typewriter-text aria-hidden="true">{normalizedTitle}</span>
 		</div>
 		<div
 			class="banner-stage__context-details"
@@ -268,8 +169,9 @@ const initialMobileBanner = page === "home";
 			hidden={!initialSupportingText && !initialDate}
 		>
 			<span class="banner-stage__context-divider" aria-hidden="true"></span>
-			<p data-banner-context-description hidden={!initialSupportingText}>
-				{initialSupportingText}
+			<p data-banner-context-description hidden={!initialSupportingText} data-subtitle-label={initialSupportingText} data-typing-placeholder={initialSupportingText} data-subtitle-state="complete">
+				<span class="sr-only" data-typewriter-accessible>{initialSupportingText}</span>
+				<span data-typewriter-text aria-hidden="true">{initialSupportingText}</span>
 			</p>
 			<div class="banner-stage__context-meta" data-banner-context-meta hidden={!initialDate}>
 				<Icon icon="material-symbols:calendar-today-rounded" aria-hidden="true" />
@@ -304,7 +206,9 @@ const initialMobileBanner = page === "home";
 		activeTheme: "light" | "dark";
 		preloaded: HTMLImageElement | null;
 		subtitleGeneration: number;
-		subtitlePage: SidebarPage | null;
+		subtitleKey: string | null;
+		mediaKey: string;
+		contextKey: string;
 		subtitleTimer: number | null;
 		subtitleVisible: boolean;
 		contextAnimation: Animation | null;
@@ -341,6 +245,9 @@ const initialMobileBanner = page === "home";
 	const contextDescription = stage?.querySelector<HTMLElement>(
 		"[data-banner-context-description]",
 	);
+	const contextTitleText = contextTitle?.querySelector<HTMLElement>("[data-typewriter-text]");
+	const contextDescriptionText = contextDescription?.querySelector<HTMLElement>("[data-typewriter-text]");
+	const contextDescriptionAccessible = contextDescription?.querySelector<HTMLElement>("[data-typewriter-accessible]");
 	const contextDetails = stage?.querySelector<HTMLElement>(
 		"[data-banner-context-details]",
 	);
@@ -391,7 +298,9 @@ const initialMobileBanner = page === "home";
 		activeTheme: isDarkMode() ? "dark" : "light",
 		preloaded: null,
 		subtitleGeneration: 0,
-		subtitlePage: null,
+		subtitleKey: null,
+		mediaKey: stage?.dataset.media || "",
+		contextKey: "",
 		subtitleTimer: null,
 		subtitleVisible: false,
 		contextAnimation: null,
@@ -462,6 +371,14 @@ const initialMobileBanner = page === "home";
 			if (subtitleAccessibleText) subtitleAccessibleText.textContent = texts[0] || "";
 			subtitle.dataset.subtitleState = "complete";
 		}
+		if (contextTitle && contextTitleText) {
+			contextTitleText.textContent = contextTitle.dataset.typingPlaceholder || "";
+			contextTitle.dataset.titleState = "complete";
+		}
+		if (contextDescription && contextDescriptionText) {
+			contextDescriptionText.textContent = contextDescription.dataset.typingPlaceholder || "";
+			contextDescription.dataset.subtitleState = "complete";
+		}
 	}
 
 	function showSubtitleImmediately() {
@@ -477,23 +394,27 @@ const initialMobileBanner = page === "home";
 	}
 
 	function startSubtitleTyping(page: SidebarPage | undefined) {
-		if (!subtitle || !subtitleText || !page || page !== "home") {
+		const isHome = page === "home";
+		const typingTitle = isHome ? homeTitle : contextTitle;
+		const typingTitleText = isHome ? titleText : contextTitleText;
+		const typingSubtitle = isHome ? subtitle : contextDescription;
+		const typingSubtitleText = isHome ? subtitleText : contextDescriptionText;
+		const typingAccessibleText = isHome ? subtitleAccessibleText : contextDescriptionAccessible;
+		if (!typingSubtitle || !typingSubtitleText || !page) {
 			stopSubtitleTyping();
-			runtime.subtitlePage = page ?? null;
+			runtime.subtitleKey = null;
 			return;
 		}
-
-		if (
-			runtime.subtitlePage === page &&
-			runtime.subtitleVisible &&
-			!(prefersReducedMotion() && runtime.subtitleTimer !== null)
-		)
-			return;
-		runtime.subtitlePage = page;
-		if (
-			stage?.dataset.subtitleTypewriterEnabled !== "true" ||
-			prefersReducedMotion()
-		) {
+		const prefix = isHome ? "subtitleTypewriter" : "contextTypewriter";
+		const setting = (suffix: string) => stage?.dataset[`${prefix}${suffix}`];
+		const fullTitle = isHome ? stage?.dataset.homeTitle || "" : typingTitle?.dataset.typingPlaceholder || "";
+		const texts = isHome ? getSubtitleTexts() : [typingSubtitle.dataset.typingPlaceholder || ""];
+		if (!texts.length) texts.push("");
+		const key = JSON.stringify([page, fullTitle, texts, prefersReducedMotion(), setting("Enabled")]);
+		if (runtime.subtitleKey === key && runtime.subtitleVisible) return;
+		stopSubtitleTyping();
+		runtime.subtitleKey = key;
+		if (setting("Enabled") !== "true" || prefersReducedMotion()) {
 			showSubtitleImmediately();
 			return;
 		}
@@ -506,30 +427,28 @@ const initialMobileBanner = page === "home";
 		runtime.subtitleTimer = null;
 		runtime.subtitleVisible = true;
 
-		const texts = getSubtitleTexts();
-		if (!texts.length) texts.push("");
-		const includeTitle = stage?.dataset.subtitleTypewriterIncludeTitle === "true" &&
-			Boolean(homeTitle && titleText);
+		const includeTitle = setting("IncludeTitle") === "true" &&
+			Boolean(typingTitle && typingTitleText);
 		const titleSegments = includeTitle
-			? subtitleSegments(stage?.dataset.homeTitle || "")
+			? subtitleSegments(fullTitle)
 			: [];
 		const subtitleParts = texts.map(subtitleSegments);
 
-		const loop = stage?.dataset.subtitleTypewriterLoop === "true";
+		const loop = setting("Loop") === "true";
 		const configuredSpeed = Number.parseFloat(
-			stage?.dataset.subtitleTypewriterSpeed || "120",
+			setting("Speed") || "120",
 		);
 		const speed = Number.isFinite(configuredSpeed)
 			? Math.max(configuredSpeed, 1)
 			: 120;
 		const configuredDeleteSpeed = Number.parseFloat(
-			stage?.dataset.subtitleTypewriterDeleteSpeed || "50",
+			setting("DeleteSpeed") || "50",
 		);
 		const deleteSpeed = Number.isFinite(configuredDeleteSpeed)
 			? Math.max(configuredDeleteSpeed, 1)
 			: 50;
 		const configuredPauseTime = Number.parseFloat(
-			stage?.dataset.subtitleTypewriterPauseTime || "2000",
+			setting("PauseTime") || "2000",
 		);
 		const pauseTime = Number.isFinite(configuredPauseTime)
 			? Math.max(configuredPauseTime, 0)
@@ -539,11 +458,11 @@ const initialMobileBanner = page === "home";
 		let charIndex = 0;
 		let phase: "title" | "subtitle" | "delete-subtitle" | "delete-title" =
 			includeTitle ? "title" : "subtitle";
-		subtitleText.textContent = "";
-		subtitle.dataset.subtitleState = "complete";
-		if (includeTitle && homeTitle && titleText) {
-			titleText.textContent = "";
-			homeTitle.dataset.titleState = "typing";
+		typingSubtitleText.textContent = "";
+		typingSubtitle.dataset.subtitleState = "complete";
+		if (includeTitle && typingTitle && typingTitleText) {
+			typingTitleText.textContent = "";
+			typingTitle.dataset.titleState = "typing";
 		}
 
 		const schedule = (delay: number) => {
@@ -567,15 +486,15 @@ const initialMobileBanner = page === "home";
 
 			const onTitle = phase === "title" || phase === "delete-title";
 			const deleting = phase === "delete-subtitle" || phase === "delete-title";
-			const element = onTitle ? homeTitle : subtitle;
-			const text = onTitle ? titleText : subtitleText;
+			const element = onTitle ? typingTitle : typingSubtitle;
+			const text = onTitle ? typingTitleText : typingSubtitleText;
 			const segments = onTitle ? titleSegments : subtitleParts[textIndex];
 			if (!element || !text) return;
 			const stateKey = onTitle ? "titleState" : "subtitleState";
 			element.dataset[stateKey] = "typing";
-			if (!onTitle && subtitle.dataset.subtitleLabel !== texts[textIndex]) {
-				subtitle.dataset.subtitleLabel = texts[textIndex];
-				if (subtitleAccessibleText) subtitleAccessibleText.textContent = texts[textIndex];
+			if (!onTitle && typingSubtitle.dataset.subtitleLabel !== texts[textIndex]) {
+				typingSubtitle.dataset.subtitleLabel = texts[textIndex];
+				if (typingAccessibleText) typingAccessibleText.textContent = texts[textIndex];
 			}
 			charIndex = deleting
 				? Math.max(charIndex - 1, 0)
@@ -607,8 +526,10 @@ const initialMobileBanner = page === "home";
 
 	function preloadNext(images: string[], index: number) {
 		if (images.length < 2) return;
+		const mediaKey = runtime.mediaKey;
 		const schedulePreload = () => {
 			const load = () => {
+				if (runtime.mediaKey !== mediaKey || stage?.hidden) return;
 				runtime.preloaded = new Image();
 				runtime.preloaded.src = images[(index + 1) % images.length];
 			};
@@ -929,10 +850,18 @@ const initialMobileBanner = page === "home";
 		const title = context.title;
 		const description = context.description !== title ? context.description : "";
 		const date = context.date;
+		const key = JSON.stringify([title, description, date]);
+		if (runtime.contextKey === key) return Boolean(title);
+		runtime.contextKey = key;
 		contextTitle.style.removeProperty("font-size");
 		contextTitle.dataset.titleFit = "full";
-		contextTitle.textContent = title;
-		contextDescription.textContent = description;
+		contextTitle.dataset.typingPlaceholder = title;
+		contextTitle.setAttribute("aria-label", title);
+		if (contextTitleText) contextTitleText.textContent = title;
+		contextDescription.dataset.typingPlaceholder = description;
+		contextDescription.dataset.subtitleLabel = description;
+		if (contextDescriptionText) contextDescriptionText.textContent = description;
+		if (contextDescriptionAccessible) contextDescriptionAccessible.textContent = description;
 		contextDescription.hidden = !description;
 		contextDate.textContent = date;
 		contextDate.dateTime = date;
@@ -942,8 +871,39 @@ const initialMobileBanner = page === "home";
 		return Boolean(title);
 	}
 
+	function syncRouteMedia(): boolean {
+		const serialized = document.getElementById("swup-container")?.dataset.bannerMedia;
+		if (!stage || !serialized || serialized === runtime.mediaKey) return false;
+		try {
+			const media = JSON.parse(serialized);
+			const desktop = JSON.stringify(media.desktop);
+			const mobile = JSON.stringify(media.mobile);
+			runtime.images = {
+				desktop: parseThemeImages(desktop),
+				mobile: parseThemeImages(mobile),
+			};
+			runtime.mediaKey = serialized;
+			stage.dataset.media = serialized;
+			stage.dataset.desktopImages = desktop;
+			stage.dataset.mobileImages = mobile;
+			if (typeof media.dimOpacity === "number") {
+				stage.style.setProperty("--banner-dim-opacity", String(Math.min(Math.max(media.dimOpacity, 0), 1)));
+			}
+			if (typeof media.dimLightScale === "number") {
+				stage.style.setProperty("--banner-dim-light-scale", String(Math.min(Math.max(media.dimLightScale, 0), 1)));
+			}
+			stopRotation();
+			stopLayerMotions();
+			runtime.preloaded = null;
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
 	function syncBanner(pageOverride?: SidebarPage, contextOverride?: BannerContext) {
 		if (!stage) return;
+		const mediaChanged = syncRouteMedia();
 		const viewport = currentViewport();
 		const images = getActiveImages(viewport);
 		const currentTheme = isDarkMode() ? "dark" : "light";
@@ -954,7 +914,7 @@ const initialMobileBanner = page === "home";
 		// would keep overriding `showImage()`'s themed `img.src`, so detach them on
 		// the first dark sync or any theme switch. Desktop and mobile share this path.
 		if (
-			themeChanged ||
+			mediaChanged || themeChanged ||
 			(runtime.activeGroup === null && currentTheme === "dark")
 		) {
 			detachInitialPictureSources();
@@ -968,12 +928,15 @@ const initialMobileBanner = page === "home";
 			imageCount: images.length,
 			carouselEnabled: stage.dataset.carouselEnabled === "true",
 			reducedMotion: prefersReducedMotion(),
+			mobileOnAllPages: stage.dataset.mobileAllPages === "true",
 		});
 
 		document.body.dataset.currentPage = page || "";
 		document.body.dataset.bannerVisible = String(state.visible);
 		document.body.dataset.bannerLayout = state.contentLayout;
 		document.body.dataset.bannerTopAppBar = String(state.transparentTopAppBar);
+		document.body.dataset.bannerHasDesktop = String(runtime.images.desktop.light.length + runtime.images.desktop.dark.length > 0);
+		document.body.dataset.bannerHasMobile = String(runtime.images.mobile.light.length + runtime.images.mobile.dark.length > 0);
 		stage.hidden = !state.visible;
 		const hasContext =
 			state.copyMode === "context" && syncContext(contextOverride ?? readContext());
@@ -982,10 +945,10 @@ const initialMobileBanner = page === "home";
 		stage.setAttribute(
 			"aria-label",
 			`${stage.dataset.labelPrefix} · ${copyMode === "context"
-				? contextTitle?.textContent || ""
+				? contextTitle?.dataset.typingPlaceholder || ""
 				: stage.dataset.homeTitle || ""}`,
 		);
-		if (copyMode === "home") startSubtitleTyping(page);
+		if (copyMode === "home" || copyMode === "context") startSubtitleTyping(page);
 		else stopSubtitleTyping();
 
 		if (!state.visible || !state.assetGroup) {
@@ -996,7 +959,7 @@ const initialMobileBanner = page === "home";
 
 		prepareCarouselMedia(images);
 
-		if (runtime.activeGroup !== state.assetGroup || themeChanged) {
+		if (runtime.activeGroup !== state.assetGroup || themeChanged || mediaChanged) {
 			runtime.activeGroup = state.assetGroup;
 			runtime.activeIndex = 0;
 			showImage(images[0], true);
@@ -1025,8 +988,16 @@ const initialMobileBanner = page === "home";
 			window.__shironeBannerBound = true;
 			window.addEventListener(WALLPAPER_MODE_CHANGE_EVENT, () => syncBanner());
 			window.addEventListener(THEME_CHANGE_EVENT, () => syncBanner());
+			let lastReducedMotion = prefersReducedMotion();
+			new MutationObserver(() => {
+				const reduced = prefersReducedMotion();
+				if (reduced === lastReducedMotion) return;
+				lastReducedMotion = reduced;
+				if (reduced) stopLayerMotions();
+				syncBanner();
+			}).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 			window.addEventListener("resize", () => {
-				if (currentViewport() === "desktop" && stage?.hidden === false) {
+				if (stage?.hidden === false) {
 					scheduleContextTitleFit();
 				}
 			});
@@ -1047,6 +1018,7 @@ const initialMobileBanner = page === "home";
 					syncBanner();
 				});
 			document.addEventListener("swup:visit:start", () => {
+				stopSubtitleTyping();
 				animateContextOut();
 			});
 			document.addEventListener("swup:content:replace", () => {
@@ -1095,7 +1067,7 @@ const initialMobileBanner = page === "home";
 
 		.banner-stage__scrim
 			z-index: 1
-			background: unquote("rgb(0 0 0 / calc(var(--banner-dim-opacity) * 0.55))")
+			background: unquote("rgb(0 0 0 / calc(var(--banner-dim-opacity) * var(--banner-dim-light-scale, 0.55)))")
 			pointer-events: none
 
 		:global(html.dark) .banner-stage__scrim
@@ -1131,7 +1103,9 @@ const initialMobileBanner = page === "home";
 
 		// Full copy reserves its wrapped size while the visible text types/deletes.
 		.banner-stage__copy--home h1,
-		.banner-stage__copy--home p
+		.banner-stage__copy--home p,
+		.banner-stage__context-title,
+		.banner-stage__copy--context p
 			display: grid
 			max-width: 100%
 			overflow-wrap: anywhere
@@ -1141,7 +1115,7 @@ const initialMobileBanner = page === "home";
 				visibility: hidden
 				grid-area: 1 / 1
 
-		.banner-stage__copy--home [data-typewriter-text]
+		.banner-stage [data-typewriter-text]
 			grid-area: 1 / 1
 
 			&::after
@@ -1154,8 +1128,8 @@ const initialMobileBanner = page === "home";
 				background: currentColor
 				opacity: 0
 
-		.banner-stage__copy--home [data-title-state="typing"] [data-typewriter-text]::after,
-		.banner-stage__copy--home [data-subtitle-state="typing"] [data-typewriter-text]::after
+		.banner-stage [data-title-state="typing"] [data-typewriter-text]::after,
+		.banner-stage [data-subtitle-state="typing"] [data-typewriter-text]::after
 			animation: banner-typewriter-caret var(--m3e-duration-long) steps(1, end) infinite
 
 		.banner-stage__copy--context
@@ -1228,8 +1202,15 @@ const initialMobileBanner = page === "home";
 		display: none
 
 	@media (max-width: 1023.98px)
-		:global(body:not([data-current-page="home"])) .banner-stage
+		:global(body:not([data-current-page="home"]):not([data-banner-mobile-all-pages="true"])) .banner-stage
 			display: none
+
+		.banner-stage__copy--context
+			width: calc(100% - var(--m3e-space-6))
+			padding: var(--m3e-space-6) var(--m3e-space-4)
+
+		.banner-stage__context-title
+			font-size: 2.75rem
 
 		.banner-stage
 			&__copy h1
@@ -1247,13 +1228,13 @@ const initialMobileBanner = page === "home";
 			opacity: 0
 
 	:global(html.motion-reduced) .banner-stage__image,
-	:global(html.motion-reduced) .banner-stage__copy--home [data-typewriter-text]::after
+	:global(html.motion-reduced) .banner-stage [data-typewriter-text]::after
 		transition: none
 		animation: none
 
 	@media (prefers-reduced-motion: reduce)
 		.banner-stage__image,
-		.banner-stage__copy--home [data-typewriter-text]::after
+		.banner-stage [data-typewriter-text]::after
 			transition: none
 			animation: none
 </style>

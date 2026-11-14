@@ -74,6 +74,13 @@
 		"banner.homeText.typewriter.deleteSpeed": "删除间隔（毫秒）",
 		"banner.homeText.typewriter.pauseTime": "停留时间（毫秒）",
 		"banner.homeText.typewriter.loop": "循环播放逐字动画",
+		"banner.contextText.typewriter.enable": "栏目页启用逐字动画",
+		"banner.contextText.typewriter.includeTitle": "栏目页大标题参与逐字动画",
+		"banner.contextText.typewriter.speed": "栏目页打字间隔（毫秒）",
+		"banner.contextText.typewriter.deleteSpeed": "栏目页删除间隔（毫秒）",
+		"banner.contextText.typewriter.pauseTime": "栏目页文字停留时间（毫秒）",
+		"banner.contextText.typewriter.loop": "栏目页循环打字",
+		"banner.mobileOnAllPages": "栏目页也显示手机横幅",
 		"banner.carousel.enable": "启用背景轮播",
 		"banner.carousel.interval": "轮播间隔（毫秒）",
 		"banner.dim.enable": "启用背景遮罩",
@@ -85,6 +92,30 @@
 		"themeColor.defaultSpec": "默认配色规范",
 		"wallpaperMode.defaultMode": "默认背景模式",
 	};
+	const bannerPageLabels = {
+		archive: "归档页",
+		reports: "札记页",
+		moments: "随记页",
+		anime: "番剧页",
+		books: "书单页",
+		thinking: "思考页",
+		graph: "知识图谱页",
+		wiki: "知识库页",
+		albums: "相册页",
+		friends: "友链页",
+		projects: "项目页",
+		about: "关于页",
+	};
+	function settingLabel(key) {
+		const pageImage =
+			/^banner\.pageImages\.([^.]+)\.(desktop|mobile|dimOpacity)$/.exec(key);
+		if (pageImage && bannerPageLabels[pageImage[1]]) {
+			if (pageImage[2] === "dimOpacity")
+				return `${bannerPageLabels[pageImage[1]]}横幅遮罩深度（0 到 1）`;
+			return `${bannerPageLabels[pageImage[1]]}${pageImage[2] === "desktop" ? "电脑" : "手机"}横幅`;
+		}
+		return knownLabels[key] || key.split(".").pop();
+	}
 
 	function element(tag, className, text) {
 		const node = document.createElement(tag);
@@ -196,6 +227,30 @@
 			(state.current ? fileName(state.current.path) + " · " : "") +
 			"林间本地管理台";
 		if (dirty) $("save-status").textContent = "尚未保存到本地";
+		updateDraftNotice();
+	}
+	function updateDraftNotice() {
+		const current = state.current;
+		const supported =
+			current?.document &&
+			/^src\/content\/(posts|moments|reports)\//.test(current.path);
+		const savedDraft = current?.document?.frontmatter?.draft === true;
+		const structured = state.mode === "structured";
+		const editingDraft = structured && supported && $("meta-draft").checked;
+		$("draft-notice").hidden = !supported || (!savedDraft && !editingDraft);
+		if ($("draft-notice").hidden) return;
+		if (structured && !editingDraft) {
+			$("draft-notice-title").textContent = "已取消草稿，请先保存";
+			$("draft-notice-text").textContent =
+				"本地文件仍是草稿。先点击“保存”，再点击顶栏“发布”，在发布面板检查并提交后才会上线。";
+			return;
+		}
+		$("draft-notice-title").textContent = structured
+			? "草稿，发布后仍不公开"
+			: "已保存版本为草稿，发布后仍不公开";
+		$("draft-notice-text").textContent = structured
+			? "要让这篇内容显示在博客，请取消“草稿”并保存，再点击顶栏“发布”，在发布面板检查并提交。草稿只隐藏网站展示，公开仓库中的源文件仍可见。"
+			: "如需公开，请将源文件中的 draft 改为 false 并保存，或切回“内容编辑”取消“草稿”。然后点击顶栏“发布”，在面板检查并提交。公开仓库中的源文件仍可见。";
 	}
 	function mayDiscard() {
 		return (
@@ -487,11 +542,7 @@
 				"label",
 				"field" + (field.type === "boolean" ? " settings-boolean" : ""),
 			);
-			const title = element(
-				"span",
-				"setting-label",
-				knownLabels[field.key] || field.key.split(".").pop(),
-			);
+			const title = element("span", "setting-label", settingLabel(field.key));
 			const key = element("span", "setting-key", field.key);
 			const array = Array.isArray(field.value) || field.type === "string[]";
 			const input = element(array ? "textarea" : "input");
@@ -618,6 +669,18 @@
 			});
 			if (!saved.hash)
 				saved = await api("/api/file?path=" + encodeURIComponent(current.path));
+			let savedDocument = null;
+			if (endpoint === "/api/file" && current.document) {
+				try {
+					savedDocument = await api(
+						"/api/document?path=" + encodeURIComponent(current.path),
+					);
+				} catch {
+					showError(
+						"文件已保存到本地，但草稿状态未能刷新。请重新打开文件确认草稿状态后再发布。",
+					);
+				}
+			}
 			if (state.current === current) {
 				current.hash = saved.hash;
 				current.settingsHash = saved.hash;
@@ -629,6 +692,7 @@
 						frontmatter: payload.frontmatter,
 						body: payload.body,
 					};
+				else if (savedDocument) current.document = savedDocument;
 				if (state.editVersion === version) updateDirty(false);
 				$("save-status").textContent = state.dirty
 					? "已保存；还有新的修改未保存"
@@ -740,8 +804,8 @@
 	function renderSettingsShortcuts() {
 		const shortcuts = [
 			[
-				"站点与首页",
-				"站名、横幅图片、主题色和首页逐字动画",
+				"站点与横幅",
+				"站名、各栏目图片、主题色与循环打字",
 				"siteConfig.ts",
 				"站",
 			],
@@ -1156,6 +1220,9 @@
 	$("collection-filter").addEventListener("change", renderFiles);
 	$("save-button").addEventListener("click", () => {
 		void saveCurrent();
+	});
+	$("open-publish-button").addEventListener("click", () => {
+		void selectGroup("publish");
 	});
 	$("form-mode").addEventListener("click", () => {
 		void switchMode("structured");

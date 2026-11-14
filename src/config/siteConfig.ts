@@ -51,11 +51,77 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	banner: {
 		// 推荐将图片放入 src/assets，并填写相对 src 的路径，以启用构建期 AVIF/WebP 响应式优化。
 		// 以 "/" 开头的 public 路径与远程 URL 仍可用，但会保留原图、不生成候选。
-		// desktop 用于 >= 1024px；mobile 仅用于 < 1024px 的首页，手机非首页不显示壁纸。
+		// desktop 用于 >= 1024px；mobile 用于 < 1024px。
 		// 数组顺序就是轮播顺序；只需要静态 Banner 时，每组保留一张图片即可。
 		src: {
 			desktop: ["assets/images/banner/desktop/1.webp"],
 			mobile: ["assets/images/banner/mobile/portrait.webp"],
+		},
+		// 在手机端的栏目页也显示横幅；关闭则恢复仅首页显示手机横幅。
+		mobileOnAllPages: true,
+		// 各栏目独立图片。未配置的页面沿用上方 src；同一组也支持多图轮播。
+		// dimOpacity 可单独加深亮图遮罩，确保横幅白字清晰；默认沿用全局 dim。
+		pageImages: {
+			archive: {
+				desktop: ["assets/images/banner/desktop/2.webp"],
+				mobile: ["assets/images/banner/mobile/2.webp"],
+				dimOpacity: 0.42,
+			},
+			reports: {
+				desktop: ["assets/images/banner/desktop/11.webp"],
+				mobile: ["assets/images/banner/mobile/11.webp"],
+				dimOpacity: 0.44,
+			},
+			moments: {
+				desktop: ["assets/images/banner/desktop/5.webp"],
+				mobile: ["assets/images/banner/mobile/5.webp"],
+				dimOpacity: 0.4,
+			},
+			anime: {
+				desktop: ["assets/images/banner/desktop/6.webp"],
+				mobile: ["assets/images/banner/mobile/6.webp"],
+				dimOpacity: 0.58,
+			},
+			books: {
+				desktop: ["assets/images/banner/desktop/10.webp"],
+				mobile: ["assets/images/banner/mobile/10.webp"],
+				dimOpacity: 0.58,
+			},
+			thinking: {
+				desktop: ["assets/images/banner/desktop/3.webp"],
+				mobile: ["assets/images/banner/mobile/3.webp"],
+				dimOpacity: 0.42,
+			},
+			graph: {
+				desktop: ["assets/images/banner/desktop/15.webp"],
+				mobile: ["assets/images/banner/mobile/15.webp"],
+				dimOpacity: 0.58,
+			},
+			wiki: {
+				desktop: ["assets/images/banner/desktop/16.webp"],
+				mobile: ["assets/images/banner/mobile/16.webp"],
+				dimOpacity: 0.48,
+			},
+			albums: {
+				desktop: ["assets/images/banner/desktop/8.webp"],
+				mobile: ["assets/images/banner/mobile/8.webp"],
+				dimOpacity: 0.58,
+			},
+			friends: {
+				desktop: ["assets/images/banner/desktop/12.webp"],
+				mobile: ["assets/images/banner/mobile/12.webp"],
+				dimOpacity: 0.58,
+			},
+			projects: {
+				desktop: ["assets/images/banner/desktop/14.webp"],
+				mobile: ["assets/images/banner/mobile/14.webp"],
+				dimOpacity: 0.42,
+			},
+			about: {
+				desktop: ["assets/images/banner/desktop/13.webp"],
+				mobile: ["assets/images/banner/mobile/13.webp"],
+				dimOpacity: 0.58,
+			},
 		},
 		// 图片裁切焦点："top"、"center" 或 "bottom"。
 		position: "center",
@@ -81,6 +147,17 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 				// 打字完成后停顿时间，单位为毫秒。
 				pauseTime: 2000,
 				// 完成后是否循环播放；关闭表示只播放一次。
+				loop: true,
+			},
+		},
+		// 栏目页标题和说明沿用该页面的内容；打字参数独立于首页设置。
+		contextText: {
+			typewriter: {
+				enable: true,
+				includeTitle: true,
+				speed: 80,
+				deleteSpeed: 50,
+				pauseTime: 2000,
 				loop: true,
 			},
 		},
