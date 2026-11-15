@@ -244,6 +244,13 @@ export const id: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"Komentar memerlukan JavaScript untuk ditampilkan",
 
+	[Key.donate]: "Donasi",
+	[Key.donateTitle]: "Dukung",
+	[Key.donateDescription]:
+		"Jika tulisanku bermanfaat, pertimbangkan untuk mendukung",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "Tanpa Judul",
 	[Key.uncategorized]: "Tanpa Kategori",
 	[Key.noTags]: "Tanpa Tag",

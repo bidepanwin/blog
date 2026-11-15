@@ -226,6 +226,12 @@ export const th: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"ความคิดเห็นจำเป็นต้องเปิดใช้งาน JavaScript เพื่อแสดงผล",
 
+	[Key.donate]: "สนับสนุน",
+	[Key.donateTitle]: "สนับสนุน",
+	[Key.donateDescription]: "หากบทความของฉันมีประโยชน์ เชิญสนับสนุนได้",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "ไม่ได้ตั้งชื่อ",
 	[Key.uncategorized]: "ไม่ได้จัดหมวดหมู่",
 	[Key.noTags]: "ไม่มีป้ายกำกับ",

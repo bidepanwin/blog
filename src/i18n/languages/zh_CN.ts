@@ -224,6 +224,12 @@ export const zh_CN: Translation = {
 	[Key.commentsLoadFailed]: "评论加载失败",
 	[Key.commentsRequiresJavaScript]: "评论区需要启用 JavaScript 才能显示",
 
+	[Key.donate]: "赞赏",
+	[Key.donateTitle]: "赞赏支持",
+	[Key.donateDescription]: "如果我的文章对你有帮助，欢迎赞赏支持",
+	[Key.donateWechat]: "微信赞赏",
+	[Key.donateAlipay]: "支付宝赞赏",
+
 	[Key.untitled]: "无标题",
 	[Key.uncategorized]: "未分类",
 	[Key.noTags]: "无标签",

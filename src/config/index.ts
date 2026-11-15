@@ -32,6 +32,7 @@ export {
 export { compassConfig } from "./compassConfig";
 export { contextMenuConfig } from "./contextMenuConfig";
 export { devicesConfig } from "./devicesConfig";
+export { donateConfig } from "./donateConfig";
 export { expressiveCodeConfig } from "./expressiveCodeConfig";
 export { fabConfig } from "./fabConfig";
 export {

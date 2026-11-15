@@ -224,6 +224,12 @@ export const zh_TW: Translation = {
 	[Key.commentsLoadFailed]: "評論載入失敗",
 	[Key.commentsRequiresJavaScript]: "評論區需要啟用 JavaScript 才能顯示",
 
+	[Key.donate]: "讚賞",
+	[Key.donateTitle]: "讚賞支持",
+	[Key.donateDescription]: "如果我的文章對你有幫助，歡迎讚賞支持",
+	[Key.donateWechat]: "微信讚賞",
+	[Key.donateAlipay]: "支付寶讚賞",
+
 	[Key.untitled]: "無標題",
 	[Key.uncategorized]: "未分類",
 	[Key.noTags]: "無標籤",

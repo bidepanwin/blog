@@ -242,6 +242,13 @@ export const es: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"Los comentarios requieren JavaScript para mostrarse",
 
+	[Key.donate]: "Donar",
+	[Key.donateTitle]: "Apoyar",
+	[Key.donateDescription]:
+		"Si mi contenido te ha sido útil, considera apoyarme",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "Sin título",
 	[Key.uncategorized]: "Sin categoría",
 	[Key.noTags]: "Sin etiquetas",

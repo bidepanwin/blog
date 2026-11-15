@@ -222,6 +222,12 @@ enum I18nKey {
 	commentsLoadFailed = "commentsLoadFailed",
 	commentsRequiresJavaScript = "commentsRequiresJavaScript",
 
+	donate = "donate",
+	donateTitle = "donateTitle",
+	donateDescription = "donateDescription",
+	donateWechat = "donateWechat",
+	donateAlipay = "donateAlipay",
+
 	untitled = "untitled",
 	uncategorized = "uncategorized",
 	noTags = "noTags",

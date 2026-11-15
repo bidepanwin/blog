@@ -240,6 +240,12 @@ export const vi: Translation = {
 	[Key.commentsLoadFailed]: "Không thể tải bình luận",
 	[Key.commentsRequiresJavaScript]: "Bình luận yêu cầu JavaScript để hiển thị",
 
+	[Key.donate]: "Ủng hộ",
+	[Key.donateTitle]: "Ủng hộ",
+	[Key.donateDescription]: "Nếu bài viết của tôi hữu ích, hãy cân nhắc ủng hộ",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "Không tiêu đề",
 	[Key.uncategorized]: "Chưa phân loại",
 	[Key.noTags]: "Chưa có thẻ",

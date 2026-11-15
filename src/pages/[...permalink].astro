@@ -14,6 +14,7 @@ import SeriesCard from "@components/molecules/SeriesCard.astro";
 import ArticleDiscovery from "@components/organisms/ArticleDiscovery.astro";
 import ArticleShare from "@components/organisms/ArticleShare.svelte";
 import CommentSection from "@components/organisms/comment/CommentSection.astro";
+import Donate from "@components/organisms/comment/Donate.astro";
 import EncryptedContent from "@components/organisms/EncryptedContent.astro";
 import UmamiStats from "@components/organisms/UmamiStats.astro";
 import I18nKey from "@i18n/i18nKey";
@@ -22,7 +23,6 @@ import Icon from "@iconify/svelte";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { discoverArticles } from "@utils/article-discovery";
 import { resolveAsset } from "@utils/asset-utils";
-import { getWikiConnections } from "@utils/wiki-links";
 import { getPublishedInstant, getUpdatedInstant } from "@utils/content-date";
 import {
 	getSeriesCatalog,
@@ -46,6 +46,7 @@ import {
 	type SeriesPostContext,
 } from "@utils/series-utils";
 import { getDir, getPostUrl, getPostUrlBySlug } from "@utils/url-utils";
+import { getWikiConnections } from "@utils/wiki-links";
 import katexStylesheet from "katex/dist/katex.css?url";
 import overlayScrollbarsStylesheet from "overlayscrollbars/overlayscrollbars.css?url";
 import {
@@ -356,6 +357,8 @@ const jsonLd = {
 
 		</Card>
     </div>
+
+    <Donate class="onload-animation" />
 
     <CommentSection
         context={{

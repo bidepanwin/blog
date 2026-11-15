@@ -242,6 +242,12 @@ export const tr: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"Yorumların gösterilmesi için JavaScript etkinleştirilmelidir",
 
+	[Key.donate]: "Bağış",
+	[Key.donateTitle]: "Destekle",
+	[Key.donateDescription]: "Yazılarım işine yaradıysa beni destekleyebilirsin",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "Başlıksız",
 	[Key.uncategorized]: "Katagorisiz",
 	[Key.noTags]: "Tag Bulunamadı",

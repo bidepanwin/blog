@@ -236,6 +236,12 @@ export const ko: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"댓글을 표시하려면 JavaScript를 활성화해야 합니다",
 
+	[Key.donate]: "후원",
+	[Key.donateTitle]: "후원하기",
+	[Key.donateDescription]: "글이 도움이 되셨다면 후원을 고려해 주세요",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "제목 없음",
 	[Key.uncategorized]: "분류되지 않음",
 	[Key.noTags]: "태그 없음",

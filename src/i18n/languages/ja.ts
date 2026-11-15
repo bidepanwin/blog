@@ -238,6 +238,12 @@ export const ja: Translation = {
 	[Key.commentsRequiresJavaScript]:
 		"コメントを表示するには JavaScript を有効にしてください",
 
+	[Key.donate]: "投げ銭",
+	[Key.donateTitle]: "サポート",
+	[Key.donateDescription]: "記事がお役に立てば、ぜひご支援ください",
+	[Key.donateWechat]: "WeChat Pay",
+	[Key.donateAlipay]: "Alipay",
+
 	[Key.untitled]: "タイトルなし",
 	[Key.uncategorized]: "カテゴリなし",
 	[Key.noTags]: "タグなし",

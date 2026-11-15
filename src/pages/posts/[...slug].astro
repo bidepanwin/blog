@@ -13,6 +13,7 @@ import SeriesCard from "@components/molecules/SeriesCard.astro";
 import ArticleDiscovery from "@components/organisms/ArticleDiscovery.astro";
 import ArticleShare from "@components/organisms/ArticleShare.svelte";
 import CommentSection from "@components/organisms/comment/CommentSection.astro";
+import Donate from "@components/organisms/comment/Donate.astro";
 import EncryptedContent from "@components/organisms/EncryptedContent.astro";
 import UmamiStats from "@components/organisms/UmamiStats.astro";
 import I18nKey from "@i18n/i18nKey";
@@ -355,8 +356,10 @@ const jsonLd = {
 				class="onload-animation"
 			/>
 
-		</Card>
+        </Card>
     </div>
+
+    <Donate class="onload-animation" />
 
     <CommentSection
         context={{

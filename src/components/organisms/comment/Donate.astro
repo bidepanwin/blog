@@ -1,0 +1,285 @@
+---
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { donateConfig } from "@/config";
+import { url } from "@utils/url-utils";
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+
+if (!donateConfig.enable) {
+	return null;
+}
+
+const title = donateConfig.title || i18n(I18nKey.donateTitle);
+const description = donateConfig.description || i18n(I18nKey.donateDescription);
+const wechatLabel = i18n(I18nKey.donateWechat);
+const alipayLabel = i18n(I18nKey.donateAlipay);
+const donateLabel = i18n(I18nKey.donate);
+
+// 只有配了二维码图片的支付方式才显示对应标签页。
+const hasWechat = donateConfig.wechat.trim().length > 0;
+const hasAlipay = donateConfig.alipay.trim().length > 0;
+const showDonate = hasWechat || hasAlipay;
+
+// 图片路径统一拼上站点 base（如 /blog/），避免部署后因缺 base 前缀而 404。
+const wechatSrc = hasWechat ? url(donateConfig.wechat) : "";
+const alipaySrc = hasAlipay ? url(donateConfig.alipay) : "";
+---
+
+{
+	showDonate && (
+		<section class={`donate-section w-full${className ? ` ${className}` : ""}`} data-donate>
+			<button type="button" class="donate-btn m3-state-layer">
+				<span class="donate-btn__icon" aria-hidden="true">♥</span>
+				<span>{donateLabel}</span>
+			</button>
+
+			<dialog class="donate-dialog" aria-label={title}>
+				<div class="donate-dialog__header">
+					<span class="donate-dialog__title">{title}</span>
+					<button type="button" class="donate-dialog__close m3-state-layer" aria-label="close">
+						<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+							<path
+								fill="currentColor"
+								d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4l-6.3 6.31-1.42-1.42L9.17 12 2.87 5.71l1.42-1.42L10.59 10.6l6.3-6.3z"
+							/>
+						</svg>
+					</button>
+				</div>
+
+				{description && <p class="donate-dialog__desc">{description}</p>}
+
+				{(hasWechat || hasAlipay) && (
+					<div class="donate-dialog__tabs" role="tablist">
+						{hasWechat && (
+							<button
+								type="button"
+								class="donate-tab is-active"
+								role="tab"
+								aria-selected="true"
+								data-tab="wechat"
+							>
+								{wechatLabel}
+							</button>
+						)}
+						{hasAlipay && (
+							<button
+								type="button"
+								class={`donate-tab${!hasWechat ? " is-active" : ""}`}
+								role="tab"
+								aria-selected={!hasWechat ? "true" : "false"}
+								data-tab="alipay"
+							>
+								{alipayLabel}
+							</button>
+						)}
+					</div>
+				)}
+
+				<div class="donate-dialog__qr">
+					{hasWechat && (
+						<img
+							class="donate-qr is-active"
+							data-qr="wechat"
+							src={wechatSrc}
+							alt={wechatLabel}
+							loading="lazy"
+							decoding="async"
+						/>
+					)}
+					{hasAlipay && (
+						<img
+							class={`donate-qr${!hasWechat ? " is-active" : ""}`}
+							data-qr="alipay"
+							src={alipaySrc}
+							alt={alipayLabel}
+							loading="lazy"
+							decoding="async"
+						/>
+					)}
+				</div>
+			</dialog>
+		</section>
+	)
+}
+
+<style>
+	.donate-section {
+		display: flex;
+		justify-content: center;
+		margin-bottom: 1rem;
+	}
+	.donate-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1.25rem;
+		border: 1px solid var(--primary);
+		border-radius: var(--shape-corner-full);
+		background: transparent;
+		color: var(--primary);
+		font: var(--m3e-type-label-large);
+		cursor: pointer;
+		--m3e-state-color: var(--primary);
+		transition: background-color 0.2s ease;
+		opacity: 0.85;
+	}
+	.donate-btn:hover {
+		opacity: 1;
+	}
+	.donate-btn__icon {
+		font-size: 1rem;
+		line-height: 1;
+	}
+	.donate-dialog {
+		position: fixed;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		box-sizing: border-box;
+		min-width: 18rem;
+		max-width: min(90vw, 24rem);
+		margin: 0;
+		padding: 1.5rem;
+		border: none;
+		border-radius: var(--shape-corner-xl);
+		background: var(--surface-container-high);
+		color: var(--on-surface);
+		box-shadow: var(--m3e-elevation-3);
+	}
+	.donate-dialog::backdrop {
+		background: rgba(0, 0, 0, 0.32);
+	}
+	.donate-dialog__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.5rem;
+	}
+	.donate-dialog__title {
+		font: var(--m3e-type-title-large);
+		font-weight: 700;
+	}
+	.donate-dialog__close {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border: none;
+		border-radius: var(--shape-corner-full);
+		background: transparent;
+		color: var(--on-surface-variant);
+		cursor: pointer;
+		--m3e-state-color: var(--on-surface);
+	}
+	.donate-dialog__desc {
+		margin: 0 0 1rem;
+		font: var(--m3e-type-body-medium);
+		color: var(--on-surface-variant);
+		text-align: center;
+	}
+	.donate-dialog__tabs {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+	.donate-tab {
+		flex: 1;
+		padding: 0.5rem;
+		border: 1px solid var(--outline-variant);
+		border-radius: var(--shape-corner-full);
+		background: transparent;
+		color: var(--on-surface-variant);
+		font: var(--m3e-type-label-large);
+		cursor: pointer;
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease;
+	}
+	.donate-tab.is-active {
+		background: var(--primary);
+		color: var(--on-primary);
+		border-color: var(--primary);
+	}
+	.donate-dialog__qr {
+		display: flex;
+		justify-content: center;
+	}
+	.donate-qr {
+		display: none;
+		width: 100%;
+		max-width: 16rem;
+		aspect-ratio: 1;
+		object-fit: contain;
+		border-radius: var(--shape-corner-m);
+	}
+	.donate-qr.is-active {
+		display: block;
+	}
+</style>
+
+<script>
+	// 赞赏弹窗交互：打开/关闭 + 微信/支付宝标签切换（纯 DOM，无框架依赖）。
+	function setupDonate(root: HTMLElement) {
+		const btn = root.querySelector<HTMLButtonElement>(".donate-btn");
+		const dialog = root.querySelector<HTMLDialogElement>(".donate-dialog");
+		if (!btn || !dialog) return;
+
+		btn.addEventListener("click", () => {
+			dialog.showModal();
+		});
+
+		const closeBtn = dialog.querySelector<HTMLButtonElement>(
+			".donate-dialog__close",
+		);
+		closeBtn?.addEventListener("click", () => dialog.close());
+
+		// 点击遮罩关闭
+		dialog.addEventListener("click", (event: MouseEvent) => {
+			if (event.target !== dialog) return;
+			const rect = dialog.getBoundingClientRect();
+			if (
+				event.clientX < rect.left ||
+				event.clientX > rect.right ||
+				event.clientY < rect.top ||
+				event.clientY > rect.bottom
+			) {
+				dialog.close();
+			}
+		});
+
+		// 标签切换
+		const tabs = dialog.querySelectorAll<HTMLButtonElement>(".donate-tab");
+		const qrs = dialog.querySelectorAll<HTMLImageElement>(".donate-qr");
+		tabs.forEach((tab: HTMLButtonElement) => {
+			tab.addEventListener("click", () => {
+				const target = tab.dataset.tab;
+				tabs.forEach((t: HTMLButtonElement) => {
+					const active = t.dataset.tab === target;
+					t.classList.toggle("is-active", active);
+					t.setAttribute("aria-selected", String(active));
+				});
+				qrs.forEach((q: HTMLImageElement) => {
+					q.classList.toggle("is-active", q.dataset.qr === target);
+				});
+			});
+		});
+	}
+
+	function setupAllDonate() {
+		document
+			.querySelectorAll<HTMLElement>("[data-donate]")
+			.forEach((root: HTMLElement) => setupDonate(root));
+	}
+
+	setupAllDonate();
+	document.addEventListener("swup:content:replace", setupAllDonate);
+	document.addEventListener("swup:page:view", setupAllDonate);
+</script>
