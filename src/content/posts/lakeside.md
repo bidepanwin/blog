@@ -7,7 +7,7 @@ category: 生活
 tags: [散步, 随笔, 慢生活]
 pinned: false
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 

@@ -7,7 +7,7 @@ category: 生活
 tags: [徒步, 自然, 周末]
 pinned: false
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 

@@ -7,7 +7,7 @@ category: 阅读
 tags: [读书, 笔记, 日常]
 pinned: false
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 

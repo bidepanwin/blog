@@ -7,7 +7,7 @@ category: 技术
 tags: [Astro, 前端, 实践]
 pinned: false
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 

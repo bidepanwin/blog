@@ -7,7 +7,7 @@ category: 技术
 tags: [AGI, 人工智能, 人机协作, 思考]
 pinned: false
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 

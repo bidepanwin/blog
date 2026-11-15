@@ -10,7 +10,7 @@ tags:
   - 写作
 pinned: true
 draft: false
-comment: false
+comment: true
 lang: zh_CN
 ---
 
