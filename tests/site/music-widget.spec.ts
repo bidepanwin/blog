@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { musicConfig, resolveMusicOptions } from "../../src/config/musicConfig";
 import I18nKey from "../../src/i18n/i18nKey";
 import { en } from "../../src/i18n/languages/en";
@@ -12,6 +12,7 @@ import { vi } from "../../src/i18n/languages/vi";
 import { zh_CN } from "../../src/i18n/languages/zh_CN";
 import { zh_TW } from "../../src/i18n/languages/zh_TW";
 import { mountMusicClient, remountMusicClient } from "../fixtures/music-client";
+import { sitePath } from "./paths";
 
 const translations = [en, es, id, ja, ko, th, tr, vi, zh_CN, zh_TW];
 const musicKeys = [
@@ -42,6 +43,31 @@ const musicKeys = [
 
 function placeholders(value: string): string[] {
 	return [...value.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]).sort();
+}
+
+interface MusicTestAudio extends EventTarget {
+	currentTime: number;
+	seekWrites: number[];
+	paused: boolean;
+}
+
+async function updateMusicTime(page: Page, seconds: number): Promise<void> {
+	await page.evaluate((time) => {
+		const audio = (
+			window as typeof window & { __musicTestAudio: MusicTestAudio }
+		).__musicTestAudio;
+		audio.currentTime = time;
+		audio.dispatchEvent(new Event("timeupdate"));
+		audio.seekWrites.length = 0;
+	}, seconds);
+}
+
+async function seekWrites(page: Page): Promise<number[]> {
+	return page.evaluate(
+		() =>
+			(window as typeof window & { __musicTestAudio: MusicTestAudio })
+				.__musicTestAudio.seekWrites,
+	);
 }
 
 test.describe("music sidebar architecture", () => {
@@ -77,7 +103,7 @@ test.describe("music sidebar architecture", () => {
 				requests.push(url);
 			}
 		});
-		await page.goto("/", { waitUntil: "networkidle" });
+		await page.goto(sitePath("/"), { waitUntil: "networkidle" });
 		await expect(page.locator("[data-music-player]")).toHaveCount(0);
 		await expect(page.locator('[data-id="sidebar-music-player"]')).toHaveCount(
 			0,
@@ -118,7 +144,7 @@ test.describe("music sidebar architecture", () => {
 			});
 		});
 
-		await page.goto("/", { waitUntil: "networkidle" });
+		await page.goto(sitePath("/"), { waitUntil: "networkidle" });
 		expect(metingRequests).toBe(0);
 		await page
 			.locator("[data-music-player] .music-player__playlist-toggle")
@@ -134,11 +160,13 @@ test.describe("music sidebar architecture", () => {
 			"Local configuration is not using local tracks",
 		);
 
-		await page.goto("/");
+		await page.goto(sitePath("/"));
 		const cover = page.locator("[data-music-player] .music-player__cover img");
 		const src = await cover.getAttribute("src");
 		const srcset = await cover.getAttribute("srcset");
-		expect(src).toMatch(/^\/(?:_astro\/|_image\/\?)/);
+		expect(src?.slice(sitePath("/").length - 1)).toMatch(
+			/^\/(?:_astro\/|_image\/\?)/,
+		);
 		expect(src).not.toContain("/assets/music/cover/");
 		expect(srcset).toContain(" 64w, ");
 		expect(srcset).toContain(" 128w");
@@ -240,6 +268,53 @@ test.describe("music sidebar client", () => {
 		).toHaveAttribute("aria-current", "true");
 	});
 
+	test("progress follows media updates and dragging outside commits once without stopping playback", async ({
+		page,
+	}) => {
+		await page.getByRole("button", { name: "Play", exact: true }).click();
+		const progress = page.getByRole("slider", { name: /Progress:/ });
+		await updateMusicTime(page, 18);
+		await expect(progress).toHaveValue("18");
+		await updateMusicTime(page, 19);
+		await expect(progress).toHaveValue("19");
+		const box = await progress.boundingBox();
+		if (!box) throw new Error("Progress slider is not visible");
+		await page.mouse.move(box.x + box.width * 0.4, box.y + box.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(box.x + box.width + 30, box.y + box.height / 2 + 50);
+		await page.mouse.up();
+		await expect.poll(() => seekWrites(page)).toEqual([180]);
+		await expect(
+			page.getByRole("button", { name: "Pause", exact: true }),
+		).toBeVisible();
+		await progress.focus();
+		await page.keyboard.press("ArrowLeft");
+		await expect.poll(() => seekWrites(page)).toEqual([180, 179.9]);
+		await expect(progress).toHaveValue("179.9");
+	});
+
+	for (const event of ["pointercancel", "lostpointercapture"]) {
+		test(`${event} releases the drag preview without seeking or freezing later progress`, async ({
+			page,
+		}) => {
+			await page.getByRole("button", { name: "Play", exact: true }).click();
+			const progress = page.getByRole("slider", { name: /Progress:/ });
+			await updateMusicTime(page, 20);
+			const box = await progress.boundingBox();
+			if (!box) throw new Error("Progress slider is not visible");
+			await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2);
+			await page.mouse.down();
+			await progress.dispatchEvent(event, { pointerId: 1 });
+			await page.mouse.up();
+			await expect.poll(() => seekWrites(page)).toEqual([]);
+			await updateMusicTime(page, 25);
+			await expect(progress).toHaveValue("25");
+			await progress.focus();
+			await page.keyboard.press("ArrowRight");
+			await expect.poll(() => seekWrites(page)).toEqual([25.1]);
+		});
+	}
+
 	test("normal motion animates the playing cover", async ({ page }) => {
 		await page.emulateMedia({ reducedMotion: "no-preference" });
 		await page.getByRole("button", { name: "Play", exact: true }).click();
@@ -283,13 +358,13 @@ test.describe("music sidebar client", () => {
 		await page.getByRole("button", { name: "Play", exact: true }).click();
 		await page.getByRole("button", { name: "Next track" }).click();
 		await page.waitForFunction(() => Boolean(window.swup?.hooks));
-		await page.evaluate(() => {
+		await page.evaluate((archiveUrl) => {
 			(
 				window.swup as typeof window.swup & {
 					navigate: (url: string) => void;
 				}
-			).navigate("/archive/");
-		});
+			).navigate(archiveUrl);
+		}, sitePath("/archive/"));
 		await page.waitForFunction(
 			() =>
 				document.getElementById("swup-container")?.dataset.currentPage ===

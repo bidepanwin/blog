@@ -3,6 +3,7 @@ import {
 	type ResolvedMusicOptions,
 	resolveMusicOptions,
 } from "../../src/config/musicConfig";
+import { musicTracks } from "../../src/data/music";
 import type { MusicConfig } from "../../src/types/musicConfig";
 import {
 	buildMetingUrl,
@@ -19,6 +20,7 @@ class MockAudio extends EventTarget {
 	paused = true;
 	currentTime = 0;
 	duration = Number.NaN;
+	readyState = 1;
 	loadCalls = 0;
 	pauseCalls = 0;
 	playCalls = 0;
@@ -175,7 +177,7 @@ test.describe("music configuration and playlist helpers", () => {
 		});
 		expect(resolved).not.toBeNull();
 		expect(resolved?.playlist.length).toBeGreaterThan(0);
-		expect(resolved?.playlist[0].id).toBe("dazbee");
+		expect(resolved?.playlist[0].id).toBe(musicTracks[0].id);
 	});
 
 	test("resolves custom and meting provider configurations", () => {
@@ -397,6 +399,106 @@ test.describe("music runtime", () => {
 		expect(audio.currentTime).toBe(0);
 		expect(runtime.getSnapshot().currentTime).toBe(0);
 		expect(audio.loadCalls).toBe(1);
+	});
+
+	test("defers seeks until metadata and applies only the latest target", async () => {
+		const audio = new MockAudio();
+		audio.readyState = 0;
+		let position = 0;
+		const writes: number[] = [];
+		Object.defineProperty(audio, "currentTime", {
+			get: () => position,
+			set: (value: number) => {
+				if (audio.readyState < 1)
+					throw new DOMException("Metadata unavailable", "InvalidStateError");
+				writes.push(value);
+				position = value;
+			},
+		});
+		const runtime = createMusicRuntime(options(), {
+			createAudio: () => audio as unknown as HTMLAudioElement,
+		});
+		runtime.seek(40);
+		runtime.seek(200);
+		await expect.poll(() => audio.loadCalls).toBe(1);
+		expect(writes).toEqual([]);
+		expect(runtime.getSnapshot().currentTime).toBe(0);
+		audio.duration = 90;
+		audio.readyState = 1;
+		audio.dispatchEvent(new Event("loadedmetadata"));
+		await expect.poll(() => writes).toEqual([90]);
+		expect(runtime.getSnapshot().currentTime).toBe(90);
+		expect(audio.playCalls).toBe(0);
+	});
+
+	test("seeking a playing source preserves playback without reloading it", async () => {
+		const audio = new MockAudio();
+		const runtime = createMusicRuntime(options(), {
+			createAudio: () => audio as unknown as HTMLAudioElement,
+		});
+		await runtime.play();
+		const pauses = audio.pauseCalls;
+		runtime.seek(45);
+		await expect.poll(() => audio.currentTime).toBe(45);
+		expect(audio.paused).toBe(false);
+		expect(audio.pauseCalls).toBe(pauses);
+		expect(audio.playCalls).toBe(1);
+		expect(audio.loadCalls).toBe(1);
+		audio.currentTime = 46;
+		audio.dispatchEvent(new Event("timeupdate"));
+		expect(runtime.getSnapshot().currentTime).toBe(46);
+		expect(runtime.getSnapshot().status).toBe("playing");
+	});
+
+	test("a pending seek cannot jump a newly selected track or a destroyed runtime", async () => {
+		const audio = new MockAudio();
+		audio.readyState = 0;
+		const runtime = createMusicRuntime(options(), {
+			createAudio: () => audio as unknown as HTMLAudioElement,
+		});
+		runtime.seek(75);
+		await expect.poll(() => audio.loadCalls).toBe(1);
+		await runtime.select(1);
+		audio.readyState = 1;
+		audio.duration = 121;
+		audio.dispatchEvent(new Event("loadedmetadata"));
+		expect(audio.currentTime).toBe(0);
+		expect(runtime.getSnapshot().currentIndex).toBe(1);
+		audio.readyState = 0;
+		runtime.seek(65);
+		await Promise.resolve();
+		runtime.destroy();
+		audio.readyState = 1;
+		audio.dispatchEvent(new Event("loadedmetadata"));
+		await Promise.resolve();
+		expect(runtime.getSnapshot().currentTime).toBe(0);
+	});
+
+	test("failed seek initialization and rejected media writes become handled errors", async () => {
+		const unavailable = createMusicRuntime(options(), {
+			createAudio: () => {
+				throw new Error("Audio unavailable");
+			},
+		});
+		unavailable.seek(20);
+		await expect
+			.poll(() => unavailable.getSnapshot().error)
+			.toBe("source-unavailable");
+		const audio = new MockAudio();
+		Object.defineProperty(audio, "currentTime", {
+			get: () => 0,
+			set: () => {
+				throw new Error("Unseekable source");
+			},
+		});
+		const runtime = createMusicRuntime(options(), {
+			createAudio: () => audio as unknown as HTMLAudioElement,
+		});
+		runtime.seek(20);
+		await expect
+			.poll(() => runtime.getSnapshot().error)
+			.toBe("source-unavailable");
+		expect(runtime.getSnapshot().currentTime).toBe(0);
 	});
 
 	test("bounds source failure recovery to one complete playlist traversal", async () => {

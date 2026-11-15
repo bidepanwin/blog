@@ -129,6 +129,13 @@ export function createMusicRuntime(
 	let lifecycleGeneration = 0;
 	let sourceGeneration = 0;
 	let playbackAttemptGeneration = 0;
+	let seekRequestGeneration = 0;
+	let pendingSeek: {
+		request: number;
+		generation: number;
+		index: number;
+		seconds: number;
+	} | null = null;
 	let playbackRequested = false;
 	let loadedIndex = -1;
 	const failedTrackIds = new Set<string>();
@@ -188,6 +195,29 @@ export function createMusicRuntime(
 		mediaListeners = null;
 	}
 
+	function applyPendingSeek(): void {
+		const pending = pendingSeek;
+		if (
+			!pending ||
+			!audio ||
+			audio.readyState < 1 ||
+			pending.request !== seekRequestGeneration ||
+			pending.generation !== sourceGeneration ||
+			pending.index !== state.currentIndex
+		)
+			return;
+		pendingSeek = null;
+		try {
+			const duration = finiteMediaValue(audio.duration) || state.duration;
+			const target =
+				duration > 0 ? Math.min(pending.seconds, duration) : pending.seconds;
+			audio.currentTime = target;
+			patch({ currentTime: Math.max(0, audio.currentTime) });
+		} catch {
+			patch({ status: "error", error: "source-unavailable" });
+		}
+	}
+
 	function bindMediaListeners(generation: number): void {
 		if (!audio) return;
 		const isCurrent = () => generation === sourceGeneration && audio !== null;
@@ -206,6 +236,7 @@ export function createMusicRuntime(
 						0,
 					error: null,
 				});
+				applyPendingSeek();
 			},
 			durationchange: () => {
 				if (!isCurrent() || !audio) return;
@@ -437,6 +468,8 @@ export function createMusicRuntime(
 		index: number,
 		autoplay: boolean,
 	): Promise<void> {
+		seekRequestGeneration += 1;
+		pendingSeek = null;
 		playbackRequested = false;
 		playbackAttemptGeneration += 1;
 		if (
@@ -569,21 +602,36 @@ export function createMusicRuntime(
 		},
 		seek(seconds) {
 			if (!Number.isFinite(seconds) || seconds < 0) return;
+			const request = ++seekRequestGeneration;
+			const lifecycle = lifecycleGeneration;
 			const requestedIndex = state.currentIndex;
-			void ensureSource().then((generation) => {
-				if (
-					generation === null ||
-					generation !== sourceGeneration ||
-					requestedIndex !== state.currentIndex ||
-					!audio
-				) {
-					return;
-				}
-				const duration = finiteMediaValue(audio.duration) || state.duration;
-				const target = duration > 0 ? Math.min(seconds, duration) : seconds;
-				audio.currentTime = target;
-				patch({ currentTime: target });
-			});
+			pendingSeek = null;
+			void ensureSource()
+				.then((generation) => {
+					if (
+						request !== seekRequestGeneration ||
+						lifecycle !== lifecycleGeneration ||
+						generation === null ||
+						generation !== sourceGeneration ||
+						requestedIndex !== state.currentIndex ||
+						!audio
+					) {
+						return;
+					}
+					pendingSeek = { request, generation, index: requestedIndex, seconds };
+					// Browsers can discard currentTime writes while HAVE_NOTHING. Keep
+					// the latest target until this source has loaded its metadata.
+					applyPendingSeek();
+				})
+				.catch(() => {
+					if (
+						request !== seekRequestGeneration ||
+						lifecycle !== lifecycleGeneration
+					)
+						return;
+					pendingSeek = null;
+					patch({ status: "error", error: "source-unavailable" });
+				});
 		},
 		setVolume(value) {
 			const volume = clampMusicVolume(value, state.volume);
@@ -600,6 +648,8 @@ export function createMusicRuntime(
 			patch({ mode });
 		},
 		destroy() {
+			seekRequestGeneration += 1;
+			pendingSeek = null;
 			lifecycleGeneration += 1;
 			sourceGeneration += 1;
 			playbackAttemptGeneration += 1;

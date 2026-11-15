@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import stylus from "stylus";
 import { musicSidebarStylus } from "../../src/components/organisms/music/musicSidebarStyles";
 import type { ResolvedMusicOptions } from "../../src/config/musicConfig";
+import { sitePath } from "../site/paths";
 
 const musicSidebarStyles = new Promise<string>((resolve, reject) => {
 	stylus.render(musicSidebarStylus, (error, css) => {
@@ -63,7 +64,7 @@ export async function mountMusicClient(
 	page: Page,
 	initialOptions: ResolvedMusicOptions = defaultTestOptions,
 ): Promise<void> {
-	await page.goto("/", { waitUntil: "domcontentloaded" });
+	await page.goto(sitePath("/"), { waitUntil: "domcontentloaded" });
 	await page.waitForFunction(() => {
 		return (
 			getComputedStyle(document.documentElement)
@@ -74,21 +75,34 @@ export async function mountMusicClient(
 	await page.addStyleTag({ content: await musicSidebarStyles });
 
 	await page.evaluate(
-		async ({ options, labels }) => {
+		async ({ options, labels, runtimeUrl, fixtureUrl }) => {
 			let audioCreations = 0;
 			class TestAudio extends EventTarget {
 				constructor() {
 					super();
 					audioCreations += 1;
+					(
+						window as typeof window & { __musicTestAudio?: TestAudio }
+					).__musicTestAudio = this;
 				}
 
 				preload = "";
 				volume = 1;
 				muted = false;
 				paused = true;
-				currentTime = 0;
+				private position = 0;
+				seekWrites: number[] = [];
+				readyState = 1;
 				duration = 180;
 				private source: string | null = null;
+
+				get currentTime(): number {
+					return this.position;
+				}
+				set currentTime(value: number) {
+					this.seekWrites.push(value);
+					this.position = value;
+				}
 
 				get src(): string {
 					return this.source ?? "";
@@ -129,7 +143,6 @@ export async function mountMusicClient(
 				value: TestAudio,
 			});
 
-			const runtimeUrl = "/src/utils/music/index.ts";
 			const runtimeModule = await import(/* @vite-ignore */ runtimeUrl);
 			runtimeModule.destroyMusicRuntime();
 
@@ -162,7 +175,6 @@ export async function mountMusicClient(
 
 			audioCreations = 0;
 
-			const fixtureUrl = "/tests/fixtures/music-client.browser.ts";
 			const browserFixture = await import(/* @vite-ignore */ fixtureUrl);
 			const component = browserFixture.mountMusicClientFixture(host, {
 				options,
@@ -180,7 +192,12 @@ export async function mountMusicClient(
 				}
 			).__musicAudioCreations = () => audioCreations;
 		},
-		{ options: initialOptions, labels: fixtureLabels },
+		{
+			options: initialOptions,
+			labels: fixtureLabels,
+			runtimeUrl: sitePath("/src/utils/music/index.ts"),
+			fixtureUrl: sitePath("/tests/fixtures/music-client.browser.ts"),
+		},
 	);
 
 	await page.locator("[data-music-player]").waitFor();
@@ -191,23 +208,26 @@ export async function remountMusicClient(
 	options: ResolvedMusicOptions,
 ): Promise<void> {
 	await page.evaluate(
-		async ({ options, labels }) => {
+		async ({ options, labels, runtimeUrl, fixtureUrl }) => {
 			const host = document.getElementById("music-client-test-host");
 			if (!host) return;
 			host.innerHTML = "";
 
-			const runtimeUrl = "/src/utils/music/index.ts";
 			const runtimeModule = await import(/* @vite-ignore */ runtimeUrl);
 			runtimeModule.destroyMusicRuntime();
 
-			const fixtureUrl = "/tests/fixtures/music-client.browser.ts";
 			const browserFixture = await import(/* @vite-ignore */ fixtureUrl);
 			browserFixture.mountMusicClientFixture(host, {
 				options,
 				labels,
 			});
 		},
-		{ options, labels: fixtureLabels },
+		{
+			options,
+			labels: fixtureLabels,
+			runtimeUrl: sitePath("/src/utils/music/index.ts"),
+			fixtureUrl: sitePath("/tests/fixtures/music-client.browser.ts"),
+		},
 	);
 	await page.locator("#music-client-test-host [data-music-player]").waitFor();
 }

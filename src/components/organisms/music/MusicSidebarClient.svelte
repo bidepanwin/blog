@@ -102,6 +102,9 @@ const modeIcon = $derived(modeIcons[snapshot.mode]);
 const duration = $derived(Math.max(0, snapshot.duration));
 let draggingSeek = $state(false);
 let dragTime = $state<number | null>(null);
+let seekInput: HTMLInputElement | null = null;
+let seekPointerId: number | null = null;
+let ignorePointerChange = false;
 
 const currentEffectiveTime = $derived(
 	draggingSeek && dragTime !== null ? dragTime : snapshot.currentTime,
@@ -134,6 +137,9 @@ onMount(() => {
 	let unsubscribe = () => {};
 	let active = true;
 	let viewportObserver: IntersectionObserver | null = null;
+	window.addEventListener("pointerup", onProgressPointerUp);
+	window.addEventListener("pointercancel", onProgressPointerCancel);
+	window.addEventListener("blur", cancelProgressDrag);
 	void import("@utils/music").then(({ getMusicRuntime }) => {
 		if (!active) return;
 		runtime = getMusicRuntime(options);
@@ -165,6 +171,10 @@ onMount(() => {
 		}
 	});
 	return () => {
+		window.removeEventListener("pointerup", onProgressPointerUp);
+		window.removeEventListener("pointercancel", onProgressPointerCancel);
+		window.removeEventListener("blur", cancelProgressDrag);
+		cancelProgressDrag();
 		active = false;
 		viewportObserver?.disconnect();
 		viewportObserver = null;
@@ -189,8 +199,15 @@ function togglePlaylist(): void {
 	if (playlistOpen) void runtime?.initialize();
 }
 
-function onProgressPointerDown(): void {
+function onProgressPointerDown(event: PointerEvent): void {
+	if (event.button !== 0 || seekPointerId !== null) return;
+	const input = event.currentTarget as HTMLInputElement;
+	seekInput = input;
+	seekPointerId = event.pointerId;
+	ignorePointerChange = false;
 	draggingSeek = true;
+	dragTime = Number(input.value);
+	input.setPointerCapture(event.pointerId);
 }
 
 function onProgressInput(event: Event): void {
@@ -199,22 +216,44 @@ function onProgressInput(event: Event): void {
 }
 
 function onProgressChange(event: Event): void {
-	const val = Number((event.currentTarget as HTMLInputElement).value);
-	draggingSeek = false;
-	dragTime = null;
-	if (Number.isFinite(val)) {
-		runtime?.seek(Math.max(0, val));
+	const input = event.currentTarget as HTMLInputElement;
+	const value = input.value;
+	// Native ranges may emit change before or after pointerup. Whichever
+	// arrives first commits this gesture; the other event is ignored.
+	if (ignorePointerChange) {
+		ignorePointerChange = false;
+		return;
 	}
+	ignorePointerChange = seekPointerId !== null;
+	cancelProgressDrag();
+	const val = Number(value);
+	if (Number.isFinite(val)) runtime?.seek(Math.max(0, val));
 }
 
 function onProgressPointerUp(event: PointerEvent): void {
+	if (event.pointerId !== seekPointerId || !seekInput) return;
+	const value = seekInput.value;
+	ignorePointerChange = true;
+	cancelProgressDrag();
+	const val = Number(value);
+	if (Number.isFinite(val)) runtime?.seek(Math.max(0, val));
+}
+
+function onProgressPointerCancel(event: PointerEvent): void {
+	if (event.pointerId !== seekPointerId) return;
+	ignorePointerChange = true;
+	cancelProgressDrag();
+}
+
+function cancelProgressDrag(): void {
+	const input = seekInput;
+	const pointerId = seekPointerId;
+	seekInput = null;
+	seekPointerId = null;
 	draggingSeek = false;
-	const input = event.currentTarget as HTMLInputElement;
-	const val = Number(input.value);
 	dragTime = null;
-	if (Number.isFinite(val)) {
-		runtime?.seek(Math.max(0, val));
-	}
+	if (input && pointerId !== null && input.hasPointerCapture(pointerId))
+		input.releasePointerCapture(pointerId);
 }
 
 function setVolume(event: Event): void {
@@ -301,8 +340,9 @@ function setVolume(event: Event): void {
 					disabled={duration <= 0 || !hasTracks}
 					aria-label={progressLabel}
 					onpointerdown={onProgressPointerDown}
-					onpointerup={onProgressPointerUp}
+					onlostpointercapture={onProgressPointerCancel}
 					oninput={onProgressInput}
+					onkeydown={() => { ignorePointerChange = false; }}
 					onchange={onProgressChange}
 				/>
 			</div>

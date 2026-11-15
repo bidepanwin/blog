@@ -166,7 +166,7 @@ export function resolveMusicOptions(
 		const metingId = config.meting?.id?.trim();
 		if (playlist.length === 0 && !metingId) return null;
 		return Object.freeze({
-			provider: "meting",
+			provider: "mixed",
 			playlist: Object.freeze(playlist),
 			meting: resolveMetingConfig(config.meting),
 			defaultVolume: clampMusicVolume(config.defaultVolume),
