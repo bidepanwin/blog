@@ -106,6 +106,21 @@ export type SiteConfig = {
 
 	/** 显示设置浮层各切换项的前端可见性控制 */
 	displaySettings?: DisplaySettingsConfig;
+	/** 首页开场；省略或 enable 为 false 时关闭，不改变原有页面访问。 */
+	intro?: {
+		/** 是否在每次浏览会话首次直接打开首页时播放；站内切换不自动播放。 */
+		enable: boolean;
+		/** 总时长（秒），默认 5，允许 3–8。 */
+		duration?: number;
+		/** 开场站名；省略时沿用站点标题。 */
+		title?: string;
+		/** 逐字显示的短句；省略时沿用站点副标题。 */
+		tagline?: string;
+		/** 个人署名，可留空隐藏。 */
+		signature?: string;
+		/** 转场图片；留空使用实际首页横幅，支持站内图片路径或 HTTPS 地址。 */
+		image?: string;
+	};
 
 	lang:
 		| "en"

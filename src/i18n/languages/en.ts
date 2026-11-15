@@ -52,6 +52,10 @@ export const en: Translation = {
 	[Key.gardenSearchHint]: "Search articles, tags, and ideas…",
 	[Key.gardenSearchEmpty]: "No matching articles. Try another keyword.",
 
+	[Key.introSkip]: "Skip intro",
+	[Key.introReplay]: "Replay intro",
+	[Key.introLabel]: "Intro animation",
+
 	[Key.home]: "Home",
 	[Key.about]: "About",
 	[Key.archive]: "Archive",

@@ -53,6 +53,10 @@ export const es: Translation = {
 	[Key.gardenSearchEmpty]:
 		"No se encontraron artículos. Prueba otra palabra clave.",
 
+	[Key.introSkip]: "Omitir introducción",
+	[Key.introReplay]: "Repetir introducción",
+	[Key.introLabel]: "Animación de introducción",
+
 	[Key.home]: "Inicio",
 	[Key.about]: "Sobre mí",
 	[Key.archive]: "Archivo",

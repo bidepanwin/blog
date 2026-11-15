@@ -45,6 +45,10 @@ export const zh_TW: Translation = {
 	[Key.gardenSearchHint]: "搜尋文章、標籤與靈感…",
 	[Key.gardenSearchEmpty]: "沒有找到相關文章，試試其他關鍵字。",
 
+	[Key.introSkip]: "略過開場",
+	[Key.introReplay]: "重播開場動畫",
+	[Key.introLabel]: "開場動畫",
+
 	[Key.home]: "首頁",
 	[Key.about]: "關於",
 	[Key.archive]: "彙整",

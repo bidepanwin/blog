@@ -92,6 +92,9 @@ const defaultTexturePreset = textureOptions.defaultPreset;
 const defaultTextureOpacity = textureOptions.defaultOpacity;
 const textureEnabled = textureOptions.enable;
 const umamiOptions = resolveUmamiOptions(umamiConfig);
+const HomeIntro = siteConfig.intro?.enable
+	? (await import("@components/organisms/HomeIntro.astro")).default
+	: null;
 
 const pageBannerSources = selectBannerSources(siteConfig.banner, initialPage);
 const hasDesktopBanner = hasBannerImages(pageBannerSources.desktop);
@@ -236,6 +239,7 @@ const defaultSchemeStyle = createDefaultSchemeStyle();
 		data-banner-mobile-all-pages={String(siteConfig.banner.mobileOnAllPages === true)}
 	>
 		<ConfigCarrier></ConfigCarrier>
+		{HomeIntro && <HomeIntro />}
 		{umamiOptions && <UmamiRuntime />}
 		{textureEnabled && (
 			<div

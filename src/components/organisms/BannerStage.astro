@@ -394,6 +394,13 @@ const initialMobileBanner =
 	}
 
 	function startSubtitleTyping(page: SidebarPage | undefined) {
+		// The opening sequence owns the first reading moment; restart this copy
+		// only once the homepage is revealed, including after a manual replay.
+		if (window.__introPlayed) {
+			stopSubtitleTyping();
+			runtime.subtitleKey = null;
+			return;
+		}
 		const isHome = page === "home";
 		const typingTitle = isHome ? homeTitle : contextTitle;
 		const typingTitleText = isHome ? titleText : contextTitleText;
@@ -967,7 +974,8 @@ const initialMobileBanner =
 			preloadNext(images, 0);
 		}
 
-		if (state.rotate && !document.hidden) scheduleRotation(images);
+		if (window.__introPlayed) pauseLayerMotions();
+		if (state.rotate && !document.hidden && !window.__introPlayed) scheduleRotation(images);
 		else stopRotation();
 	}
 
@@ -986,29 +994,38 @@ const initialMobileBanner =
 		syncBanner();
 		if (!window.__shironeBannerBound) {
 			window.__shironeBannerBound = true;
+			document.addEventListener("intro:start", () => {
+				stopSubtitleTyping();
+				runtime.subtitleKey = null;
+				stopRotation();
+				pauseLayerMotions();
+			});
+			document.addEventListener("intro:end", () => {
+				runtime.subtitleKey = null;
+				syncBanner();
+				resumeLayerMotions();
+			});
 			window.addEventListener(WALLPAPER_MODE_CHANGE_EVENT, () => syncBanner());
 			window.addEventListener(THEME_CHANGE_EVENT, () => syncBanner());
 			let lastReducedMotion = prefersReducedMotion();
-			new MutationObserver(() => {
+			const syncMotionPreference = () => {
 				const reduced = prefersReducedMotion();
 				if (reduced === lastReducedMotion) return;
 				lastReducedMotion = reduced;
-				if (reduced) stopLayerMotions();
+				if (reduced) {
+					stopLayerMotions();
+					showSubtitleImmediately();
+				}
 				syncBanner();
-			}).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+			};
+			new MutationObserver(syncMotionPreference).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 			window.addEventListener("resize", () => {
 				if (stage?.hidden === false) {
 					scheduleContextTitleFit();
 				}
 			});
 			window.matchMedia("(min-width: 1024px)").addEventListener("change", () => syncBanner());
-				window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", () => {
-					if (prefersReducedMotion()) {
-						stopLayerMotions();
-						showSubtitleImmediately();
-					}
-					syncBanner();
-				});
+			window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", syncMotionPreference);
 			document.addEventListener("visibilitychange", () => {
 					if (document.hidden) {
 						pauseLayerMotions();

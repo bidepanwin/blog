@@ -52,6 +52,10 @@ export const id: Translation = {
 	[Key.gardenSearchHint]: "Cari artikel, tag, dan inspirasi…",
 	[Key.gardenSearchEmpty]: "Artikel tidak ditemukan. Coba kata kunci lain.",
 
+	[Key.introSkip]: "Lewati pembuka",
+	[Key.introReplay]: "Putar ulang pembuka",
+	[Key.introLabel]: "Animasi pembuka",
+
 	[Key.home]: "Beranda",
 	[Key.about]: "Tentang",
 	[Key.archive]: "Arsip",

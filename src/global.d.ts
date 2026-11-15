@@ -17,7 +17,7 @@ declare global {
 
 	interface Window {
 		swup?: Swup;
-		/** 自指 intro 遮罩：播放期间为 true，供彩蛋 canvas 等协调（Intro.astro） */
+		/** Homepage opening sequence is active; shared banner/canvases pause. */
 		__introPlayed?: boolean;
 		oddmisc?: OddmiscBrowserClient;
 		__shironeUmamiStatsPromises?: Record<string, Promise<OddmiscStatsResult>>;

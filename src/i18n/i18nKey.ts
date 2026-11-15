@@ -41,6 +41,10 @@ enum I18nKey {
 	gardenSearchHint = "gardenSearchHint",
 	gardenSearchEmpty = "gardenSearchEmpty",
 
+	introSkip = "introSkip",
+	introReplay = "introReplay",
+	introLabel = "introLabel",
+
 	home = "home",
 	notFound = "notFound",
 	notFoundTitle = "notFoundTitle",

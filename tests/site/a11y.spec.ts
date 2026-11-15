@@ -60,13 +60,14 @@ async function openSitePage(
 ) {
 	await page.addInitScript(
 		(entries) => {
+			sessionStorage.setItem("introPlayed", "1");
 			for (const [key, value] of Object.entries(entries))
 				localStorage.setItem(key, value);
 		},
 		{ theme, ...(layout ? { "post-list-mode": layout } : {}) },
 	);
-	// intro 在测试中自然出现：其根元素永久 aria-hidden、SKIP 按钮 tabindex=-1
-	// （见 Intro.astro / commit 80fc301），装饰性遮罩不进 AT 树，axe 不会报 region 违规。
+	// Scan the settled site. The active opening dialog is scanned separately in
+	// home-intro.spec.ts, including its real keyboard-accessible skip control.
 	await page.route("https://api.github.com/**", (route) =>
 		route.fulfill({
 			status: 200,

@@ -51,6 +51,10 @@ export const vi: Translation = {
 	[Key.gardenSearchHint]: "Tìm bài viết, thẻ và ý tưởng…",
 	[Key.gardenSearchEmpty]: "Không tìm thấy bài phù hợp. Hãy thử từ khóa khác.",
 
+	[Key.introSkip]: "Bỏ qua mở đầu",
+	[Key.introReplay]: "Phát lại mở đầu",
+	[Key.introLabel]: "Hoạt ảnh mở đầu",
+
 	[Key.home]: "Trang chủ",
 	[Key.about]: "Giới thiệu",
 	[Key.archive]: "Kho bài",

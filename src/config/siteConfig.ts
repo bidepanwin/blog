@@ -15,6 +15,16 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	base: "/blog/",
 	title: "PAN LOG",
 	subtitle: "独立思考，明辨是非。",
+	// 首页开场：“好奇心的坐标”。仅每次浏览会话首次直接打开首页时播放，可随时跳过。
+	// 省略整个 intro 或将 enable 设为 false 即关闭；访客的减少动态效果偏好优先。
+	intro: {
+		enable: true,
+		duration: 5, // 总时长（秒），允许 3–8；省略时为 5。
+		title: "PAN LOG", // 开场站名；省略时沿用上方 title。
+		tagline: "独立思考，明辨是非。", // 逐字显示的短句；省略时沿用 subtitle。
+		signature: "bidepan · do and win", // 个人署名，可留空隐藏。
+		image: "", // 留空衔接实际首页横幅；也可通过工作台选图或填写站内/HTTPS 图片路径。
+	},
 	ogImage: "/images/covers/2026-10-18-animaeva-memory-eval.webp",
 	// 电脑端顶栏标题与导航内容区域："left" 左对齐，"center" 居中。
 	topAppBar: {

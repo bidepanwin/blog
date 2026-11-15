@@ -1,0 +1,362 @@
+---
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { resolveAsset } from "@utils/asset-utils";
+import { url } from "@utils/url-utils";
+import { profileConfig, siteConfig } from "@/config";
+
+const options = siteConfig.intro;
+if (!options?.enable) return null;
+
+const duration = Math.min(Math.max(options.duration ?? 5, 3), 8);
+const title = options.title?.trim() || siteConfig.title;
+const tagline = options.tagline?.trim() || siteConfig.subtitle;
+const signature =
+	options.signature === undefined
+		? profileConfig.name
+		: options.signature.trim();
+const resolvedImage = options.image?.trim()
+	? await resolveAsset(options.image.trim())
+	: "";
+const image = resolvedImage.startsWith("/")
+	? url(resolvedImage)
+	: resolvedImage;
+
+// Inline ownership keeps this optional feature out of shared CSS and JS bundles.
+// Timeline percentages describe the content's five-second score; UI feedback
+// still uses the shared M3E motion tokens. There are no repeating effects.
+const introStyles = `
+html[data-pan-intro-pending]::after {
+  content: ""; position: fixed; inset: 0; z-index: 10000;
+  background: var(--surface); pointer-events: none;
+}
+html.intro-on { overflow: hidden; }
+.pan-intro {
+  --pan-intro-duration: 5000ms;
+  --pan-intro-ease: var(--m3e-easing-emphasized-decelerate);
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  overflow: hidden; color: var(--on-surface); background: var(--surface);
+}
+.pan-intro:not([open]) { display: none; }
+.pan-intro[open] { display: grid; place-items: center; }
+.pan-intro::backdrop { background: transparent; }
+.pan-intro__ambient {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 36% 42%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 53%),
+    radial-gradient(ellipse at 72% 68%, color-mix(in srgb, var(--tertiary) 7%, transparent), transparent 46%),
+    var(--surface);
+}
+.pan-intro__grid {
+  position: absolute; inset: 0; opacity: .42;
+  background-image: radial-gradient(color-mix(in srgb, var(--primary) 21%, transparent) .7px, transparent .7px);
+  background-size: var(--m3e-space-8) var(--m3e-space-8);
+  mask-image: radial-gradient(ellipse at center, transparent 13%, black 65%, transparent);
+}
+.pan-intro__orbit {
+  position: absolute; top: 50%; left: 50%; width: min(74vmin, 38rem);
+  aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+  border-radius: var(--shape-corner-full); transform: translate(-50%, -50%) rotate(-24deg) scaleY(.64);
+}
+.pan-intro__orbit::before, .pan-intro__orbit::after {
+  content: ""; position: absolute; border-radius: var(--shape-corner-full);
+}
+.pan-intro__orbit::before {
+  inset: var(--m3e-space-8); border: 1px solid color-mix(in srgb, var(--primary) 7%, transparent);
+}
+.pan-intro__orbit::after {
+  width: var(--m3e-space-2); height: var(--m3e-space-2); left: 16%; top: 10%;
+  background: var(--primary); opacity: .45;
+}
+.pan-intro__composition {
+  position: relative; width: min(90vw, 52rem); display: grid;
+  justify-items: center; text-align: center; z-index: 2;
+  padding: var(--m3e-space-6); transform: translateY(calc(-1 * var(--m3e-space-4)));
+}
+.pan-intro__mark {
+  position: relative; width: clamp(5rem, 14vmin, 7.5rem); aspect-ratio: 1;
+  margin-bottom: var(--m3e-space-8); color: var(--primary);
+}
+.pan-intro__mark::before {
+  content: ""; position: absolute; inset: 8%; border-radius: var(--shape-corner-full);
+  background: color-mix(in srgb, var(--primary) 12%, transparent); filter: blur(var(--m3e-space-6));
+}
+.pan-intro__seed {
+  position: absolute; left: calc(50% - 3px); top: calc(50% - 3px);
+  width: 6px; height: 6px; border-radius: var(--shape-corner-full);
+  background: var(--primary); box-shadow: 0 0 var(--m3e-space-4) color-mix(in srgb, var(--primary) 30%, transparent);
+}
+.pan-intro__glyph { position: relative; width: 100%; height: 100%; overflow: visible; }
+.pan-intro__glyph path {
+  fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1;
+}
+.pan-intro__glyph .pan-intro__glyph-orbit {
+  stroke-width: .65; stroke: color-mix(in srgb, var(--primary) 36%, transparent);
+}
+.pan-intro__glyph circle { fill: var(--primary); opacity: 0; }
+.pan-intro__title {
+  margin: 0; display: flex; flex-wrap: wrap; justify-content: center;
+  font: var(--m3e-type-display-large); font-size: clamp(2.8rem, 7.2vw, 6rem);
+  font-weight: 600; line-height: 1.1; letter-spacing: .1em;
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.pan-intro__title span { white-space: pre; }
+.pan-intro__tagline {
+  position: relative; margin: var(--m3e-space-6) 0 0; min-height: 1.6em;
+  font: var(--m3e-type-title-medium); font-size: clamp(.95rem, 2.4vw, 1.15rem);
+  line-height: 1.65; letter-spacing: .15em; color: var(--on-surface-variant);
+}
+.pan-intro__tagline-reserve { visibility: hidden; }
+.pan-intro__tagline-live { position: absolute; inset: 0; }
+.pan-intro__tagline-live::after {
+  content: ""; display: inline-block; width: 1px; height: .95em;
+  margin-inline-start: .35em; vertical-align: -.08em; background: var(--primary); opacity: .6;
+}
+.pan-intro__signature {
+  margin: var(--m3e-space-5) 0 0; font: var(--m3e-type-label-medium);
+  color: var(--on-surface-variant); letter-spacing: .16em;
+}
+.pan-intro__window {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden;
+  border-radius: var(--shape-corner-xl); opacity: 0; transform: scale(.28);
+  background: var(--surface-container); pointer-events: none;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--outline-variant) 42%, transparent), var(--m3e-elevation-3);
+}
+.pan-intro__window img { width: 100%; height: 100%; object-fit: cover; opacity: .82; }
+.pan-intro__window::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 10%, transparent), color-mix(in srgb, var(--surface) 26%, transparent));
+}
+.pan-intro__footer {
+  position: absolute; inset-inline: var(--m3e-space-8); bottom: max(var(--m3e-space-6), env(safe-area-inset-bottom));
+  z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: var(--m3e-space-6);
+}
+.pan-intro__progress {
+  width: min(7rem, 22vw); height: 2px; border-radius: var(--shape-corner-full);
+  background: color-mix(in srgb, var(--primary) 13%, transparent); overflow: hidden;
+}
+.pan-intro__progress::after {
+  content: ""; display: block; width: 100%; height: 100%; background: var(--primary);
+  transform: scaleX(0); transform-origin: left; opacity: .55;
+}
+.pan-intro__skip {
+  position: relative; min-width: 48px; min-height: 48px; padding: var(--m3e-space-3) var(--m3e-space-5);
+  border: 1px solid var(--outline-variant); border-radius: var(--shape-corner-m);
+  background: var(--surface-container-low); color: var(--on-surface); cursor: pointer;
+  font: var(--m3e-type-label-large); --m3e-state-color: var(--on-surface);
+  transition: border-color var(--m3e-duration-short) var(--m3e-easing-standard);
+}
+.pan-intro__skip:focus-visible { outline: 2px solid var(--primary); outline-offset: var(--m3e-space-1); }
+.pan-intro[data-playing] .pan-intro__ambient { animation: pan-intro-ambient var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__seed { animation: pan-intro-seed var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__glyph path { animation: pan-intro-draw var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__glyph circle { animation: pan-intro-point var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__orbit { animation: pan-intro-orbit var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__composition { animation: pan-intro-composition var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__title span {
+  animation: pan-intro-letter calc(var(--pan-intro-duration) * .12) var(--pan-intro-ease) both;
+  animation-delay: calc(var(--pan-intro-duration) * var(--pan-letter-delay));
+}
+.pan-intro[data-playing] .pan-intro__tagline { animation: pan-intro-tagline var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__signature { animation: pan-intro-signature var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__window { animation: pan-intro-window var(--pan-intro-duration) var(--pan-intro-ease) both; }
+.pan-intro[data-playing] .pan-intro__progress::after { animation: pan-intro-progress var(--pan-intro-duration) var(--m3e-easing-standard) both; }
+.pan-intro[data-playing] { animation: pan-intro-exit var(--pan-intro-duration) var(--m3e-easing-standard) both; }
+@keyframes pan-intro-ambient { 0% { opacity: .45; } 18%, 78% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pan-intro-seed { 0% { opacity: 0; transform: scale(.4); } 8%, 13% { opacity: .8; transform: scale(1); } 29%, 100% { opacity: 0; transform: translate(-12px, 16px) scale(.5); } }
+@keyframes pan-intro-draw { 0%, 12% { stroke-dashoffset: 1; opacity: 0; } 14% { opacity: 1; } 32%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes pan-intro-point { 0%, 27% { opacity: 0; } 35%, 100% { opacity: .7; } }
+@keyframes pan-intro-orbit { 0%, 12% { opacity: 0; transform: translate(-50%, -50%) rotate(-28deg) scaleY(.64) scale(.94); } 40%, 70% { opacity: .7; transform: translate(-50%, -50%) rotate(-24deg) scaleY(.64) scale(1); } 85%, 100% { opacity: 0; transform: translate(-50%, -50%) rotate(-20deg) scaleY(.64) scale(1.08); } }
+@keyframes pan-intro-composition { 0%, 67% { opacity: 1; transform: translateY(calc(-1 * var(--m3e-space-4))); } 80%, 100% { opacity: 0; transform: translateY(calc(-1 * var(--m3e-space-8))) scale(.98); } }
+@keyframes pan-intro-letter { from { opacity: 0; transform: translateY(var(--m3e-space-3)); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pan-intro-tagline { 0%, 32% { opacity: 0; } 38%, 100% { opacity: 1; } }
+@keyframes pan-intro-signature { 0%, 48% { opacity: 0; transform: translateY(var(--m3e-space-2)); } 60%, 100% { opacity: .82; transform: translateY(0); } }
+@keyframes pan-intro-window { 0%, 65% { opacity: 0; transform: scale(.28); border-radius: calc(var(--shape-corner-xl) * 2); } 74% { opacity: .72; transform: scale(.32); border-radius: calc(var(--shape-corner-xl) * 2); } 95%, 100% { opacity: 1; transform: scale(1); border-radius: 0; } }
+@keyframes pan-intro-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pan-intro-exit { 0%, 92% { opacity: 1; } 100% { opacity: 0; } }
+/* Inline optional CSS matches the shared bp-sm (640px) compact boundary. */
+@media (max-width: 639px) {
+  .pan-intro__grid { display: none; }
+  .pan-intro__orbit { width: 88vmin; }
+  .pan-intro__composition { padding: var(--m3e-space-4); }
+  .pan-intro__title { font-size: clamp(2.2rem, 11vw, 4rem); }
+  .pan-intro__footer { inset-inline: var(--m3e-space-5); }
+  .pan-intro__mark { margin-bottom: var(--m3e-space-6); }
+}
+@media (prefers-reduced-motion: reduce) { .pan-intro[open] { display: none; } }
+html.motion-reduced .pan-intro[open] { display: none; }
+`;
+---
+
+<style is:inline set:html={introStyles}></style>
+<script is:inline define:vars={{ homePath: url("/"), duration }}>
+	(() => {
+		const root = document.documentElement;
+		let seen = false;
+		try { seen = sessionStorage.getItem("introPlayed") === "1"; } catch {}
+		const home = location.pathname.replace(/\/+$/, "") === homePath.replace(/\/+$/, "");
+		const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches || root.classList.contains("motion-reduced");
+		if (!home || reduced || (seen && location.hash !== "#intro")) return;
+		root.setAttribute("data-pan-intro-pending", "");
+		// Independent fail-open timer: even a runtime error cannot block the blog.
+		window.__panIntroSafety = window.setTimeout(() => {
+			root.removeAttribute("data-pan-intro-pending");
+			if (root.classList.contains("intro-on")) root.classList.remove("intro-on");
+			const dialog = document.getElementById("home-intro");
+			if (dialog?.open) dialog.close();
+			window.__introPlayed = false;
+			document.dispatchEvent(new CustomEvent("intro:end"));
+		}, duration * 1000 + 1800);
+	})();
+</script>
+
+<dialog
+	id="home-intro"
+	class="pan-intro"
+	aria-label={i18n(I18nKey.introLabel)}
+	data-home-path={url("/")}
+	data-duration={duration * 1000}
+	data-image={image}
+>
+	<div class="pan-intro__ambient" aria-hidden="true">
+		<div class="pan-intro__grid"></div>
+		<div class="pan-intro__orbit"></div>
+	</div>
+	<div class="pan-intro__window" aria-hidden="true">
+		<img data-intro-image alt="" decoding="async" />
+	</div>
+	<div class="pan-intro__composition" aria-hidden="true">
+		<div class="pan-intro__mark">
+			<span class="pan-intro__seed"></span>
+			<svg class="pan-intro__glyph" viewBox="0 0 100 100" aria-hidden="true">
+				<path class="pan-intro__glyph-orbit" pathLength="1" d="M20 70C-4 45 41 3 76 21C108 38 93 79 55 85" />
+				<path pathLength="1" d="M34 78V24H54C81 24 81 57 54 57H42" />
+				<circle cx="34" cy="78" r="2" />
+				<circle cx="55" cy="85" r="1.3" />
+			</svg>
+		</div>
+		<p class="pan-intro__title">
+			{Array.from(title).map((letter, index) => (
+				<span style={`--pan-letter-delay:${0.28 + (index / Math.max(title.length, 1)) * 0.14}`}>{letter}</span>
+			))}
+		</p>
+		<p class="pan-intro__tagline">
+			<span class="pan-intro__tagline-reserve">{tagline}</span>
+			<span class="pan-intro__tagline-live" data-intro-tagline data-full={tagline}></span>
+		</p>
+		{signature && <p class="pan-intro__signature">{signature}</p>}
+	</div>
+	<div class="pan-intro__footer">
+		<div class="pan-intro__progress" aria-hidden="true"></div>
+		<button type="button" class="pan-intro__skip m3-state-layer" data-intro-skip autofocus>
+			{i18n(I18nKey.introSkip)}
+		</button>
+	</div>
+</dialog>
+
+<script is:inline>
+	(() => {
+		const dialog = document.getElementById("home-intro");
+		if (!(dialog instanceof HTMLDialogElement) || dialog.dataset.ready) return;
+		dialog.dataset.ready = "true";
+		const root = document.documentElement;
+		const skip = dialog.querySelector("[data-intro-skip]");
+		const tagline = dialog.querySelector("[data-intro-tagline]");
+		const image = dialog.querySelector("[data-intro-image]");
+		const duration = Number(dialog.dataset.duration) || 5000;
+		const motion = matchMedia("(prefers-reduced-motion: reduce)");
+		let runId = 0;
+		let timers = [];
+		let previousFocus = null;
+		let observer = null;
+		const atHome = () => location.pathname.replace(/\/+$/, "") === dialog.dataset.homePath.replace(/\/+$/, "");
+		const reduced = () => motion.matches || root.classList.contains("motion-reduced");
+		const schedule = (callback, delay) => {
+			const token = runId;
+			timers.push(window.setTimeout(() => {
+				if (token === runId && window.__introPlayed) callback();
+			}, delay));
+		};
+		function remember() {
+			try { sessionStorage.setItem("introPlayed", "1"); } catch {}
+		}
+		function prepareImage() {
+			if (!window.__introPlayed) return;
+			const active = document.querySelector("#banner-wrapper .banner-stage__image--active");
+			const source = dialog.dataset.image || active?.currentSrc || active?.getAttribute("src");
+			if (!source || image.getAttribute("src") === source) return;
+			image.src = source;
+			if (active) image.style.objectPosition = getComputedStyle(active).objectPosition;
+		}
+		function finish(reason = "complete") {
+			const wasPlaying = window.__introPlayed || dialog.open;
+			++runId;
+			timers.forEach(clearTimeout);
+			timers = [];
+			clearTimeout(window.__panIntroSafety);
+			observer?.disconnect();
+			observer = null;
+			window.__introPlayed = false;
+			dialog.removeAttribute("data-playing");
+			root.removeAttribute("data-pan-intro-pending");
+			if (root.classList.contains("intro-on")) root.classList.remove("intro-on");
+			if (dialog.open) dialog.close();
+			if (wasPlaying) {
+				remember();
+				document.dispatchEvent(new CustomEvent("intro:end", { detail: { reason } }));
+				if (reason !== "navigation" && previousFocus?.isConnected && previousFocus !== document.body) {
+					previousFocus.focus({ preventScroll: true });
+				}
+			}
+		}
+		function play() {
+			if (!atHome() || reduced() || typeof dialog.showModal !== "function") {
+				finish("unavailable");
+				return;
+			}
+			finish("restart");
+			previousFocus = document.activeElement;
+			++runId;
+			window.__introPlayed = true;
+			dialog.style.setProperty("--pan-intro-duration", `${duration}ms`);
+			tagline.textContent = "";
+			dialog.showModal();
+			dialog.setAttribute("data-playing", "true");
+			root.classList.add("intro-on");
+			root.removeAttribute("data-pan-intro-pending");
+			skip.focus({ preventScroll: true });
+			document.dispatchEvent(new CustomEvent("intro:start"));
+			prepareImage();
+			const letters = Array.from(tagline.dataset.full || "");
+			letters.forEach((_, index) => {
+				schedule(() => { tagline.textContent = letters.slice(0, index + 1).join(""); }, duration * (.35 + (index / Math.max(letters.length, 1)) * .20));
+			});
+			schedule(prepareImage, duration * .56);
+			schedule(() => finish(), duration);
+			window.__panIntroSafety = window.setTimeout(() => finish("timeout"), duration + 1800);
+			observer = new MutationObserver(() => { if (reduced()) finish("reduced-motion"); });
+			observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+		}
+		skip.addEventListener("click", () => finish("skip"));
+		dialog.addEventListener("cancel", event => { event.preventDefault(); finish("skip"); });
+		dialog.addEventListener("keydown", event => {
+			if (event.key === "Tab" && dialog.open) {
+				event.preventDefault();
+				skip.focus({ preventScroll: true });
+			}
+		});
+		document.addEventListener("intro:replay", () => {
+			try { play(); } catch { finish("error"); }
+		});
+		document.addEventListener("swup:visit:start", () => { if (window.__introPlayed) finish("navigation"); });
+		document.addEventListener("visibilitychange", () => { if (document.hidden && window.__introPlayed) finish("hidden"); });
+		window.addEventListener("pagehide", () => finish("navigation"));
+		motion.addEventListener("change", () => { if (reduced() && window.__introPlayed) finish("reduced-motion"); });
+		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", prepareImage, { once: true });
+		if (root.hasAttribute("data-pan-intro-pending")) {
+			try { play(); } catch { finish("error"); }
+		}
+	})();
+</script>

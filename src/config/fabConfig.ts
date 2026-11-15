@@ -55,7 +55,8 @@ export const fabConfig: FabConfig = withUserConfig("fab", {
 		},
 		{
 			type: "replay",
-			enable: false,
+			enable: true,
+			pages: ["home"],
 			devices: ["mobile", "tablet", "desktop"],
 		},
 	],

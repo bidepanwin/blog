@@ -289,9 +289,8 @@ class FabController {
 		}
 	}
 
-	/** 重播开场动画：清 sessionStorage 标记并派发 intro:replay 事件（Intro.astro 监听） */
+	/** The intro owns its session state, including storage-unavailable browsers. */
 	public replayIntro(): void {
-		sessionStorage.removeItem("introPlayed");
 		document.dispatchEvent(new CustomEvent("intro:replay"));
 	}
 

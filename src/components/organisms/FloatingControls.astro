@@ -12,7 +12,12 @@ import type { MarkdownHeading } from "astro";
  * 右下角悬浮控制流有机体：统领全站 FAB 导航项、响应式设备适配与 Swup 生命周期。
  * 严格遵循【零额外负担】原则：评论系统未启用或当前文章禁用评论时，不输出评论按钮。
  */
-import { commentConfig, fabConfig, resolveCommentOptions } from "@/config";
+import {
+	commentConfig,
+	fabConfig,
+	resolveCommentOptions,
+	siteConfig,
+} from "@/config";
 import { BANNER_HEIGHT } from "@/constants/constants";
 import type { SidebarPage } from "@/types/sidebarConfig";
 
@@ -33,7 +38,9 @@ const tocItem = enabledItems.find((i) => i.type === "toc");
 const commentItem = enabledItems.find((i) => i.type === "comment");
 const homeItem = enabledItems.find((i) => i.type === "home");
 const topItem = enabledItems.find((i) => i.type === "top");
-const replayItem = enabledItems.find((i) => i.type === "replay");
+const replayItem = siteConfig.intro?.enable
+	? enabledItems.find((i) => i.type === "replay")
+	: undefined;
 
 // 零额外负担：全局评论系统未启用或未配置时，不渲染评论 FAB 按钮
 const isCommentSystemEnabled = Boolean(resolveCommentOptions(commentConfig));
@@ -122,7 +129,7 @@ const isHomeItemVisible = homeItem
 		<FloatingActionButton
 			id="fab-replay-btn"
 			type="replay"
-			ariaLabel="重播开场动画"
+			ariaLabel={i18n(I18nKey.introReplay)}
 			devices={replayItem.devices}
 			pages={replayItem.pages}
 			size={fabConfig.size}

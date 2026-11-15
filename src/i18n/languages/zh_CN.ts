@@ -45,6 +45,10 @@ export const zh_CN: Translation = {
 	[Key.gardenSearchHint]: "搜索文章、标签与灵感…",
 	[Key.gardenSearchEmpty]: "没有找到相关文章，试试其他关键词。",
 
+	[Key.introSkip]: "跳过开场",
+	[Key.introReplay]: "重播开场动画",
+	[Key.introLabel]: "开场动画",
+
 	[Key.home]: "首页",
 	[Key.about]: "关于",
 	[Key.archive]: "归档",

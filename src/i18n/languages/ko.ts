@@ -50,6 +50,10 @@ export const ko: Translation = {
 	[Key.gardenSearchEmpty]:
 		"관련 글을 찾지 못했어요. 다른 검색어를 사용해 보세요.",
 
+	[Key.introSkip]: "인트로 건너뛰기",
+	[Key.introReplay]: "인트로 다시 재생",
+	[Key.introLabel]: "인트로 애니메이션",
+
 	[Key.home]: "홈",
 	[Key.about]: "소개",
 	[Key.archive]: "아카이브",

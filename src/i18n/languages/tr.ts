@@ -52,6 +52,10 @@ export const tr: Translation = {
 	[Key.gardenSearchEmpty]:
 		"İlgili yazı bulunamadı. Başka bir anahtar kelime dene.",
 
+	[Key.introSkip]: "Açılışı atla",
+	[Key.introReplay]: "Açılışı yeniden oynat",
+	[Key.introLabel]: "Açılış animasyonu",
+
 	[Key.home]: "Anasayfa",
 	[Key.about]: "Hakkında",
 	[Key.archive]: "Arşiv",

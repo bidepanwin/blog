@@ -93,3 +93,19 @@ enterers.forEach((el, i) => revealIn(el, { delay: i * 50 }));
 - `homeText.typewriter.includeTitle: true` 时依次打出标题、副标题，停留后依次删除副标题、标题；`loop: true` 重播。省略 `includeTitle` 保持原有仅副标题打字行为。
 - 共用单一定时器与代际保护；Swup 离开首页时取消，返回时重新开始。
 - 完整文本预留排版空间；系统或站内减少动效偏好下直接展示完整文字，可访问名称始终保持完整。
+
+## 首页开场
+
+`siteConfig.intro` 为可选配置，省略或 `enable: false` 时不渲染开场及重播入口。
+`HomeIntro.astro` 位于 Swup 持久外壳中，仅在首次直接进入首页时自动播放，
+刷新、栏目切换、文章直达与从文章返回首页均不会重复阻挡阅读。首页 FAB 可手动重播。
+
+开场默认 5 秒，以微光、P 形轨迹、逐字格言和圆角图片展开连接首页；
+`duration` 可设为 3–8 秒，标题、格言、署名和图片均可在本地工作台编辑。
+图片留空时复用当前设备与主题的首页横幅。
+
+原生模态 dialog 隔离背景焦点，提供跳过按钮和 Escape 退出；默认关闭，
+JavaScript 不可用时不阻挡网站。播放结束、跳过、路由切换与超时兜底均释放状态。
+系统或站点的减少动态效果偏好优先，并在播放中变更时立即退出。
+`intro:start` / `intro:end` 协调首页打字与轮播，`window.__introPlayed`
+仅在播放期间为 true。生命周期、无障碍与故障降级见 `tests/site/home-intro.spec.ts`。

@@ -52,6 +52,10 @@ export const ja: Translation = {
 	[Key.gardenSearchEmpty]:
 		"記事が見つかりませんでした。別のキーワードをお試しください。",
 
+	[Key.introSkip]: "オープニングをスキップ",
+	[Key.introReplay]: "オープニングを再生",
+	[Key.introLabel]: "オープニング",
+
 	[Key.home]: "Home",
 	[Key.about]: "About",
 	[Key.archive]: "Archive",

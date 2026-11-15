@@ -74,6 +74,12 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		site: "站点地址",
 		base: "部署路径",
 		avatar: "头像",
+		"intro.enable": "启用首页开场动画",
+		"intro.duration": "开场时长（秒，3 到 8）",
+		"intro.title": "开场站名",
+		"intro.tagline": "开场逐字短句",
+		"intro.signature": "开场个人署名",
+		"intro.image": "开场转场图片（可选）",
 		"banner.homeText.title": "首页大标题",
 		"banner.homeText.subtitle": "首页副标题",
 		"banner.homeText.enable": "显示首页文字",
@@ -827,6 +833,10 @@ import { mountCollectionEditor } from "./collection-editor.js";
 							? "number"
 							: "text";
 			if (field.type === "number") input.step = "any";
+			if (field.key === "intro.duration") {
+				input.min = "3";
+				input.max = "8";
+			}
 			if (field.type === "boolean") input.checked = field.value === true;
 			else
 				input.value = array
@@ -844,6 +854,18 @@ import { mountCollectionEditor } from "./collection-editor.js";
 				choose.setAttribute("aria-label", `${settingLabel(field.key)}：选择图片`);
 				choose.addEventListener("click", () => void chooseImageFor(input, array));
 				label.append(choose);
+			}
+			if (field.key === "intro.enable") {
+				label.append(element(
+					"span", "field-hint",
+					"每次浏览会话首次直接打开首页时播放，支持跳过和重播；文章直达和站内切换不受影响。",
+				));
+			} else if (field.key === "intro.image") {
+				input.placeholder = "留空使用首页当前横幅";
+				label.append(element(
+					"span", "field-hint",
+					"留空可自然衔接首页图片；也可以选择本地文件、已有素材或拼接图片路径。",
+				));
 			}
 			input.addEventListener("input", () => updateDirty());
 			$("settings-fields").append(label);
@@ -958,6 +980,15 @@ import { mountCollectionEditor } from "./collection-editor.js";
 					showError(
 						"数值字段不能为空，且必须是有效数字：" + input.dataset.setting,
 					);
+					state.saving = false;
+					updateDirty(state.dirty);
+					return false;
+				}
+				if (
+					input.dataset.setting === "intro.duration" &&
+					(value < 3 || value > 8)
+				) {
+					showError("开场时长请填写 3 到 8 秒之间的数值。");
 					state.saving = false;
 					updateDirty(state.dirty);
 					return false;
@@ -1123,8 +1154,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 	function renderSettingsShortcuts() {
 		const shortcuts = [
 			[
-				"站点与横幅",
-				"站名、各栏目图片、主题色与循环打字",
+				"站点、开场与横幅",
+				"开场动画、站名、各栏目图片与循环打字",
 				"siteConfig.ts",
 				"站",
 			],

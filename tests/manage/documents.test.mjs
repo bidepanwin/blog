@@ -129,6 +129,46 @@ test("settings reject wrong types, computed or unknown fields, and invalid sourc
 	assert.throws(() => readSettings("export const siteConfig = { broken: "));
 });
 
+test("intro settings retain unrelated configuration and constrain the opening duration", () => {
+	const original = `export const siteConfig = withUserConfig("site", {
+  base: "/blog/", // Keep the project deployment path.
+  intro: { enable: true, duration: 5, title: "PAN LOG", tagline: "独立思考，明辨是非。", signature: "bidepan · do and win", image: "" },
+  banner: { src: { desktop: ["/images/hero.webp"] } },
+});`;
+	const result = updateSettings(original, {
+		"intro.enable": false,
+		"intro.duration": 3.5,
+		"intro.tagline": "把好奇心做成项目。",
+		"intro.image": "/images/uploads/intro.webp",
+	});
+	const values = Object.fromEntries(
+		readSettings(result).map((field) => [field.key, field.value]),
+	);
+	assert.equal(values["intro.enable"], false);
+	assert.equal(values["intro.duration"], 3.5);
+	assert.equal(values["intro.tagline"], "把好奇心做成项目。");
+	assert.equal(values["intro.image"], "/images/uploads/intro.webp");
+	assert.equal(values.base, "/blog/");
+	assert.deepEqual(values["banner.src.desktop"], ["/images/hero.webp"]);
+	assert.match(result, /Keep the project deployment path\./);
+	for (const duration of [0, 2.9, 8.1, Number.POSITIVE_INFINITY, Number.NaN]) {
+		assert.throws(() =>
+			updateSettings(original, { "intro.duration": duration }),
+		);
+	}
+	for (const duration of [3, 5, 8]) {
+		assert.doesNotThrow(() =>
+			updateSettings(original, { "intro.duration": duration }),
+		);
+	}
+	assert.equal(
+		readSettings(settingsSource).some((field) =>
+			field.key.startsWith("intro."),
+		),
+		false,
+	);
+});
+
 test("new documents have safe paths and collection-specific frontmatter", () => {
 	const expectedDay = new Intl.DateTimeFormat("en-CA", {
 		timeZone: "Asia/Shanghai",

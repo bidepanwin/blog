@@ -191,6 +191,8 @@ export function updateSettings(content, values) {
 				: typeof value;
 		if (type !== field.type || (type === "number" && !Number.isFinite(value)))
 			throw fail(`设置类型不正确：${key}`);
+		if (key === "intro.duration" && (value < 3 || value > 8))
+			throw fail("开场时长请填写 3 到 8 秒之间的数值。");
 		return {
 			...field,
 			replacement: JSON.stringify(

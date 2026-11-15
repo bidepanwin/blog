@@ -29,6 +29,9 @@ const subtitleSelector = "[data-banner-home-copy] p";
 async function instrument(page: Page, manualReduced = false, context = false) {
 	await page.addInitScript(
 		({ manual, context }) => {
+			// This suite isolates banner typing; the opening sequence has its own
+			// lifecycle and handoff regression coverage in home-intro.spec.ts.
+			sessionStorage.setItem("introPlayed", "1");
 			localStorage.setItem("theme", "dark");
 			localStorage.setItem("wallpaper-mode", "banner");
 			localStorage.setItem("mc-motion", manual ? "reduced" : "full");

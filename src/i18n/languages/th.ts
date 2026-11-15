@@ -48,6 +48,10 @@ export const th: Translation = {
 	[Key.gardenSearchHint]: "ค้นหาบทความ แท็ก และไอเดีย…",
 	[Key.gardenSearchEmpty]: "ไม่พบบทความที่เกี่ยวข้อง ลองใช้คำค้นอื่น",
 
+	[Key.introSkip]: "ข้ามอินโทร",
+	[Key.introReplay]: "เล่นอินโทรซ้ำ",
+	[Key.introLabel]: "แอนิเมชันอินโทร",
+
 	[Key.home]: "หน้าแรก",
 	[Key.about]: "เกี่ยวกับ",
 	[Key.archive]: "คลัง",
