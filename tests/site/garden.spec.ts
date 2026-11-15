@@ -1,5 +1,7 @@
+import { readdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { siteConfig } from "../../src/config/siteConfig";
+import { booksData } from "../../src/data/books";
 import { sitePath } from "./paths";
 
 async function open(page: import("@playwright/test").Page, path = "/") {
@@ -69,27 +71,70 @@ test("mobile drawer opens, closes with Escape, and navigates", async ({ page }) 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("restored columns contain real pages and usable data", async ({ page }) => {
-  for (const [path, selector, count] of [
-    ["/reports/", ".reports-item", 2],
-    ["/thinking/", ".thinking-people li", 2],
-    ["/wiki/", ".wiki-rows li", 11],
-    ["/projects/", ".project-card", 1],
-  ] as const) {
-    await open(page, path);
-    await expect(page.locator("#swup-container")).toBeVisible();
-    if (path !== "/projects/") await expect(page.locator(selector)).toHaveCount(count);
-    else await expect(page.locator("#swup-container")).toContainText("PAN LOG");
-  }
+test("restored columns contain real pages and usable data", async ({
+	page,
+}) => {
+	// The wiki indexes all posts and thinking entries, while broken-target rows
+	// are diagnostics rather than pages. Track source additions automatically.
+	const wikiEntryCount = ["posts", "thinking"].reduce((total, collection) => {
+		const entries = readdirSync(
+			new URL(`../../src/content/${collection}/`, import.meta.url),
+			{ recursive: true },
+		);
+		return (
+			total +
+			entries.filter((entry) =>
+				collection === "posts" ? /\.mdx?$/.test(entry) : /\.md$/.test(entry),
+			).length
+		);
+	}, 0);
+	for (const [path, selector, count] of [
+		["/reports/", ".reports-item", 2],
+		["/thinking/", ".thinking-people li", 2],
+		["/wiki/", ".wiki-rows a.wiki-row__title", wikiEntryCount],
+		["/projects/", ".project-card", 1],
+	] as const) {
+		await open(page, path);
+		await expect(page.locator("#swup-container")).toBeVisible();
+		if (path !== "/projects/")
+			await expect(page.locator(selector)).toHaveCount(count);
+		else await expect(page.locator("#swup-container")).toContainText("PAN LOG");
+	}
 });
 
 test("book search filters local entries", async ({ page }) => {
-  await open(page, "/books/");
-  await expect(page.locator(".book-card:visible")).toHaveCount(3);
-  await page.locator("#books-search").fill("Hofstadter");
-  await expect(page.locator(".book-card:visible")).toHaveCount(1);
-  await page.locator("#books-search").fill("");
-  await expect(page.locator(".book-card:visible")).toHaveCount(3);
+	expect(booksData.length).toBeGreaterThan(1);
+	await open(page, "/books/");
+	const visibleCards = page.locator(".book-card:visible");
+	const search = page.locator("#books-search");
+	await expect(visibleCards).toHaveCount(booksData.length);
+
+	const queries = [
+		booksData[0].title,
+		booksData.find((book) => book.author)?.author,
+	].filter((query): query is string => Boolean(query));
+	for (const query of queries) {
+		const matchingBooks = booksData.filter((book) =>
+			[book.title, book.originalTitle, book.author].some((value) =>
+				value?.toLowerCase().includes(query.toLowerCase()),
+			),
+		);
+		await search.fill(query);
+		await expect(visibleCards).toHaveCount(matchingBooks.length);
+		expect(
+			(
+				await visibleCards.locator(".book-card__title").allTextContents()
+			).sort(),
+		).toEqual(matchingBooks.map((book) => book.title).sort());
+		await expect(page.locator("#books-empty")).toBeHidden();
+	}
+
+	await search.fill("nothing-matches-this-query-123");
+	await expect(visibleCards).toHaveCount(0);
+	await expect(page.locator("#books-empty")).toBeVisible();
+	await search.fill("");
+	await expect(visibleCards).toHaveCount(booksData.length);
+	await expect(page.locator("#books-empty")).toBeHidden();
 });
 
 test("display settings change the actual list layout and remember it", async ({ page }) => {
