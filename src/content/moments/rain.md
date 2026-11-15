@@ -6,7 +6,7 @@ draft: false
 title: 今天下雨
 description: 下雨中不想出门
 image: assets/images/banner/mobile/8.webp
-pinned: true
+pinned: false
 category: 生活
 images: []
 ---

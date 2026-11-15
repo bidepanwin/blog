@@ -4,6 +4,7 @@ import type { Translation } from "../translation.ts";
 export const ja: Translation = {
 	[Key.blogReportsIntro]:
 		"Notes, progress, and reflections on what comes next.",
+	[Key.blogReportsAll]: "すべて",
 	[Key.blogThinkingIntro]:
 		"Start with a question. Connect understanding with practice.",
 	[Key.blogEntryCount]: "{count} entries",

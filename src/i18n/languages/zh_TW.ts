@@ -3,6 +3,7 @@ import type { Translation } from "../translation.ts";
 
 export const zh_TW: Translation = {
 	[Key.blogReportsIntro]: "记录近况、整理收获，也给下一步留一点线索。",
+	[Key.blogReportsAll]: "全部",
 	[Key.blogThinkingIntro]: "从一个问题开始，把理解与实践连接起来。",
 	[Key.blogEntryCount]: "共 {count} 篇记录",
 	[Key.blogReports]: "札記",

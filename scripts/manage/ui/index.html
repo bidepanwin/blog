@@ -62,7 +62,7 @@
                 <form id="metadata-form" class="metadata-form">
                   <label class="field field-wide">标题<input id="meta-title" name="title" maxlength="300" autocomplete="off"></label>
                   <label class="field">发布日期<input id="meta-published" name="published" type="text" placeholder="YYYY-MM-DD" autocomplete="off"></label>
-                  <label class="field">分类<input id="meta-category" name="category" autocomplete="off"></label>
+                  <label class="field" id="category-field">分类<input id="meta-category" name="category" list="category-options" placeholder="选择或输入新分类" autocomplete="off"></label>
                   <label class="field field-wide">摘要<textarea id="meta-description" name="description" rows="2"></textarea></label>
                   <label class="field field-wide">标签<input id="meta-tags" name="tags" placeholder="多个标签用逗号分隔" autocomplete="off"></label>
                   <div class="field field-wide image-field"><label for="meta-image">封面图片</label><div class="image-field-row"><input id="meta-image" name="image" placeholder="/images/…" autocomplete="off"><button class="button button-small" id="choose-cover-image" type="button">选择图片</button></div></div>
@@ -103,5 +103,6 @@
     <div class="dialog-actions"><button class="button" id="media-picker-cancel" type="button">取消</button><button class="button button-primary" id="media-picker-confirm" type="button" disabled>使用图片</button></div>
   </dialog>
   <div class="toast" id="toast" role="status" hidden></div>
+  <datalist id="category-options"></datalist>
 </body>
 </html>

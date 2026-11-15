@@ -58,6 +58,7 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		previewAbort: null,
 		toastTimer: null,
 		collectionEditor: null,
+		categories: [],
 	};
 	const mediaPicker = createMediaPicker({
 		api,
@@ -357,6 +358,27 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		}
 	}
 
+	// 加载已有分类，填充「分类」输入框的自动补全下拉。
+	// 数据来自 posts / reports 的 category 字段；失败时静默降级为纯手填。
+	async function loadCategories() {
+		try {
+			const data = await api("/api/categories");
+			const list = Array.isArray(data.categories) ? data.categories : [];
+			state.categories = list;
+			const datalist = $("category-options");
+			datalist.replaceChildren(
+				...list.map(({ name, count }) => {
+					const option = document.createElement("option");
+					option.value = name;
+					option.label = `${name}（${count}）`;
+					return option;
+				}),
+			);
+		} catch {
+			// 分类列表拉取失败不影响其余编辑能力
+		}
+	}
+
 	function renderFiles() {
 		const query = $("file-search").value.trim().toLowerCase();
 		const collection = $("collection-filter").value;
@@ -653,8 +675,14 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			const supportsPinned = /^src\/content\/(posts|moments)\//.test(
 				current.path,
 			);
+			// 只有 posts / reports 定义了 category 字段；moments / thinking 等类型
+			// 不展示分类框，避免写入无效字段（与 content.config.ts 的 schema 保持一致）。
+			const supportsCategory = /^src\/content\/(posts|reports)\//.test(
+				current.path,
+			);
 			$("meta-draft").parentElement.hidden = !supportsDraft;
 			$("meta-pinned").parentElement.hidden = !supportsPinned;
+			$("category-field").hidden = !supportsCategory;
 			for (const key of [
 				"title",
 				"published",
@@ -875,7 +903,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 	function collectFrontmatter() {
 		const original = state.current.document.frontmatter || {};
 		const next = { ...original };
-		if (state.current.path.startsWith("src/content/moments/")) {
+		const path = state.current.path;
+		if (path.startsWith("src/content/moments/")) {
 			const images = imageLines($("meta-images").value);
 			if (images.length || Object.hasOwn(original, "images")) {
 				next.images = images.map((src) => ({
@@ -884,6 +913,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 				}));
 			}
 		}
+		// 仅 posts / reports 拥有 category 字段；其余类型不收集，避免把无效字段写进 frontmatter。
+		const supportsCategory = /^src\/content\/(posts|reports)\//.test(path);
 		for (const key of [
 			"title",
 			"published",
@@ -893,6 +924,7 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		]) {
 			if (key === "image" && $("meta-image").closest(".field-wide").hidden)
 				continue;
+			if (key === "category" && !supportsCategory) continue;
 			const value = $("meta-" + key).value;
 			if (value || Object.hasOwn(original, key)) next[key] = value;
 		}
@@ -1745,4 +1777,5 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		event.returnValue = "";
 	});
 	void refreshState();
+	void loadCategories();
 })();

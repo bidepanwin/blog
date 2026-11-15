@@ -3,10 +3,10 @@
  * 前沿日报/周报聚合页：按发布日期倒序列出全部报告。
  * 数据来自 reports collection（scripts/sync-reports.mjs 从 frontier-report 同步）。
  */
+import { getCollection } from "astro:content";
 import Key from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { getCollection } from "astro:content";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import { url } from "@utils/url-utils";
 
@@ -23,6 +23,11 @@ function reportKind(entry: ReportEntry): "Daily" | "Weekly" {
 	if (entry.id.includes("weekly")) return "Weekly";
 	return "Daily";
 }
+
+/** 分类筛选项：按 category 原始值去重，空值归入「未分类」。 */
+const categoryOptions = Array.from(
+	new Set(reports.map((r) => (r.data.category || "").trim())),
+).filter(Boolean);
 ---
 
 <MainGridLayout title={i18n(Key.blogReports)} description={i18n(Key.blogReportsIntro)} page="reports">
@@ -32,6 +37,31 @@ function reportKind(entry: ReportEntry): "Daily" | "Weekly" {
 		<p class="reports-meta">{i18n(Key.blogEntryCount).replace("{count}", String(reports.length))}</p>
 	</section>
 
+	{
+		categoryOptions.length > 0 && (
+			<nav class="reports-filters" aria-label={i18n(Key.categories)}>
+				<button type="button" class="reports-filter is-active" data-filter="all" aria-pressed="true">
+					{i18n(Key.blogReportsAll)} <span class="reports-filter__count">{reports.length}</span>
+				</button>
+				{categoryOptions.map((category) => {
+					const count = reports.filter(
+						(r) => (r.data.category || "").trim() === category,
+					).length;
+					return (
+						<button
+							type="button"
+							class="reports-filter"
+							data-filter={category}
+							aria-pressed="false"
+						>
+							{category} <span class="reports-filter__count">{count}</span>
+						</button>
+					);
+				})}
+			</nav>
+		)
+	}
+
 	<section class="reports-list">
 		{reports.length === 0 && <p class="reports-empty">No reports yet — waiting for the first sync.</p>}
 		{
@@ -39,7 +69,7 @@ function reportKind(entry: ReportEntry): "Daily" | "Weekly" {
 				const kind = reportKind(r);
 				const dateStr = formatDateToYYYYMMDD(r.data.published);
 				return (
-					<a class="reports-item" href={url(`/reports/${encodeURIComponent(r.id)}/`)}>
+					<a class="reports-item" data-category={(r.data.category || "").trim()} href={url(`/reports/${encodeURIComponent(r.id)}/`)}>
 						<span class={`reports-badge reports-badge--${kind === "Weekly" ? "weekly" : "daily"}`}>{kind}</span>
 						<span class="reports-item__main">
 							<span class="reports-item__title">{r.data.title}</span>
@@ -69,4 +99,30 @@ function reportKind(entry: ReportEntry): "Daily" | "Weekly" {
 	.reports-item__title { font: var(--m3e-type-body-large); transition: color 0.15s; }
 	.reports-item__desc { font: var(--m3e-type-body-small); color: var(--on-surface-variant); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.reports-item__date { margin-left: auto; flex-shrink: 0; font: var(--m3e-type-label-medium); color: var(--on-surface-variant); }
+	.reports-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1.5rem; }
+	.reports-filter { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.9rem; border: 1px solid var(--outline-variant); border-radius: var(--shape-corner-full); background: var(--surface-container-low); color: var(--on-surface-variant); font: var(--m3e-type-label-large); cursor: pointer; transition: background-color var(--m3e-duration-short) var(--m3e-easing-standard), color var(--m3e-duration-short) var(--m3e-easing-standard), border-color var(--m3e-duration-short) var(--m3e-easing-standard); }
+	.reports-filter:hover { background: color-mix(in oklab, var(--on-surface) 8%, transparent); }
+	.reports-filter.is-active { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+	.reports-filter__count { font-variant-numeric: tabular-nums; font-weight: 600; opacity: 0.75; }
+	.reports-item[hidden] { display: none; }
 </style>
+
+<script>
+	// 分类筛选：纯 DOM 过滤，无额外依赖。按 data-category 精确匹配。
+	const filters = document.querySelectorAll<HTMLButtonElement>(".reports-filter");
+	const items = document.querySelectorAll<HTMLAnchorElement>(".reports-item");
+	filters.forEach((filter) => {
+		filter.addEventListener("click", () => {
+			const value = filter.dataset.filter || "all";
+			filters.forEach((f) => {
+				const active = f === filter;
+				f.classList.toggle("is-active", active);
+				f.setAttribute("aria-pressed", String(active));
+			});
+			items.forEach((item) => {
+				const category = item.dataset.category || "";
+				item.hidden = value !== "all" && category !== value;
+			});
+		});
+	});
+</script>

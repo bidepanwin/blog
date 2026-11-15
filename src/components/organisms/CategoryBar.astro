@@ -7,9 +7,9 @@
  */
 import Chip from "@components/atoms/action/Chip.astro";
 import Card from "@components/atoms/display/Card.svelte";
+import Icon from "@components/atoms/display/Icon.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import Icon from "@components/atoms/display/Icon.svelte";
 import { getCategoryList } from "@utils/content-utils";
 import { pathsEqual, url } from "@utils/url-utils";
 
@@ -145,21 +145,30 @@ const softCategory = !isHome && !isArchive && postCategory ? postCategory : "";
 		pills.forEach((pill) => {
 			const href = pill.getAttribute("href") || "";
 			const normalizedHref = href.replace(/\/+$/, "") || "/";
+			// 精确匹配分类：从 pill 的 href 解析出 category 查询参数值再比对，
+			// 避免「技术」误命中「技术笔记」这类同名前缀（不能用 includes 前缀匹配）。
+			const pillCategory = (() => {
+				try {
+					return new URL(href, window.location.origin).searchParams.get("category");
+				} catch {
+					return null;
+				}
+			})();
 			const isActive =
 				active === ""
 					? false
 					: active === "__home__"
-					? normalizedHref === homePath
-					: active === "__archive__"
-						? href.includes("/archive/") && !href.includes("category=") && !href.includes("tag=")
-						: href.includes(`category=${encodeURIComponent(categoryParam!)}`);
+						? normalizedHref === homePath
+						: active === "__archive__"
+							? href.includes("/archive/") && !href.includes("category=") && !href.includes("tag=")
+							: pillCategory === categoryParam;
 			pill.classList.toggle("m3-chip--selected", isActive);
 
 			// 文章页所属分类弱高亮（primary-container 次级语义）
 			const isSoft =
 				!isActive &&
 				softCategory !== "" &&
-				href.includes(`category=${encodeURIComponent(softCategory)}`);
+				pillCategory === softCategory;
 			pill.classList.toggle("m3-chip--soft", isSoft);
 		});
 	}

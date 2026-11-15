@@ -130,6 +130,33 @@ export function createManagerServer({
 			timeZone: value("timeZone") || "Asia/Shanghai",
 		};
 	}
+	// 扫描 posts / reports 的 category 字段，返回去重排序后的分类名（含计数），
+	// 供「内容编辑」表单的分类下拉/自动补全使用。读取失败（语法错误等）时静默跳过该文件。
+	async function listCategories() {
+		const { files } = await store.catalog();
+		const counts = new Map();
+		const targets = files.filter(
+			(file) =>
+				/\.mdx?$/.test(file.path) &&
+				/^src\/content\/(posts|reports)\//.test(file.path),
+		);
+		for (const file of targets) {
+			try {
+				const { content } = await store.read(file.path);
+				const { frontmatter } = splitDocument(content);
+				const category =
+					typeof frontmatter.category === "string"
+						? frontmatter.category.trim()
+						: "";
+				if (category) counts.set(category, (counts.get(category) || 0) + 1);
+			} catch {
+				// 单个文件解析失败不阻断整份分类列表
+			}
+		}
+		return Array.from(counts.entries())
+			.sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()))
+			.map(([name, count]) => ({ name, count }));
+	}
 	const server = http.createServer(async (req, res) => {
 		res.setHeader("Cache-Control", "no-store");
 		res.setHeader("X-Content-Type-Options", "nosniff");
@@ -196,6 +223,8 @@ export function createManagerServer({
 					const { frontmatter, body } = splitDocument(file.content);
 					return json({ ...file, frontmatter, body });
 				}
+				if (method === "GET" && route === "/api/categories")
+					return json({ categories: await listCategories() });
 				if (method === "PUT" && route === "/api/file") {
 					const payload = await bodyJson(req);
 					return json(await mutate(() => save(payload)));

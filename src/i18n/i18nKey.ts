@@ -1,5 +1,6 @@
 enum I18nKey {
 	blogReportsIntro = "blogReportsIntro",
+	blogReportsAll = "blogReportsAll",
 	blogThinkingIntro = "blogThinkingIntro",
 	blogEntryCount = "blogEntryCount",
 	blogReports = "blogReports",
