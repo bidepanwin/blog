@@ -14,8 +14,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		pages: ["PAGES", "独立页面", "编辑关于、留言说明等独立页面。"],
 		data: [
 			"COLLECTIONS",
-			"书单与数据",
-			"维护书单、友链、相册以及其他数据内容。",
+			"收藏与数据",
+			"维护番剧、书单、音乐、友链、相册等收藏与数据。",
 		],
 		settings: [
 			"PERSONALIZE",
@@ -174,17 +174,17 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			: null;
 	}
 
-	// 数据文件快捷入口：把常用的数据源（番剧、书单、友链等）置顶成卡片。
+	// 数据文件快捷入口：把常用的数据源（番剧、书单、音乐、友链等）置顶成卡片。
 	const dataShortcuts = [
 		["anime.ts", "番剧收藏", "收藏的番剧与评分", "番"],
 		["books.ts", "书单", "读过的书与评分", "书"],
+		["music.ts", "音乐", "侧栏本地曲目", "乐"],
 		["friends.ts", "友情链接", "友链站点的名称与链接", "链"],
 		["projects.ts", "项目", "个人作品展示", "项"],
 		["skills.ts", "技能", "技能清单", "技"],
 		["timeline.ts", "时间线", "时间轴事件", "线"],
 		["compass.ts", "站点罗盘", "常逛网站导航", "罗"],
 		["games.ts", "游戏", "游戏展示", "游"],
-		["music.ts", "音乐", "侧栏本地曲目", "乐"],
 		["devices.ts", "设备", "设备展示", "备"],
 		["post-covers.ts", "文章封面", "封面图库与指派", "封"],
 	];

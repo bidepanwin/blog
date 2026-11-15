@@ -304,6 +304,10 @@ export const en: Translation = {
 	[Key.musicErrorSourceUnavailable]: "This track is unavailable.",
 	[Key.musicErrorAutoplayBlocked]: "Autoplay was blocked. Press play to start.",
 	[Key.musicErrorInvalidTrack]: "This track is invalid.",
+	[Key.musicFilterAll]: "All",
+	[Key.musicSearchPlaceholder]: "Search songs or artists",
+	[Key.musicSearchClear]: "Clear search",
+	[Key.musicNoMatch]: "No matching songs",
 
 	[Key.themeColor]: "Theme Color",
 	[Key.colorStyle]: "Color Style",

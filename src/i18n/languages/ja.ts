@@ -302,6 +302,10 @@ export const ja: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"自動再生がブロックされました。再生ボタンを押してください。",
 	[Key.musicErrorInvalidTrack]: "曲の情報が無効です。",
+	[Key.musicFilterAll]: "すべて",
+	[Key.musicSearchPlaceholder]: "曲名や歌手で検索",
+	[Key.musicSearchClear]: "検索をクリア",
+	[Key.musicNoMatch]: "一致する曲がありません",
 
 	[Key.themeColor]: "テーマカラー",
 	[Key.colorStyle]: "配色スタイル",

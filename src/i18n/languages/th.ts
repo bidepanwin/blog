@@ -289,6 +289,10 @@ export const th: Translation = {
 	[Key.musicErrorSourceUnavailable]: "ไม่สามารถเล่นเพลงนี้ได้",
 	[Key.musicErrorAutoplayBlocked]: "ระบบบล็อกการเล่นอัตโนมัติ กดปุ่มเล่นเพื่อเริ่ม",
 	[Key.musicErrorInvalidTrack]: "ข้อมูลเพลงนี้ไม่ถูกต้อง",
+	[Key.musicFilterAll]: "ทั้งหมด",
+	[Key.musicSearchPlaceholder]: "ค้นหาเพลงหรือศิลปิน",
+	[Key.musicSearchClear]: "ล้างการค้นหา",
+	[Key.musicNoMatch]: "ไม่พบเพลงที่ตรงกัน",
 
 	[Key.themeColor]: "สีธีม",
 	[Key.colorStyle]: "สไตล์สี",

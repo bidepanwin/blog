@@ -300,6 +300,10 @@ export const ko: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"자동 재생이 차단되었습니다. 재생 버튼을 눌러 시작하세요.",
 	[Key.musicErrorInvalidTrack]: "곡 정보가 올바르지 않습니다.",
+	[Key.musicFilterAll]: "전체",
+	[Key.musicSearchPlaceholder]: "노래 또는 가수 검색",
+	[Key.musicSearchClear]: "검색 지우기",
+	[Key.musicNoMatch]: "일치하는 노래가 없습니다",
 
 	[Key.themeColor]: "테마 색상",
 	[Key.colorStyle]: "색상 스타일",

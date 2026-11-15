@@ -306,6 +306,10 @@ export const es: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"La reproducción automática está bloqueada. Pulsa reproducir para comenzar.",
 	[Key.musicErrorInvalidTrack]: "Esta pista no es válida.",
+	[Key.musicFilterAll]: "Todos",
+	[Key.musicSearchPlaceholder]: "Buscar canciones o artistas",
+	[Key.musicSearchClear]: "Borrar búsqueda",
+	[Key.musicNoMatch]: "No hay canciones coincidentes",
 
 	[Key.themeColor]: "Color del tema",
 	[Key.colorStyle]: "Estilo de color",

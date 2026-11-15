@@ -304,6 +304,10 @@ export const vi: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"Tự động phát đã bị chặn. Nhấn nút phát để bắt đầu.",
 	[Key.musicErrorInvalidTrack]: "Bài hát này không hợp lệ.",
+	[Key.musicFilterAll]: "Tất cả",
+	[Key.musicSearchPlaceholder]: "Tìm bài hát hoặc nghệ sĩ",
+	[Key.musicSearchClear]: "Xóa tìm kiếm",
+	[Key.musicNoMatch]: "Không có bài hát phù hợp",
 
 	[Key.themeColor]: "Màu chủ đề",
 	[Key.colorStyle]: "Phong cách màu",

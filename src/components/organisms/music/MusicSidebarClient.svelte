@@ -32,6 +32,10 @@ interface Labels {
 	loading: string;
 	notRequested: string;
 	nowPlaying: string;
+	filterAll: string;
+	searchPlaceholder: string;
+	searchClear: string;
+	noMatch: string;
 	errors: Record<MusicErrorCode, string>;
 }
 
@@ -62,6 +66,8 @@ let snapshot = $state<MusicSnapshot>({
 let playlistOpen = $state(false);
 let playerEl = $state<HTMLElement | null>(null);
 const playlistId = "sidebar-music-playlist";
+let artistFilter = $state<string>("");
+let searchQuery = $state("");
 
 const modeLabels: Record<PlaybackMode, string> = {
 	sequence: labels.modeSequence,
@@ -95,6 +101,37 @@ const currentTitle = $derived(
 );
 const currentArtist = $derived(
 	snapshot.currentTrack?.artist ?? (loading ? "..." : "—"),
+);
+
+// 从完整曲目列表提取去重后的歌手名，保持出现顺序（不排序，避免打乱用户习惯）。
+const artists = $derived(
+	Array.from(
+		new Set(snapshot.playlist.map((t) => t.artist ?? "").filter(Boolean)),
+	),
+);
+// 过滤后的展示列表：每个元素携带真实索引 + 歌手内序号，点击时回填给 runtime.select。
+// 序号按歌手分组从 1 递增（在完整歌单上统计，保证筛选/搜索后序号稳定不变）。
+const filteredTracks = $derived.by(() => {
+	const q = searchQuery.trim().toLowerCase();
+	const seen = new Map<string, number>();
+	return snapshot.playlist
+		.map((track, originalIndex) => {
+			const artist = track.artist ?? "";
+			const number = (seen.get(artist) ?? 0) + 1;
+			seen.set(artist, number);
+			return { track, originalIndex, number };
+		})
+		.filter(({ track }) => {
+			if (artistFilter && (track.artist ?? "") !== artistFilter) return false;
+			if (!q) return true;
+			return (
+				track.title.toLowerCase().includes(q) ||
+				(track.artist ?? "").toLowerCase().includes(q)
+			);
+		});
+});
+const filteredEmpty = $derived(
+	snapshot.playlist.length > 0 && filteredTracks.length === 0,
 );
 
 const modeLabel = $derived(modeLabels[snapshot.mode]);
@@ -411,33 +448,85 @@ function setVolume(event: Event): void {
 			use:collapse={{ open: playlistOpen }}
 		>
 		{#if hasTracks}
-			<ol class="music-player__playlist">
-				{#each snapshot.playlist as track, index (track.id)}
-					<li>
-						<button
-							type="button"
-							class={`music-player__playlist-item m3-state-layer${index === snapshot.currentIndex ? " music-player__playlist-item--current" : ""}`}
-							aria-current={index === snapshot.currentIndex ? "true" : undefined}
-							onclick={() => void runtime?.select(index)}
-						>
-							<span class="music-player__playlist-index" aria-hidden="true">
-								{#if index === snapshot.currentIndex && playing}
-									<Icon icon="material-symbols:play-arrow-rounded" />
-								{:else}
-									{index + 1}
-								{/if}
-							</span>
-							<span class="music-player__playlist-copy">
-								<strong>{track.title}</strong>
-								{#if track.artist}<span>{track.artist}</span>{/if}
-							</span>
-							{#if track.duration}
-								<time>{formatTime(track.duration)}</time>
+			{#if artists.length > 1 || snapshot.playlist.length > 8}
+				<div class="music-player__filters">
+					{#if artists.length > 1}
+						<div class="music-player__artist-chips" role="group" aria-label="按歌手筛选">
+							<button
+								type="button"
+								class={`music-player__chip m3-state-layer${artistFilter === "" ? " music-player__chip--active" : ""}`}
+								aria-pressed={artistFilter === ""}
+								onclick={() => (artistFilter = "")}
+							>
+								{labels.filterAll}
+							</button>
+							{#each artists as artist (artist)}
+								<button
+									type="button"
+									class={`music-player__chip m3-state-layer${artistFilter === artist ? " music-player__chip--active" : ""}`}
+									aria-pressed={artistFilter === artist}
+									onclick={() => (artistFilter = artistFilter === artist ? "" : artist)}
+								>
+									{artist}
+								</button>
+							{/each}
+						</div>
+					{/if}
+					{#if snapshot.playlist.length > 8}
+						<div class="music-player__search">
+							<Icon icon="material-symbols:search-rounded" aria-hidden="true" />
+							<input
+								type="search"
+								placeholder={labels.searchPlaceholder}
+								value={searchQuery}
+								oninput={(e) => (searchQuery = (e.currentTarget as HTMLInputElement).value)}
+								aria-label={labels.searchPlaceholder}
+							/>
+							{#if searchQuery}
+								<button
+									type="button"
+									class="music-player__search-clear m3-state-layer"
+									onclick={() => (searchQuery = "")}
+									aria-label={labels.searchClear}
+								>
+									<Icon icon="material-symbols:close-rounded" aria-hidden="true" />
+								</button>
 							{/if}
-						</button>
-					</li>
-				{/each}
-			</ol>
+						</div>
+					{/if}
+				</div>
+			{/if}
+			{#if filteredEmpty}
+				<p class="music-player__empty">{labels.noMatch}</p>
+			{:else}
+				<ol class="music-player__playlist">
+					{#each filteredTracks as { track, originalIndex, number } (track.id)}
+						<li>
+							<button
+								type="button"
+								class={`music-player__playlist-item m3-state-layer${originalIndex === snapshot.currentIndex ? " music-player__playlist-item--current" : ""}`}
+								aria-current={originalIndex === snapshot.currentIndex ? "true" : undefined}
+								onclick={() => void runtime?.select(originalIndex)}
+							>
+								<span class="music-player__playlist-index" aria-hidden="true">
+									{#if originalIndex === snapshot.currentIndex && playing}
+										<Icon icon="material-symbols:play-arrow-rounded" />
+									{:else}
+										{number}
+									{/if}
+								</span>
+								<span class="music-player__playlist-copy">
+									<strong>{track.title}</strong>
+									{#if track.artist}<span>{track.artist}</span>{/if}
+								</span>
+								{#if track.duration}
+									<time>{formatTime(track.duration)}</time>
+								{/if}
+							</button>
+						</li>
+					{/each}
+				</ol>
+			{/if}
 		{:else}
 			<p class="music-player__empty">{labels.empty}</p>
 		{/if}

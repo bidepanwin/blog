@@ -287,6 +287,10 @@ export const zh_TW: Translation = {
 	[Key.musicErrorSourceUnavailable]: "此音源無法使用",
 	[Key.musicErrorAutoplayBlocked]: "自動播放受到限制，請點擊播放按鈕開始",
 	[Key.musicErrorInvalidTrack]: "歌曲資訊無效",
+	[Key.musicFilterAll]: "全部",
+	[Key.musicSearchPlaceholder]: "搜尋歌名或歌手",
+	[Key.musicSearchClear]: "清除搜尋",
+	[Key.musicNoMatch]: "沒有符合的歌曲",
 
 	[Key.themeColor]: "主題色",
 	[Key.colorStyle]: "配色風格",

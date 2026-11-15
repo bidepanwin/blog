@@ -308,6 +308,10 @@ export const id: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"Pemutaran otomatis diblokir. Tekan putar untuk memulai.",
 	[Key.musicErrorInvalidTrack]: "Lagu ini tidak valid.",
+	[Key.musicFilterAll]: "Semua",
+	[Key.musicSearchPlaceholder]: "Cari lagu atau artis",
+	[Key.musicSearchClear]: "Hapus pencarian",
+	[Key.musicNoMatch]: "Tidak ada lagu yang cocok",
 
 	[Key.themeColor]: "Warna Tema",
 	[Key.colorStyle]: "Gaya Warna",

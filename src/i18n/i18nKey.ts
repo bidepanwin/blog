@@ -285,6 +285,10 @@ enum I18nKey {
 	musicErrorSourceUnavailable = "musicErrorSourceUnavailable",
 	musicErrorAutoplayBlocked = "musicErrorAutoplayBlocked",
 	musicErrorInvalidTrack = "musicErrorInvalidTrack",
+	musicFilterAll = "musicFilterAll",
+	musicSearchPlaceholder = "musicSearchPlaceholder",
+	musicSearchClear = "musicSearchClear",
+	musicNoMatch = "musicNoMatch",
 
 	themeColor = "themeColor",
 	colorStyle = "colorStyle",

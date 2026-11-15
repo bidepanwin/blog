@@ -301,6 +301,88 @@ export const musicSidebarStylus = `
 	&__playlist-panel
 		overflow: hidden
 
+	&__filters
+		display: flex
+		flex-direction: column
+		gap: 0.5rem
+		padding: 0.25rem 0 0.5rem
+
+	&__artist-chips
+		display: flex
+		flex-wrap: wrap
+		gap: 0.375rem
+
+	&__chip
+		appearance: none
+		border: 1px solid var(--outline-variant)
+		border-radius: var(--shape-corner-full)
+		background: transparent
+		color: var(--on-surface-variant)
+		font: var(--m3e-type-label-medium)
+		padding: 0.25rem 0.75rem
+		cursor: pointer
+		transition: background var(--m3e-duration-short) var(--m3e-easing-standard), color var(--m3e-duration-short) var(--m3e-easing-standard)
+
+		&:hover
+			background: var(--surface-container)
+			color: var(--on-surface)
+
+		&--active
+			background: var(--secondary-container)
+			border-color: var(--secondary-container)
+			color: var(--on-secondary-container)
+
+	&__search
+		display: flex
+		align-items: center
+		gap: 0.375rem
+		padding: 0.375rem 0.625rem
+		border-radius: var(--shape-corner-full)
+		background: var(--surface-container)
+		color: var(--on-surface-variant)
+
+		> svg
+			width: 1rem
+			height: 1rem
+			flex-shrink: 0
+
+		input
+			appearance: none
+			-webkit-appearance: none
+			width: 100%
+			min-width: 0
+			border: none
+			background: transparent
+			color: var(--on-surface)
+			font: var(--m3e-type-body-small)
+			outline: none
+
+			&::placeholder
+				color: var(--on-surface-variant)
+				opacity: 0.6
+
+			&::-webkit-search-cancel-button
+				-webkit-appearance: none
+
+	&__search-clear
+		appearance: none
+		border: none
+		background: transparent
+		color: var(--on-surface-variant)
+		display: grid
+		place-items: center
+		padding: 0
+		cursor: pointer
+		flex-shrink: 0
+		border-radius: var(--shape-corner-full)
+
+		&:hover
+			color: var(--on-surface)
+
+		> svg
+			width: 1rem
+			height: 1rem
+
 	&__playlist
 		list-style: none
 		max-height: 12rem

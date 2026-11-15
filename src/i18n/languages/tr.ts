@@ -306,6 +306,10 @@ export const tr: Translation = {
 	[Key.musicErrorAutoplayBlocked]:
 		"Otomatik oynatma engellendi. Başlatmak için oynat düğmesine basın.",
 	[Key.musicErrorInvalidTrack]: "Bu parça geçersiz.",
+	[Key.musicFilterAll]: "Tümü",
+	[Key.musicSearchPlaceholder]: "Şarkı veya sanatçı ara",
+	[Key.musicSearchClear]: "Aramayı temizle",
+	[Key.musicNoMatch]: "Eşleşen şarkı yok",
 
 	[Key.themeColor]: "Tema Rengi",
 	[Key.colorStyle]: "Renk Stili",
