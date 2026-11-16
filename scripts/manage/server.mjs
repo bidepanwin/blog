@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
+import { createAlbums } from "./albums.mjs";
 import {
 	COLLECTION_DEFS,
 	readCollection,
@@ -102,6 +103,7 @@ export function createManagerServer({
 	jobs: providedJobs,
 } = {}) {
 	const store = createStore(root);
+	const albums = createAlbums(store, root);
 	const jobs = providedJobs || createJobs(root);
 	let mutation = Promise.resolve();
 	function mutate(operation) {
@@ -212,6 +214,9 @@ export function createManagerServer({
 						files: catalog.files,
 						media: media.files,
 						git,
+						collectionKinds: Object.fromEntries(
+							Object.values(COLLECTION_DEFS).map((def) => [def.path, def.kind]),
+						),
 						...info,
 					});
 				}
@@ -354,12 +359,50 @@ export function createManagerServer({
 							return save({
 								path: file.path,
 								hash: payload.hash,
-								content: writeCollection(
-									file.content,
-									def.kind,
-									payload,
-								),
+								content: writeCollection(file.content, def.kind, payload),
 							});
+						}),
+					);
+				}
+				if (method === "GET" && route === "/api/albums")
+					return json({ albums: await albums.list() });
+				if (method === "PUT" && route === "/api/albums") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => save(await albums.save(payload))),
+					);
+				}
+				if (method === "POST" && route === "/api/albums/create") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => save(await albums.create(payload))),
+					);
+				}
+				if (method === "POST" && route === "/api/albums/upload") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => {
+							const uploaded = await albums.upload(payload);
+							const bytes = await readFile(path.join(root, uploaded.path));
+							await jobs.record(
+								uploaded.path,
+								createHash("sha256").update(bytes).digest("hex"),
+							);
+							return uploaded;
+						}),
+					);
+				}
+				if (method === "POST" && route === "/api/albums/import") {
+					const payload = await bodyJson(req);
+					return json(
+						await mutate(async () => {
+							const imported = await albums.importFromLibrary(payload);
+							const bytes = await readFile(path.join(root, imported.path));
+							await jobs.record(
+								imported.path,
+								createHash("sha256").update(bytes).digest("hex"),
+							);
+							return imported;
 						}),
 					);
 				}
@@ -465,15 +508,19 @@ export function createManagerServer({
 			const assets = {
 				"/": ["index.html", "text/html; charset=utf-8"],
 				"/app.js": ["app.js", "text/javascript; charset=utf-8"],
-			"/media-picker.js": [
-				"media-picker.js",
-				"text/javascript; charset=utf-8",
-			],
-			"/collection-editor.js": [
-				"collection-editor.js",
-				"text/javascript; charset=utf-8",
-			],
-			"/style.css": ["style.css", "text/css; charset=utf-8"],
+				"/media-picker.js": [
+					"media-picker.js",
+					"text/javascript; charset=utf-8",
+				],
+				"/collection-editor.js": [
+					"collection-editor.js",
+					"text/javascript; charset=utf-8",
+				],
+				"/albums-editor.js": [
+					"albums-editor.js",
+					"text/javascript; charset=utf-8",
+				],
+				"/style.css": ["style.css", "text/css; charset=utf-8"],
 			};
 			const asset = assets[route];
 			if (!asset) throw fail("页面不存在。", 404);

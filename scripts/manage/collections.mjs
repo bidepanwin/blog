@@ -183,6 +183,68 @@ export const COLLECTION_DEFS = {
 			}),
 		],
 	},
+	projects: {
+		kind: "projects",
+		label: "项目",
+		itemLabel: "项目",
+		path: "src/data/projects.ts",
+		exportName: "projectsData",
+		statuses: [
+			{ value: "shipped", label: "已交付" },
+			{ value: "building", label: "进行中" },
+			{ value: "exploring", label: "探索中" },
+		],
+		fields: [
+			field("title", "项目名称", "string", "基本信息", {
+				required: true,
+				placeholder: "例如：Chaos Atlas",
+			}),
+			field("key", "稳定标识", "string", "基本信息", {
+				required: true,
+				help: "英文小写与连字符，作为列表 key；新增时自动生成，可自行修改。",
+				placeholder: "chaos-atlas",
+			}),
+			field("category", "分类 key", "string", "基本信息", {
+				required: true,
+				help: "需与 src/config/projectsConfig.ts 中 categories 的 key 一致。",
+				placeholder: "visual",
+			}),
+			field("phase", "项目阶段", "status", "基本信息"),
+			field("year", "年份 / 时间范围", "string", "基本信息", {
+				placeholder: "2024–2026",
+			}),
+			field("technologies", "技术栈", "list", "基本信息", {
+				placeholder: "用逗号分隔：TypeScript, Canvas",
+			}),
+			field("summary", "项目简介", "text", "简介与展示", {
+				required: true,
+				width: "full",
+			}),
+			field("icon", "图标（Iconify 名称）", "string", "简介与展示", {
+				width: "full",
+				placeholder: "material-symbols:deployed-code-outline-rounded",
+			}),
+			field("cover", "封面图片", "image", "简介与展示", {
+				width: "full",
+				help: "留空时站点显示图标瓷砖；选择本地图片会导入素材库。",
+			}),
+			field("coverAlt", "封面说明", "string", "简介与展示"),
+			field("featured", "代表项目", "boolean", "简介与展示"),
+			field("enable", "启用显示", "boolean", "简介与展示"),
+			field("website", "项目主页", "url", "链接", {
+				width: "full",
+				placeholder: "https://example.com/",
+			}),
+			field("repository", "代码仓库", "url", "链接", {
+				width: "full",
+				placeholder: "https://github.com/user/repo",
+			}),
+			field("__comment", "分组注释", "comment", "链接", {
+				width: "full",
+				help: "保存为该条目上方的 // 注释，可用来给列表分段；不会显示在站点上。",
+			}),
+		],
+	},
 };
 
 export function collectionKindFor(path) {
@@ -384,10 +446,13 @@ function validateField(item, schema, statuses) {
 	switch (schema.type) {
 		case "string":
 		case "text":
-		case "url":
 		case "image":
 		case "comment":
 			safeString(value, schema.label);
+			break;
+		case "url":
+			safeString(value, schema.label);
+			safeUrl(value, schema.label);
 			break;
 		case "number":
 		case "rating":
@@ -468,13 +533,26 @@ export function validateCollection(kind, payload) {
 				validateField(result, schema, def.statuses);
 		if (typeof result.title !== "string" || !result.title.trim())
 			throw fail(`第 ${index + 1} 条还没有填写标题。`);
+		if (def.kind === "projects") {
+			for (const schema of def.fields) {
+				if (!["key", "category", "summary"].includes(schema.key)) continue;
+				if (typeof result[schema.key] !== "string" || !result[schema.key].trim())
+					throw fail(
+						`第 ${index + 1} 条的「${schema.label}」不能为空。`,
+					);
+			}
+			if (
+				result.key !== undefined &&
+				!/^[a-z0-9][a-z0-9-]*$/u.test(result.key)
+			)
+				throw fail(`第 ${index + 1} 条的稳定标识需使用英文小写、数字与连字符。`);
+		}
 		if (
 			typeof result.rating === "number" &&
 			(result.rating < 0 || result.rating > 10)
 		)
 			throw fail(`第 ${index + 1} 条评分需在 0–10 之间。`);
 		safeCover(result.cover);
-		safeUrl(result.link, "条目外链");
 		return result;
 	});
 	return {

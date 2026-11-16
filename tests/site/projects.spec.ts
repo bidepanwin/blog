@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { registerPersistentShellSync } from "./feature-page";
+import { sitePath } from "./paths";
 
-const PROJECT_COUNT = 6;
+const PROJECT_COUNT = 5;
 
 test.describe("项目页", () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto("/projects/");
+		await page.goto(sitePath("/projects/"));
 		await expect(page.locator(".project-card")).toHaveCount(PROJECT_COUNT);
 	});
 
@@ -14,31 +15,31 @@ test.describe("项目页", () => {
 			"data-current-page",
 			"projects",
 		);
-		await expect(page.locator(".page-header__title")).toHaveText("Projects");
+		// 站点默认语言为 zh_CN，文案取自 src/i18n/languages/zh_CN.ts
+		await expect(page.locator(".page-header__title")).toHaveText("项目");
 		await expect(page.locator(".projects-section__count")).toHaveText(
-			"6 projects",
+			"5 个项目",
 		);
 
-		// Shirone 作者演示项目已删除：只剩六个个人 lab 仓库，全部无封面、无 featured
+		// 内容 = 本站 + about 页列出的四个公开仓库；演示项目与 featured 均已移除
 		await expect(page.locator('[data-project="shirone"]')).toHaveCount(0);
 		await expect(page.locator('[data-project="folkpatch"]')).toHaveCount(0);
 		await expect(page.locator('[data-project="kernelpatch"]')).toHaveCount(0);
 		await expect(page.locator(".project-card--featured")).toHaveCount(0);
 
 		// 无封面项目：渲染图标瓷砖形态（不渲染封面区）
-		const frontier = page.locator('[data-project="frontier-report"]');
-		await expect(frontier.locator("h2")).toHaveText("frontier-report");
-		await expect(frontier.locator(".project-card__icon")).toBeVisible();
-		await expect(frontier.locator(".project-card__cover")).toHaveCount(0);
-		await expect(frontier.locator('[data-phase="shipped"]')).toHaveText(
-			"Shipped",
+		const chaos = page.locator('[data-project="chaos-atlas"]');
+		await expect(chaos.locator("h2")).toHaveText("Chaos Atlas");
+		await expect(chaos.locator(".project-card__icon")).toBeVisible();
+		await expect(chaos.locator(".project-card__cover")).toHaveCount(0);
+		await expect(chaos.locator('[data-phase="shipped"]')).toHaveText("已发布");
+		await expect(chaos.locator(".project-card__technologies li")).toHaveCount(
+			3,
 		);
-		await expect(frontier.locator(".project-card__technologies li")).toHaveCount(
-			1,
+		await expect(chaos.getByRole("link", { name: "查看源码" })).toHaveAttribute(
+			"href",
+			"https://github.com/bidepanwin/chaos-atlas",
 		);
-		await expect(
-			frontier.getByRole("link", { name: "View source" }),
-		).toHaveAttribute("href", "https://github.com/RUI-debug769/frontier-report");
 	});
 
 	test("直接加载时导航高亮与侧栏页面过滤正确", async ({ page }) => {
@@ -51,14 +52,17 @@ test.describe("项目页", () => {
 		await expect(page.locator('widget-layout[data-id="tags"]')).toBeVisible();
 	});
 
-	test("只有一个有效分类时不渲染分类筛选 chips（theme/android 已随演示项目删除）", async ({
+	test("多个有效分类时渲染筛选 chips（lab / visual / web / ai）", async ({
 		page,
 	}) => {
 		// ProjectSection 仅在 activeCategories.length > 1 时渲染 chips 行
-		await expect(page.locator(".projects-section__chips")).toHaveCount(0);
+		await expect(page.locator(".projects-section__chips")).toHaveCount(1);
 		await expect(
 			page.getByRole("button", { name: "Lab", exact: true }),
-		).toHaveCount(0);
+		).toHaveCount(1);
+		await expect(
+			page.getByRole("button", { name: "可视化", exact: true }),
+		).toHaveCount(1);
 		await expect(
 			page.getByRole("button", { name: "Android", exact: true }),
 		).toHaveCount(0);
@@ -68,10 +72,11 @@ test.describe("项目页", () => {
 	test("实时搜索过滤与清除（URL ?q= 同步）", async ({ page }) => {
 		const searchInput = page.locator(".projects-section__search input");
 		await expect(searchInput).toBeVisible();
-		await searchInput.fill("frontier-report");
+		// ProjectSection 的搜索字段为 title/summary/category/phase/year/technologies，不含 key
+		await searchInput.fill("Chaos");
 		await expect(page.locator(".project-card")).toHaveCount(1);
-		await expect(page.locator('[data-project="frontier-report"]')).toBeVisible();
-		await expect(page).toHaveURL(/[?&]q=frontier-report/);
+		await expect(page.locator('[data-project="chaos-atlas"]')).toBeVisible();
+		await expect(page).toHaveURL(/[?&]q=Chaos/);
 
 		// 清除搜索恢复全部
 		const clearBtn = page.locator(".projects-section__search-clear");
@@ -247,7 +252,7 @@ test.describe("项目页 Swup 导航", () => {
 
 	registerPersistentShellSync("从持久顶栏进入后同步页面、导航与侧栏状态", {
 		key: "projects",
-		fromPath: "/skills/",
+		fromPath: sitePath("/about/"),
 		toPath: /\/projects\/$/,
 		cardSelector: "project-card",
 		cardCount: PROJECT_COUNT,

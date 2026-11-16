@@ -169,20 +169,23 @@ function scanAlbumDirectory(entry: fs.Dirent): AlbumGroup | null {
 		return null;
 	}
 	const external = raw.mode === "external";
-	const cover = external
-		? stringValue(raw.cover)
-		: fs.existsSync(path.join(albumDir, "cover.webp"))
-			? toPublicPath(`${id}/cover.webp`)
-			: fs.existsSync(path.join(albumDir, "cover.jpg"))
-				? toPublicPath(`${id}/cover.jpg`)
-				: "";
-	if (!cover) {
-		console.warn(`[albums] Skipping ${id}: cover is missing`);
-		return null;
-	}
 	const photos = external
 		? externalPhotos(id, raw.photos)
 		: localPhotos(id, albumDir);
+	const localCover = fs.existsSync(path.join(albumDir, "cover.webp"))
+		? toPublicPath(`${id}/cover.webp`)
+		: fs.existsSync(path.join(albumDir, "cover.jpg"))
+			? toPublicPath(`${id}/cover.jpg`)
+			: "";
+	// 没有单独设置封面时，用第一张本地照片顶上；否则新建相册在传完照片后
+	// 仍会在前端消失（管理台里能看到，站点里看不到）。
+	const cover = external
+		? stringValue(raw.cover)
+		: localCover || photos[0]?.src || "";
+	if (!cover) {
+		console.warn(`[albums] Skipping ${id}: no cover and no photos`);
+		return null;
+	}
 	return {
 		id,
 		title: stringValue(raw.title, id),

@@ -2254,3 +2254,221 @@ input[type="checkbox"] {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* 相册管理面板 */
+.albums-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.albums-toolbar,
+.albums-create,
+.albums-detail {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 16px;
+}
+.albums-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.albums-intro {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--muted);
+}
+.albums-intro strong {
+	font-size: 15px;
+	color: var(--text);
+}
+.albums-save-state {
+	font-size: 11px;
+	color: var(--muted);
+}
+.albums-save-state::before {
+	content: "●";
+	margin-right: 5px;
+	font-size: 9px;
+}
+.albums-save-state.is-dirty {
+	color: var(--warning);
+}
+.albums-upload-note {
+	flex-basis: 100%;
+	font-size: 11px;
+	color: var(--warning);
+}
+.albums-upload-note:empty {
+	display: none;
+}
+.albums-upload .button.is-ready {
+	background: var(--accent-soft);
+	border-color: var(--accent);
+	color: var(--accent);
+}
+.albums-actions,
+.albums-create-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.albums-create {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+.albums-create > strong,
+.albums-create-actions {
+	grid-column: 1 / -1;
+}
+.albums-empty {
+	padding: 28px;
+	text-align: center;
+	color: var(--muted);
+}
+.albums-layout {
+	display: grid;
+	grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
+	gap: 16px;
+	align-items: start;
+}
+.albums-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.albums-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 10px;
+	text-align: left;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--small-radius);
+	cursor: pointer;
+}
+.albums-item:hover {
+	border-color: var(--accent);
+}
+.albums-item.is-active {
+	border-color: var(--accent);
+	background: var(--accent-soft);
+}
+.albums-thumb {
+	width: 56px;
+	height: 56px;
+	flex: 0 0 56px;
+	object-fit: cover;
+	border-radius: 8px;
+	background: var(--surface-low);
+}
+.albums-thumb-empty {
+	display: grid;
+	place-items: center;
+	font-size: 10px;
+	color: var(--muted);
+}
+.albums-item-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+	font-size: 11px;
+	color: var(--muted);
+}
+.albums-item-copy strong {
+	font-size: 13px;
+	color: var(--text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.albums-item-flags {
+	display: flex;
+	gap: 6px;
+	color: var(--warning);
+}
+.albums-detail-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 14px;
+}
+.albums-detail-head h3 {
+	margin: 0;
+	font-size: 15px;
+}
+.albums-form {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+.albums-photos-section {
+	margin-top: 20px;
+	border-top: 1px solid var(--line);
+	padding-top: 16px;
+}
+.albums-photos-section h3 {
+	margin: 0 0 12px;
+	font-size: 13px;
+}
+.albums-photos {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+	gap: 10px;
+}
+.albums-photo {
+	margin: 0;
+	min-width: 0;
+}
+.albums-photo img {
+	width: 100%;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border-radius: 8px;
+	background: var(--surface-low);
+}
+.albums-photo figcaption {
+	font-size: 10px;
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.albums-upload {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 14px;
+}
+.albums-upload label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	color: var(--muted);
+}
+.albums-upload .field-hint {
+	width: 100%;
+	margin-top: 0;
+}
+@media (max-width: 900px) {
+	.albums-layout {
+		grid-template-columns: 1fr;
+	}
+	.albums-form,
+	.albums-create {
+		grid-template-columns: 1fr;
+	}
+}

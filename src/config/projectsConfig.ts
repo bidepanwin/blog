@@ -21,6 +21,21 @@ export const projectsConfig: ProjectsConfig = withUserConfig("projects", {
 			label: "Lab",
 			icon: "material-symbols:science-outline-rounded",
 		},
+		{
+			key: "visual",
+			label: "可视化",
+			icon: "material-symbols:auto-awesome-outline-rounded",
+		},
+		{
+			key: "web",
+			label: "Web 应用",
+			icon: "material-symbols:deployed-code-outline-rounded",
+		},
+		{
+			key: "ai",
+			label: "AI 应用",
+			icon: "material-symbols:hub-outline-rounded",
+		},
 	],
 	// disabledKeys: [],
 });

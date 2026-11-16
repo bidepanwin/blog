@@ -38,7 +38,9 @@ export function registerPersistentShellSync(
 ): void {
 	test(title, async ({ page }) => {
 		await page.goto(testCase.fromPath, { waitUntil: "domcontentloaded" });
-		await page.getByRole("button", { name: "More", exact: true }).click();
+		// 顶栏溢出菜单只在部分视口/导航项数量下出现；桌面端可直接点击导航链接。
+		const more = page.getByRole("button", { name: "More", exact: true });
+		if (await more.isVisible()) await more.click();
 		await page.locator(`a[data-nav-key="${testCase.key}"]`).click();
 
 		await expect(page).toHaveURL(testCase.toPath);

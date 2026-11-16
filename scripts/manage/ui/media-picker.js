@@ -97,7 +97,8 @@ export function createMediaPicker({ api, getMedia, onUpload }) {
 			empty.hidden = true;
 			selected = result;
 			$("media-picker-confirm").disabled = false;
-			$("media-picker-status").textContent = "图片已就绪，点击使用图片后填入编辑器。";
+			$("media-picker-status").textContent =
+				"图片已就绪，点击使用图片后填入编辑器。";
 		};
 		image.onerror = () => {
 			if (!active(session, request)) return;
@@ -239,21 +240,26 @@ export function createMediaPicker({ api, getMedia, onUpload }) {
 			);
 		});
 	}
-	$("media-picker-resolve").addEventListener("click", () =>
-		void resolveReference(
-			$("media-picker-path").value,
-			$("media-picker-prefix").value,
-		),
+	$("media-picker-resolve").addEventListener(
+		"click",
+		() =>
+			void resolveReference(
+				$("media-picker-path").value,
+				$("media-picker-prefix").value,
+			),
 	);
-	$("media-picker-local").addEventListener("change", (event) =>
-		void upload(event.target.files?.[0]),
+	$("media-picker-local").addEventListener(
+		"change",
+		(event) => void upload(event.target.files?.[0]),
 	);
 	const drop = $("media-picker-drop");
 	drop.addEventListener("dragover", (event) => {
 		event.preventDefault();
 		drop.classList.add("is-dragging");
 	});
-	drop.addEventListener("dragleave", () => drop.classList.remove("is-dragging"));
+	drop.addEventListener("dragleave", () =>
+		drop.classList.remove("is-dragging"),
+	);
 	drop.addEventListener("drop", (event) => {
 		event.preventDefault();
 		drop.classList.remove("is-dragging");
@@ -275,7 +281,10 @@ export function createMediaPicker({ api, getMedia, onUpload }) {
 			$("media-picker-search").value = "";
 			$("media-picker-prefix").value = "";
 			$("media-picker-path").value = options.currentValue || "";
-			showMode(options.currentValue ? "path" : "local");
+			// 相册等「必须落到本地目录」的场景可用 initialMode 直接打开素材库。
+			showMode(
+				options.initialMode || (options.currentValue ? "path" : "local"),
+			);
 			dialog.showModal();
 			const promise = new Promise((resolve) => {
 				settle = resolve;

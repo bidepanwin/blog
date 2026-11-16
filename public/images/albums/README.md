@@ -2,7 +2,7 @@
 
 Create one directory per album under `public/images/albums/<id>/`.
 
-Each directory needs an `info.json` file. Local albums use `cover.webp` or `cover.jpg` and automatically scan the remaining image files; keep the cover file out of the numbered photo sequence. If a basename has both a WebP and another image extension, the WebP file is selected. Filenames such as `sunset_beach.webp` expose `beach` as a photo tag.
+Each directory needs an `info.json` file. Local albums use `cover.webp` or `cover.jpg` and automatically scan the remaining image files; keep the cover file out of the numbered photo sequence. Albums without a cover file fall back to the first scanned photo as their cover; an album with neither a cover nor any photo is skipped. If a basename has both a WebP and another image extension, the WebP file is selected. Filenames such as `sunset_beach.webp` expose `beach` as a photo tag.
 
 For predictable local ordering and readable generated metadata, use zero-padded numeric names such as `01.webp`, `02.webp`, and `03.webp`. The scanner sorts names with numeric-aware `localeCompare`, and the basename contributes to the generated photo `alt`/`title`, tags, and public image URL. Avoid hashes or mixed prefixes unless they are intentional. When renaming an existing album, preserve the scanner order and run the album regression test afterward.
 

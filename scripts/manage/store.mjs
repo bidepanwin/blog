@@ -581,11 +581,34 @@ export function createStore(root) {
 	async function upload(input = {}) {
 		if (!input || typeof input !== "object" || Array.isArray(input))
 			throw fail("An image upload object is required.");
-		const { name, data } = input;
+		const {
+			name,
+			data,
+			directory = "public/images/uploads",
+			filename,
+			overwrite = false,
+		} = input;
 		const { extension, bytes } = imageExtension(name, data);
-		const path = `public/images/uploads/${randomUUID()}${extension}`;
-		await atomicWrite(path, bytes, { create: true });
-		return { path, reference: mediaReference(path) };
+		if (
+			directory !== "public/images/uploads" &&
+			!/^public\/images\/albums\/[a-z0-9][a-z0-9-]{0,63}$/u.test(directory)
+		)
+			throw fail("Unsupported upload directory.");
+		let leaf = randomUUID();
+		if (filename !== undefined) {
+			if (
+				typeof filename !== "string" ||
+				!/^[a-z0-9][a-z0-9_-]{0,63}$/u.test(filename)
+			)
+				throw fail("Invalid upload filename.");
+			leaf = filename;
+		}
+		const path = `${directory}/${leaf}${extension}`;
+		segments(path);
+		const entry = await inspect(path);
+		if (entry.exists && !overwrite) throw fail("This image already exists.", 409);
+		await atomicWrite(path, bytes, { create: !entry.exists });
+		return { path, reference: mediaReference(path), size: bytes.length };
 	}
 
 	async function listMedia() {

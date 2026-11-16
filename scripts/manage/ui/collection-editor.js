@@ -19,9 +19,20 @@ const listValue = (value) =>
 
 function defaults(data) {
 	const result = { title: "" };
-	if (data.statuses?.length) result.status = data.statuses[0].value;
+	const statusKey =
+		data.fields.find((field) => field.type === "status")?.key || "status";
+	if (statusKey && data.statuses?.length)
+		result[statusKey] = data.statuses[0].value;
 	if (data.fields.some((field) => field.key === "rating")) result.rating = 0;
 	if (data.fields.some((field) => field.key === "genres")) result.genres = [];
+	if (data.fields.some((field) => field.key === "key"))
+		result.key = "project-" + Date.now().toString(36);
+	if (data.fields.some((field) => field.key === "category"))
+		result.category = "lab";
+	if (data.fields.some((field) => field.key === "summary"))
+		result.summary = "";
+	if (data.fields.some((field) => field.key === "technologies"))
+		result.technologies = [];
 	return result;
 }
 
@@ -42,6 +53,8 @@ export function mountCollectionEditor({
 	let expanded = initialExpanded === null ? null : Number(initialExpanded);
 	let showAdvanced = false;
 	let destroyed = false;
+	const statusKey =
+		data.fields.find((field) => field.type === "status")?.key || "status";
 
 	const groups = [];
 	for (const field of data.fields) {
@@ -65,6 +78,8 @@ export function mountCollectionEditor({
 		if (item.year || item.yearPublished)
 			parts.push(item.year || item.yearPublished);
 		if (item.studio || item.author) parts.push(item.studio || item.author);
+		if (item.category) parts.push(item.category);
+		if (item.repository) parts.push("GitHub");
 		return parts.length
 			? parts.join(" · ")
 			: `第 ${index + 1} 条`;
@@ -260,7 +275,16 @@ export function mountCollectionEditor({
 			item[key] = raw === "" ? 0 : Number(raw);
 		} else item[key] = raw;
 
-		if (key === "title" || key === "status" || key === "year" || key === "author" || key === "studio" || key === "yearPublished") {
+		if (
+			key === "title" ||
+			key === statusKey ||
+			key === "year" ||
+			key === "author" ||
+			key === "studio" ||
+			key === "yearPublished" ||
+			key === "category" ||
+			key === "key"
+		) {
 			const card = container.querySelector(
 				`.collection-card[data-index="${index}"]`,
 			);
@@ -270,7 +294,7 @@ export function mountCollectionEditor({
 			if (meta) meta.textContent = labelFor(item, index);
 			const chip = card?.querySelector(".collection-status");
 			if (chip && data.statuses?.length)
-				chip.textContent = statusLabel(data.statuses, item.status);
+				chip.textContent = statusLabel(data.statuses, item[statusKey]);
 		}
 	}
 
@@ -319,11 +343,15 @@ export function mountCollectionEditor({
 		const chips = node("div", "collection-chips");
 		if (data.statuses?.length)
 			chips.append(
-				node("span", "collection-status", statusLabel(data.statuses, item.status)),
+				node(
+					"span",
+					"collection-status",
+					statusLabel(data.statuses, item[statusKey]),
+				),
 			);
 		if (Number(item.rating) > 0)
 			chips.append(node("span", "collection-rating", `★ ${item.rating}`));
-		if (!item.cover)
+		if (!item.cover && data.kind !== "projects")
 			chips.append(node("span", "collection-warning", "无封面"));
 		copy.append(chips);
 		toggle.append(copy);

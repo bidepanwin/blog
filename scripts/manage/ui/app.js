@@ -1,5 +1,6 @@
-import { createMediaPicker } from "./media-picker.js";
+import { mountAlbumsEditor } from "./albums-editor.js";
 import { mountCollectionEditor } from "./collection-editor.js";
+import { createMediaPicker } from "./media-picker.js";
 
 (() => {
 	const $ = (id) => document.getElementById(id);
@@ -21,6 +22,11 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			"PERSONALIZE",
 			"站点设置",
 			"从站名到首页动效，让博客成为你的样子。",
+		],
+		albums: [
+			"GALLERY",
+			"相册管理",
+			"编辑相册信息、上传照片与设置封面。",
 		],
 		media: [
 			"MEDIA LIBRARY",
@@ -58,6 +64,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		previewAbort: null,
 		toastTimer: null,
 		collectionEditor: null,
+		collectionKinds: {},
+		albumsEditor: null,
 		categories: [],
 	};
 	const mediaPicker = createMediaPicker({
@@ -168,6 +176,9 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		if (path.startsWith("src/content/")) return "content";
 		if (path.startsWith("src/config/")) return "settings";
 		if (path.startsWith("src/data/")) return "data";
+		// 相册元数据位于 public/ 下，归入独立分组，供侧栏计数与源文件入口识别。
+		if (/^public\/images\/albums\/[^/]+\/info\.json$/.test(path))
+			return "albums";
 		const group = String(file.group || "").toLowerCase();
 		return ["content", "pages", "data", "settings"].includes(group)
 			? group
@@ -272,6 +283,7 @@ import { mountCollectionEditor } from "./collection-editor.js";
 	}
 	function updateDirty(dirty = true) {
 		state.dirty = dirty;
+		$("save-button").removeAttribute("title");
 		if (dirty) state.editVersion += 1;
 		$("dirty-badge").hidden = !dirty;
 		$("save-button").disabled =
@@ -328,6 +340,7 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			state.files = Array.isArray(data.files) ? data.files : [];
 			state.media = Array.isArray(data.media) ? data.media : [];
 			state.git = data.git || {};
+			state.collectionKinds = data.collectionKinds || {};
 			if (data.previewUrl) $("local-preview-link").href = data.previewUrl;
 			if (data.siteUrl) {
 				$("site-link").href = data.siteUrl;
@@ -348,6 +361,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			if (state.group === "media") renderMedia();
 			if (state.group === "settings") renderSettingsShortcuts();
 			if (state.group === "data") renderDataShortcuts();
+			if (state.group === "albums" && !state.albumsEditor?.hasDirty())
+				await loadAlbums();
 			if (!quiet) clearError();
 			return true;
 		} catch (error) {
@@ -469,7 +484,7 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		$("editor-workspace").hidden = !["content", "pages", "data"].includes(
 			group,
 		);
-		for (const name of ["settings", "media", "publish", "history"])
+		for (const name of ["settings", "albums", "media", "publish", "history"])
 			$(name + "-panel").hidden = name !== group;
 		$("editor-content").hidden = true;
 		$("editor-empty").hidden = false;
@@ -480,6 +495,11 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		if (group === "data") renderDataShortcuts();
 		renderFiles();
 		if (group === "settings") renderSettingsShortcuts();
+		if (group === "albums") {
+			$("save-button").disabled = false;
+			$("save-button").title = "点击保存相册表单；没有改动时会提示当前状态";
+			void loadAlbums();
+		}
 		if (group === "media") renderMedia();
 		if (group === "publish") {
 			await refreshState(true);
@@ -512,18 +532,10 @@ import { mountCollectionEditor } from "./collection-editor.js";
 				} catch (error) {
 					if (error.status !== 400 && error.status !== 422) throw error;
 				}
-			} else if (
-				path === "src/data/anime.ts" ||
-				path === "src/data/books.ts" ||
-				path === "src/data/music.ts"
-			) {
-				const kindByPath = {
-					"src/data/anime.ts": "anime",
-					"src/data/books.ts": "books",
-					"src/data/music.ts": "music",
-				};
+			} else if (state.collectionKinds[path]) {
 				collectionData = await api(
-					"/api/collection?kind=" + kindByPath[path],
+					"/api/collection?kind=" +
+						encodeURIComponent(state.collectionKinds[path]),
 				);
 			}
 			if (generation !== state.loadGeneration) return;
@@ -628,6 +640,39 @@ import { mountCollectionEditor } from "./collection-editor.js";
 			initialExpanded: null,
 		});
 		state.collectionEditor.render();
+	}
+
+	function updateAlbumsDirty(dirty) {
+		state.dirty = dirty;
+		if (state.group !== "albums") return;
+		$("dirty-badge").hidden = !dirty;
+		$("save-button").disabled =
+			state.saving || state.loading || Boolean(state.job);
+		$("save-button").title = dirty
+			? "保存相册表单的修改（Ctrl / ⌘ + S）"
+			: "表单没有未保存的修改；点击可查看当前状态，照片与封面上传后立即写入相册目录";
+		document.title = (dirty ? "● " : "") + "PAN LOG 本地管理台";
+		$("save-status").textContent = dirty ? "尚未保存到本地" : "已保存到本地";
+	}
+
+	async function loadAlbums() {
+		if (!state.albumsEditor) return;
+		try {
+			await state.albumsEditor.load(true);
+		} catch (error) {
+			handleError(error);
+		}
+	}
+
+	async function openAlbumSource(path) {
+		if (
+			state.albumsEditor?.hasDirty() &&
+			!window.confirm("当前修改尚未保存，仍要查看源文件吗？")
+		)
+			return;
+		state.dirty = false;
+		await selectGroup("data");
+		await openFile(path, { force: true, mode: "source" });
 	}
 
 	function applyEditor() {
@@ -942,6 +987,8 @@ import { mountCollectionEditor } from "./collection-editor.js";
 	}
 
 	async function saveCurrent() {
+		if (state.group === "albums")
+			return state.albumsEditor ? await state.albumsEditor.save() : true;
 		const current = state.current;
 		if (!current || !state.dirty || state.saving || state.job)
 			return !state.dirty;
@@ -1775,6 +1822,15 @@ import { mountCollectionEditor } from "./collection-editor.js";
 		if (!state.dirty) return;
 		event.preventDefault();
 		event.returnValue = "";
+	});
+	state.albumsEditor = mountAlbumsEditor({
+		container: $("albums-editor"),
+		api,
+		mediaUrl: collectionMediaUrl,
+		toast,
+		onDirty: updateAlbumsDirty,
+		openSource: openAlbumSource,
+		pickMedia: (options) => mediaPicker.pick(options),
 	});
 	void refreshState();
 	void loadCategories();
