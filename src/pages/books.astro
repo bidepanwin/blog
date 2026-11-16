@@ -9,20 +9,26 @@ import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { url } from "@utils/url-utils";
 import {
-	booksData,
 	BOOK_STATUS_META,
-	bookSlug,
 	bookLink,
+	bookSlug,
+	booksData,
 } from "../data/books.ts";
 
 const pageTitle = i18n(Key.books);
 const pageDescription = i18n(Key.booksBanner);
 
-const statusOrder = ["reading", "completed", "planned", "onHold"] as const;
+const statusOrder = ["reading", "planned", "completed", "onHold"] as const;
 const books = [...booksData].sort((a, b) => {
-	// 置顶 > 在读 > 其余按状态顺序
+	// 置顶 > 状态顺序（在读→想读→读过→搁置）> 组内按添加时间倒序（最新在前）
 	if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
-	return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+	const statusDiff =
+		statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+	if (statusDiff !== 0) return statusDiff;
+	const addedA = a.addedAt ?? "";
+	const addedB = b.addedAt ?? "";
+	if (addedA !== addedB) return addedB.localeCompare(addedA);
+	return 0;
 });
 const counts = Object.fromEntries(
 	statusOrder.map((s) => [s, books.filter((b) => b.status === s).length]),

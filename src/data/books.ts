@@ -47,6 +47,8 @@ export interface BookItem {
 	progress?: number;
 	/** 是否置顶（在读书单会排在最前） */
 	featured?: boolean;
+	/** 添加到书单的日期（YYYY-MM-DD）；用于「按添加时间从近到远」排序 */
+	addedAt?: string;
 }
 
 export const BOOK_STATUS_META: Record<
@@ -68,12 +70,15 @@ export const booksData: BookItem[] = [
 		author: "Daniel Kahneman",
 		isbn: "9787508633558",
 		cover: "/assets/books/thinking-fast-and-slow.webp",
+		link: "https://weread.qq.com/web/bookDetail/af83263058c217af81f8979",
 		douban: "10785583",
 		status: "planned",
 		rating: 0,
-		description: "系统 1 与系统 2：直觉替我们做了多少决定，又会在哪些地方系统性地出错。",
+		description:
+			"系统 1 与系统 2：直觉替我们做了多少决定，又会在哪些地方系统性地出错。",
 		yearPublished: "2012",
 		genres: ["Psychology", "Decision"],
+		addedAt: "2026-11-01",
 	},
 	// —— 实践：从调查到方法论 ——
 	{
@@ -81,12 +86,15 @@ export const booksData: BookItem[] = [
 		title: "毛泽东选集",
 		author: "毛泽东",
 		cover: "/assets/books/selected-works-of-mao.webp",
+		link: "https://weread.qq.com/web/reader/2bb32ff0813ab6ffcg014315",
 		douban: "1139360",
 		status: "planned",
 		rating: 0,
-		description: "人民出版社 1991 年第二版，按历史时期与写作年月编次，全四卷；封面为第一卷。",
+		description:
+			"人民出版社 1991 年第二版，按历史时期与写作年月编次，全四卷；封面为第一卷。",
 		yearPublished: "1991",
 		genres: ["History", "Methodology"],
+		addedAt: "2026-11-02",
 	},
 	// —— 系统：把「头痛医头」换成看见结构 ——
 	{
@@ -96,12 +104,15 @@ export const booksData: BookItem[] = [
 		author: "Donella H. Meadows",
 		isbn: "9787213050114",
 		cover: "/assets/books/thinking-in-systems.webp",
+		link: "https://weread.qq.com/web/bookDetail/55b32da0813ab864cg017b6c",
 		douban: "11528220",
 		status: "planned",
 		rating: 0,
-		description: "存量、流量、反馈回路与延迟：复杂问题常常不是不够努力，而是没看见结构。",
+		description:
+			"存量、流量、反馈回路与延迟：复杂问题常常不是不够努力，而是没看见结构。",
 		yearPublished: "2012",
 		genres: ["Systems", "Decision"],
+		addedAt: "2026-11-03",
 	},
 	// —— 范式：知识不是线性堆积 ——
 	{
@@ -111,12 +122,15 @@ export const booksData: BookItem[] = [
 		author: "Thomas S. Kuhn",
 		isbn: "9787301330661",
 		cover: "/assets/books/structure-of-scientific-revolutions.webp",
+		link: "https://weread.qq.com/web/bookDetail/3ff32fb0813ab844ag01520f",
 		douban: "35951747",
 		status: "planned",
 		rating: 0,
-		description: "1962 年初版的经典：范式、常规科学与危机，解释一个学科为什么会整体换框架。",
+		description:
+			"1962 年初版的经典：范式、常规科学与危机，解释一个学科为什么会整体换框架。",
 		yearPublished: "2022",
 		genres: ["Philosophy of Science"],
+		addedAt: "2026-11-04",
 	},
 	// —— 社会：把概念放回它生长的土地 ——
 	{
@@ -124,12 +138,32 @@ export const booksData: BookItem[] = [
 		title: "乡土中国",
 		author: "费孝通",
 		cover: "/assets/books/from-the-soil.webp",
+		link: "https://weread.qq.com/web/bookDetail/30d320b0813ab7120g018c2e",
 		douban: "1795079",
 		status: "planned",
 		rating: 0,
-		description: "差序格局、礼治秩序与乡土本色：四十年代讲义结集，理解中国基层社会的一组概念工具。",
+		description:
+			"差序格局、礼治秩序与乡土本色：四十年代讲义结集，理解中国基层社会的一组概念工具。",
 		yearPublished: "2006",
 		genres: ["Sociology", "China"],
+		addedAt: "2026-11-05",
+	},
+	// —— 成长：十道羊皮卷的寓言 ——
+	{
+		slug: "the-greatest-salesman-in-the-world",
+		title: "羊皮卷",
+		originalTitle: "The Greatest Salesman in the World",
+		author: "Og Mandino",
+		cover: "/assets/books/the-greatest-salesman-in-the-world.webp",
+		link: "https://weread.qq.com/web/bookDetail/ef332f007168d0deef31360",
+		douban: "1083403",
+		status: "planned",
+		rating: 0,
+		description:
+			"牧童海菲得到十道神秘羊皮卷，遵循卷中原则执着创业：一部关于习惯、坚持与自我重塑的经典寓言。",
+		yearPublished: "1968",
+		genres: ["Motivation", "Growth"],
+		addedAt: "2026-11-16",
 	},
 ];
 

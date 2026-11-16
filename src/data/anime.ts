@@ -46,6 +46,8 @@ export interface AnimeItem {
 	period?: { start: string; end: string };
 	/** 条目来源身份标识（可选，用于跨源去重与归档） */
 	identity?: AnimeIdentity;
+	/** 添加到收藏的日期（YYYY-MM-DD）；用于「按添加时间从近到远」排序 */
+	addedAt?: string;
 }
 
 export const animeData: AnimeItem[] = [
@@ -56,10 +58,12 @@ export const animeData: AnimeItem[] = [
 		link: "https://movie.douban.com/subject/1431615/",
 		status: "planned",
 		rating: 0,
-		description: "电子脑、笑脸男与 Stand Alone Complex：记忆可被改写时，个体与集体如何互相制造。",
+		description:
+			"电子脑、笑脸男与 Stand Alone Complex：记忆可被改写时，个体与集体如何互相制造。",
 		year: "2002",
 		studio: "Production I.G",
 		genres: ["Cyberpunk", "Sci-Fi", "Philosophy"],
+		addedAt: "2026-11-01",
 	},
 	// 技术：当机器会悲伤，权利与仇恨该怎么算
 	{
@@ -68,10 +72,12 @@ export const animeData: AnimeItem[] = [
 		link: "https://movie.douban.com/subject/27069431/",
 		status: "planned",
 		rating: 0,
-		description: "浦泽直树重述手冢治虫：一桩机器人连环命案，把战争创伤与「何以为人」摆上桌面。",
+		description:
+			"浦泽直树重述手冢治虫：一桩机器人连环命案，把战争创伤与「何以为人」摆上桌面。",
 		year: "2023",
 		studio: "Studio M2",
 		genres: ["Sci-Fi", "Mystery", "Ethics"],
+		addedAt: "2026-11-02",
 	},
 	// 社会：秩序的代价，往往由不被计入的人支付
 	{
@@ -80,10 +86,12 @@ export const animeData: AnimeItem[] = [
 		link: "https://movie.douban.com/subject/10527275/",
 		status: "planned",
 		rating: 0,
-		description: "一个被精心设计的稳定社会，把伦理问题藏进教科书与童年里，直到无人再提问。",
+		description:
+			"一个被精心设计的稳定社会，把伦理问题藏进教科书与童年里，直到无人再提问。",
 		year: "2012",
 		studio: "A-1 Pictures",
 		genres: ["Sci-Fi", "Drama", "Dystopia"],
+		addedAt: "2026-11-03",
 	},
 	// 人心：被照顾，也是一种需要重新学习的能力
 	{
@@ -92,10 +100,12 @@ export const animeData: AnimeItem[] = [
 		link: "https://movie.douban.com/subject/26615510/",
 		status: "planned",
 		rating: 0,
-		description: "孤独的将棋棋士与川本三姐妹：关于丧失、霸凌，以及人怎样慢慢学会依赖别人。",
+		description:
+			"孤独的将棋棋士与川本三姐妹：关于丧失、霸凌，以及人怎样慢慢学会依赖别人。",
 		year: "2016",
 		studio: "SHAFT",
 		genres: ["Drama", "Slice of Life"],
+		addedAt: "2026-11-04",
 	},
 	// 时间：把「之后」当作正题来写
 	{
@@ -105,10 +115,26 @@ export const animeData: AnimeItem[] = [
 		status: "completed",
 		rating: 9.5,
 		progress: { watched: 28, total: 28 },
-		description: "勇者一行之后，魔法使漫长的余生：以近乎静止的时间尺度重新丈量记忆与告别。",
+		description:
+			"勇者一行之后，魔法使漫长的余生：以近乎静止的时间尺度重新丈量记忆与告别。",
 		year: "2023",
 		studio: "Madhouse",
 		genres: ["Fantasy", "Adventure"],
 		period: { start: "2023-09", end: "2024-03" },
+		addedAt: "2026-11-05",
+	},
+	// 正在追：国创年番，韩立稳健修仙路
+	{
+		title: "凡人修仙传",
+		cover: "/assets/anime/fanren-xiuxian-zhuan.webp",
+		link: "https://www.bilibili.com/bangumi/play/ss28747",
+		status: "watching",
+		rating: 0,
+		description:
+			"看机智的凡人小子韩立如何稳健发展、步步为营，战魔道、夺至宝、驰骋星海，成为纵横三界的强者。",
+		year: "2020",
+		studio: "万维猫动画 / 原力动画",
+		genres: ["玄幻", "热血", "励志"],
+		addedAt: "2026-11-15",
 	},
 ];

@@ -279,7 +279,9 @@ export async function getSortedMoments(): Promise<MomentItem[]> {
 			});
 			return {
 				id: entry.id,
-				published: new Date(entry.data.published).toISOString(),
+				published: new Date(
+					entry.data.publishedAt ?? entry.data.published,
+				).toISOString(),
 				html: code,
 				pinned: entry.data.pinned,
 				location: entry.data.location,

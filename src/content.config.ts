@@ -72,6 +72,7 @@ const momentsCollection = defineCollection({
 	loader: glob({ base: "./src/content/moments", pattern: "**/*.md" }),
 	schema: z.object({
 		published: z.date(),
+		publishedAt: z.date().optional(),
 		pinned: z.boolean().optional().default(false),
 		location: z.string().optional().default(""),
 		/** Mood icon (Iconify name, e.g. `material-symbols:sentiment-excited-outline-rounded`). */

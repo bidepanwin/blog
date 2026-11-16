@@ -10,9 +10,9 @@ const VALID_STATUSES = new Set<AnimeStatus>([
 ]);
 
 const STATUS_ORDER: Record<AnimeStatus, number> = {
-	completed: 0,
-	watching: 1,
-	planned: 2,
+	watching: 0,
+	planned: 1,
+	completed: 2,
 	onHold: 3,
 	dropped: 4,
 };
@@ -250,12 +250,22 @@ export function normalizeAnimeItem(raw: unknown): AnimeItem | null {
 }
 
 /**
- * 稳定排序番剧列表（先按状态优先级排序，再按年份倒序，最后按标题稳定排序）
+ * 稳定排序番剧列表：先按状态优先级（在看→想看→看完→搁置→弃番），
+ * 组内按添加时间倒序（最新添加在前），无 addedAt 时回退年份倒序，最后按标题稳定排序。
  */
 export function sortAnimeList(items: AnimeItem[]): AnimeItem[] {
 	return [...items].sort((a, b) => {
 		const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
 		if (statusDiff !== 0) return statusDiff;
+
+		const addedA = (a as AnimeItem & { addedAt?: string }).addedAt;
+		const addedB = (b as AnimeItem & { addedAt?: string }).addedAt;
+		if (addedA && addedB && addedA !== addedB) {
+			return addedB.localeCompare(addedA);
+		}
+		if (addedA !== addedB) {
+			return addedA ? -1 : addedB ? 1 : 0;
+		}
 
 		const yearA = Number.parseInt(a.year, 10) || 0;
 		const yearB = Number.parseInt(b.year, 10) || 0;

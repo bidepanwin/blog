@@ -126,7 +126,7 @@ export async function getAnimeList(
 	}
 
 	if (options.source.kind === "local") {
-		return animeData;
+		return sortAnimeList(animeData);
 	}
 
 	if (options.source.kind === "snapshot") {
@@ -211,7 +211,7 @@ export async function getAnimeList(
 		}
 	}
 
-	return animeData;
+	return sortAnimeList(animeData);
 }
 
 function handleFallback(
@@ -220,7 +220,7 @@ function handleFallback(
 ): AnimeItem[] {
 	console.warn(`[anime] ⚠ ${reason}. Falling back to "${options.fallback}".`);
 	if (options.fallback === "local") {
-		return animeData;
+		return sortAnimeList(animeData);
 	}
 	return [];
 }

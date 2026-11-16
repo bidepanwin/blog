@@ -13,7 +13,7 @@ export const ANIME_STATUS_META: Record<
 	},
 	completed: {
 		key: I18nKey.animeStatusCompleted,
-		icon: "material-symbols:check-rounded",
+		icon: "material-symbols:flag-rounded",
 		color: "var(--tertiary)",
 	},
 	planned: {

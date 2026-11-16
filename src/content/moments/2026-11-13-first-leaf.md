@@ -1,5 +1,6 @@
 ---
 published: 2026-11-13
+publishedAt: 2026-11-13T21:48:00+08:00
 tags: [日常]
 mood: material-symbols:eco-outline-rounded
 draft: false
