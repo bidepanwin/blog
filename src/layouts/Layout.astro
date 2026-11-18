@@ -395,9 +395,11 @@ scrollFunction();
 import { bindFancyboxRuntime } from "../utils/fancybox-runtime";
 import { applyStoredLayoutMode } from "../utils/layout-mode";
 import { bindMacCodeblocks } from "../utils/codeblock-mac";
+import { bindExternalLinks } from "../utils/external-links-runtime.mjs";
 
 bindFancyboxRuntime();
 bindMacCodeblocks();
+bindExternalLinks();
 
 const setup = () => {
 	window.swup.hooks.on("content:replace", () => {

@@ -50,6 +50,7 @@ import { MarkerComponent } from "../plugins/rehype-component-marker.mjs";
 import { SpoilerComponent } from "../plugins/rehype-component-spoiler.mjs";
 import { YouTubeComponent } from "../plugins/rehype-component-youtube.mjs";
 import { rehypeMarkdownImages } from "../plugins/rehype-markdown-images.mjs";
+import { rehypeExternalLinks } from "../plugins/rehype-external-links.mjs";
 import { rehypeBasePath } from "../plugins/rehype-base-path.mjs";
 import { rehypeResponsiveTables } from "../plugins/rehype-responsive-tables.mjs";
 import { parseDirectiveNode } from "../plugins/remark-directive-rehype.js";
@@ -177,6 +178,8 @@ export const siteRehypePlugins = [
 		},
 	],
 	rehypeResponsiveTables,
+	// 链接属性后处理：晚于组件渲染以覆盖组件生成的链接，早于 base path。
+	[rehypeExternalLinks, { site: siteConfig.site ?? "" }],
 	// Include links emitted by wikilinks, components, and public Markdown images.
 	[rehypeBasePath, { base: siteConfig.base }],
 ];

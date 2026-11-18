@@ -55,7 +55,9 @@
 | 组件渲染 | `rehypeComponents` | 图片和表格后处理之前 | 将 directive AST 渲染为稳定组件 DOM |
 | 标题链接 | `rehypeAutolinkHeadings` | `rehypeSlug` 之后 | 根据已存在的标题 ID 添加锚点 |
 | 图片增强 | `rehypeMarkdownImages` | `rehypeComponents` 之后 | 增强普通图片并跳过已渲染组件内部图片 |
-| 表格包装 | `rehypeResponsiveTables` | Rehype 最后 | 为最终 HTML 中的表格添加滚动容器 |
+| 表格包装 | `rehypeResponsiveTables` | 表格外层结构的最后处理 | 为最终 HTML 中的表格添加滚动容器 |
+| 链接属性后处理 | `rehypeExternalLinks` | `rehypeComponents` 之后；`rehypeBasePath` 之前 | 为外部链接补 `target="_blank"` 与 `rel="noopener noreferrer"` |
+| 站内路径 | `rehypeBasePath` | Rehype 链末端 | 为根相对地址补 `siteConfig.base` |
 
 ### 3.1 Rehype 禁止事项
 
@@ -63,6 +65,19 @@
 - 不得把 `rehypeAutolinkHeadings` 提前到 `rehypeSlug` 之前，否则锚点可能引用不存在或不稳定的 ID。
 - 不得在 `rehypeComponents` 之后重新运行 directive 解析器或组件渲染器。
 - 只允许最后的表格包装器修改表格外层结构；组件内部表格必须通过明确的跳过条件保持原样。
+- `rehypeExternalLinks` 只读取 `a[href]` 并写入 `target`、`rel`，不改动节点结构、文本或地址本身；站点自身 host 的绝对地址视为站内链接，不添加 `target`。
+
+### 3.2 外链属性后处理
+
+`rehypeExternalLinks` 读取所有 `element` 节点上的 `a[href]`（含 `rehypeComponents` 生成的 GitHub 卡片、文件树等组件链接），写入 `target` 与 `rel`。判定规则以 `src/utils/external-link.mjs` 为单一事实来源，浏览器兜底脚本复用同一模块。
+
+依赖边：
+
+- 前：`rehypeComponents` 必须已经输出最终链接 DOM，否则组件内链接不会被处理。
+- 后：`rehypeBasePath` 只改写以 `/` 开头的根相对地址，两者写入的属性互不冲突；`rehypeBasePath` 仍须保持链末端（见开头约束）。
+- 表格包装已完成，故该插件不会破坏滚动容器结构。
+
+已有 `target`、带 `download` 属性、站内绝对地址、锚点及 `mailto:` / `tel:` 等协议保持原样；已有 `rel` 语义（如 `me`、`nofollow`）与新窗口安全值合并，不被覆盖。
 
 ## 4. 新增或调整插件的流程
 

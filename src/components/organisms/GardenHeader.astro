@@ -32,6 +32,8 @@ const searchEntries = (await getSortedPosts()).map((post) => ({
 		<nav class="garden-nav" aria-label={i18n(I18nKey.gardenMainNav)}>
 			{links.map((link) => <a
 				href={link.external ? link.url : url(link.url || "/")}
+				target={link.external ? "_blank" : undefined}
+				rel={link.external ? "noopener noreferrer" : undefined}
 				class:list={["garden-nav__link m3-state-layer", { "is-active": link.pageKey === currentPageKey }]}
 				aria-current={link.pageKey === currentPageKey ? "page" : undefined}
 				data-garden-nav={link.pageKey}
@@ -44,7 +46,7 @@ const searchEntries = (await getSortedPosts()).map((post) => ({
 			<details class="garden-mobile-menu">
 				<summary aria-label={i18n(I18nKey.gardenMainNav)}><Icon icon="material-symbols:menu-rounded" /></summary>
 				<nav aria-label={i18n(I18nKey.gardenMainNav)}>
-					{links.map((link) => <a class="m3-state-layer" href={link.external ? link.url : url(link.url || "/")} data-garden-nav={link.pageKey} aria-current={link.pageKey === currentPageKey ? "page" : undefined}>{link.icon && <Icon icon={link.icon} />}{link.name}</a>)}
+					{links.map((link) => <a class="m3-state-layer" href={link.external ? link.url : url(link.url || "/")} target={link.external ? "_blank" : undefined} rel={link.external ? "noopener noreferrer" : undefined} data-garden-nav={link.pageKey} aria-current={link.pageKey === currentPageKey ? "page" : undefined}>{link.icon && <Icon icon={link.icon} />}{link.name}</a>)}
 				</nav>
 			</details>
 		</div>

@@ -1,5 +1,22 @@
 # AI 日报自动化执行记录
 
+## 2026-11-17 运行（报道 D-1 = 2026-11-16）
+
+- 结果：成功发布并推送。commit `72c48af`，线上 https://bidepanwin.github.io/blog/posts/ai-daily-2026-11-16/
+- 新增文件：`src/content/posts/ai-daily-2026-11-16.md` + `public/images/ai-daily/2026-11-16-1/2/3.webp`（3 张）
+- 核心事件（5 节）：NVIDIA SC26 发布 Rubin HPC GPU（5 万核）+ Vera Rubin 横扫 MLPerf Training v6.1；阿里 Qwen4-Max 正式挂牌降价 25%；OpenAI ChatGPT Wallet 灰度 + 解散独立机器人团队；华为云 CloudRobo WM1.2 昇腾原生具身世界模型；美国 BIS 远程算力临时最终规则（11-15 发布、11-16 Reuters 报道）。
+- 配图：3 张，两个官方来源——图1/图2 取自 NVIDIA 官方新闻稿（nvidianews.nvidia.com，经 iprsoftwaremedia.com 官方分发 CDN 托管，Rubin HPC GPU 渲染图 + Vera 机架渲染图），图3 取自阿里云官方新闻稿（alibabacloud.com，Qwen4-Max Work360 雷达对比图）。图文对位严格：Rubin HPC 图→第1节算力、Vera 机架图→第1节 MLPerf、Qwen 对比图→第2节模型。OpenAI/华为当日公开渠道未取到可对位实体配图，对应章节无图并已说明。
+- 门禁：astro check 0 errors；build 成功；check:manifest 通过；type-check 仅 6 个 TS9013 文档豁免告警。全部通过。digital-garden.md 本次未被改写，无需 restore。
+- 推送：一次成功，无重试。
+
+## 经验备忘（补充）
+
+- **NVIDIA 官方图源可用路径修正**：blogs.nvidia.com 与 nvidia.com 本机实际直连 ECONNRESET（不可达），但 **nvidianews.nvidia.com（新闻中心）与 developer.nvidia.com 可达**；其新闻稿图片统一托管在 **iprsoftwaremedia.com**（官方分发 CDN），`_mid.jpg` 为可用版本（700x393），去掉 `_mid` 直接访问 404。这是当天拿到 NVIDIA 官方实体图的关键通道。
+- **阿里 Qwen 官方图源**：qwen.ai 博客 og:image 是 80x80 logo 不可用，正文图 JS 动态加载拿不到；改走 **alibabacloud.com 新闻稿页面**，正文大图为 img.alicdn.com（如 1762x950 的 Work360 雷达对比图），og:image 是奥运合作 logo 图不可用、须认准正文大图。
+- 抓图通用手法：`node https.get` 抓 HTML 存盘，再 `grep -oE` 抽图片 URL；curl 在本机对部分站点 SSL 握手失败（exit=35），node 更稳。
+- 华为此类发布会（微信公众号）无实体官方配图可直连下载，具身智能类事件基本只能无图或走媒体转载截图。
+- `.tmp_img`/`.html` 临时文件抓图后须清理，避免污染工作区（不能 git add -A）。
+
 ## 2026-11-16 运行（报道 D-1 = 2026-11-15）
 
 - 结果：成功发布并推送。commit `350d704`，线上 https://bidepanwin.github.io/blog/posts/ai-daily-2026-11-15/
