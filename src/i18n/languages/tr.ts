@@ -236,6 +236,7 @@ export const tr: Translation = {
 	[Key.announcementClose]: "Duyuruyu Kapat",
 
 	[Key.comments]: "Yorumlar",
+	[Key.commentsOpenOnGithub]: "GitHub'da yorum yap · görsel eklenebilir",
 	[Key.commentsEditor]: "Yorum içeriği",
 	[Key.commentsLoading]: "Yorumlar yükleniyor...",
 	[Key.commentsLoadFailed]: "Yorumlar yüklenemedi",

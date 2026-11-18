@@ -236,6 +236,7 @@ export const es: Translation = {
 	[Key.announcementClose]: "Cerrar anuncio",
 
 	[Key.comments]: "Comentarios",
+	[Key.commentsOpenOnGithub]: "Comentar en GitHub · admite imágenes",
 	[Key.commentsEditor]: "Contenido del comentario",
 	[Key.commentsLoading]: "Cargando comentarios...",
 	[Key.commentsLoadFailed]: "Error al cargar comentarios",

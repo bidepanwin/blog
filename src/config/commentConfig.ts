@@ -69,8 +69,12 @@ export const commentConfig: CommentConfig = withUserConfig("comment", {
 		strict: false,
 		/** 是否显示主贴表情反应 */
 		reactionsEnabled: true,
-		/** 是否向父页面周期性发送 Discussion 元数据（供脚本消费） */
-		emitMetadata: false,
+		/**
+		 * 是否向父页面周期性发送 Discussion 元数据。
+		 * 保持开启：主页面靠其中的 discussion.url 把「在 GitHub 上发言」按钮
+		 * 指向当前文章精确对应的 Discussion（giscus 输入框本身不支持上传附件）。
+		 */
+		emitMetadata: true,
 		/** 评论输入框位置：bottom（默认，评论框在列表下方）| top（评论框在列表上方） */
 		inputPosition: "bottom",
 		/** 明暗两套 giscus 主题（giscus 主题键或自定义主题 CSS URL），跟随站点明暗切换 */

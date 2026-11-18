@@ -219,6 +219,7 @@ export const zh_CN: Translation = {
 	[Key.announcementClose]: "关闭公告",
 
 	[Key.comments]: "评论",
+	[Key.commentsOpenOnGithub]: "在 GitHub 上发言 · 可传图",
 	[Key.commentsEditor]: "评论内容",
 	[Key.commentsLoading]: "正在加载评论...",
 	[Key.commentsLoadFailed]: "评论加载失败",

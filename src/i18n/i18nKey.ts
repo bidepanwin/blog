@@ -221,6 +221,8 @@ enum I18nKey {
 	commentsLoading = "commentsLoading",
 	commentsLoadFailed = "commentsLoadFailed",
 	commentsRequiresJavaScript = "commentsRequiresJavaScript",
+	/** 跳转到 GitHub Discussions 原生编辑器（giscus 不支持上传附件，原生编辑器可传图） */
+	commentsOpenOnGithub = "commentsOpenOnGithub",
 
 	donate = "donate",
 	donateTitle = "donateTitle",

@@ -220,6 +220,7 @@ export const th: Translation = {
 	[Key.announcementClose]: "ปิดประกาศ",
 
 	[Key.comments]: "ความคิดเห็น",
+	[Key.commentsOpenOnGithub]: "แสดงความคิดเห็นบน GitHub · รองรับรูปภาพ",
 	[Key.commentsEditor]: "เนื้อหาความคิดเห็น",
 	[Key.commentsLoading]: "กำลังโหลดความคิดเห็น...",
 	[Key.commentsLoadFailed]: "โหลดความคิดเห็นไม่สำเร็จ",

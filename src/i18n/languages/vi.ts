@@ -235,6 +235,7 @@ export const vi: Translation = {
 	[Key.announcementClose]: "Đóng thông báo",
 
 	[Key.comments]: "Bình luận",
+	[Key.commentsOpenOnGithub]: "Bình luận trên GitHub · hỗ trợ ảnh",
 	[Key.commentsEditor]: "Nội dung bình luận",
 	[Key.commentsLoading]: "Đang tải bình luận...",
 	[Key.commentsLoadFailed]: "Không thể tải bình luận",

@@ -292,6 +292,45 @@ const giscusStyles = await new Promise<string>((resolve, reject) => {
 		wrappers.forEach((wrapper) => handleThemeChange(wrapper, event));
 	});
 
+	// giscus 输入框不支持上传附件，评论区顶部的「在 GitHub 上发言」按钮
+	// 需要指向当前页面精确对应的 Discussion。开启 emitMetadata 后 giscus 会周期性
+	// 广播 discussion.url；这里按消息来源 iframe 定位所属评论区再替换 href，
+	// 避免 Swup 切页后把旧 Discussion 的链接写到新页面上。
+	function handleDiscussionMetadata(event: MessageEvent) {
+		const frame = Array.from(
+			document.querySelectorAll<HTMLIFrameElement>("iframe.giscus-frame"),
+		).find((candidate) => candidate.contentWindow === event.source);
+		const wrapper = frame?.closest<HTMLElement>(".shirone-giscus-wrapper");
+		if (!wrapper) return;
+		if (event.origin !== scriptOrigin(wrapper.dataset.giscusScriptUrl ?? ""))
+			return;
+
+		const payload = event.data;
+		if (!payload || typeof payload !== "object" || !("giscus" in payload))
+			return;
+		const giscusData = (
+			payload as { giscus?: { discussion?: { url?: unknown } } }
+		).giscus;
+		const url = giscusData?.discussion?.url;
+		if (typeof url !== "string") return;
+
+		let resolved: URL;
+		try {
+			resolved = new URL(url);
+		} catch {
+			return;
+		}
+		if (resolved.protocol !== "https:" || resolved.hostname !== "github.com")
+			return;
+
+		const link = wrapper
+			.closest<HTMLElement>("[data-comment-section]")
+			?.querySelector<HTMLAnchorElement>("a[data-giscus-discussion-link]");
+		if (link && link.href !== resolved.href) link.href = resolved.href;
+	}
+
+	window.addEventListener("message", handleDiscussionMetadata);
+
 	// 首次页面直达加载
 	setupAllGiscus();
 

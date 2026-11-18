@@ -238,6 +238,7 @@ export const id: Translation = {
 	[Key.announcementClose]: "Tutup pengumuman",
 
 	[Key.comments]: "Komentar",
+	[Key.commentsOpenOnGithub]: "Komentar di GitHub · bisa unggah gambar",
 	[Key.commentsEditor]: "Isi komentar",
 	[Key.commentsLoading]: "Memuat komentar...",
 	[Key.commentsLoadFailed]: "Gagal memuat komentar",

@@ -19,6 +19,22 @@ if (!options || !postCommentEnabled) {
 	return null;
 }
 
+/**
+ * giscus 的输入框不支持上传附件，需要退回 GitHub Discussions 原生编辑器。
+ * 构建期先给出按文章 slug 预填的 Discussions 搜索链接作为兜底；
+ * giscus 加载后由其 metadata 广播把 href 换成精确的 Discussion URL。
+ */
+function discussionsSearchUrl(repo: string, path: string): string {
+	const slug =
+		path.split("/").filter(Boolean).pop() || path.replace(/^\/+|\/+$/g, "");
+	return `https://github.com/${repo}/discussions?discussions_q=${encodeURIComponent(slug)}`;
+}
+
+const githubDiscussionHref =
+	options.provider === "giscus"
+		? discussionsSearchUrl(options.giscus.repo, context.path)
+		: "";
+
 const Twikoo =
 	options.provider === "twikoo"
 		? (await import("@components/organisms/comment/Twikoo.astro")).default
@@ -47,6 +63,19 @@ const Waline =
 			<h2 id="comments-title" class="text-xl md:text-2xl font-bold text-[var(--on-surface)] m-0">
 				{i18n(I18nKey.comments)}
 			</h2>
+			{options.provider === "giscus" && (
+				<a
+					href={githubDiscussionHref}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-giscus-discussion-link
+					title={i18n(I18nKey.commentsOpenOnGithub)}
+					class="ml-auto inline-flex items-center gap-1.5 no-underline rounded-full bg-[var(--surface-container-high)] px-3 py-1.5 text-xs md:text-sm text-[var(--on-surface-variant)] transition-colors hover:text-[var(--on-surface)]"
+				>
+					<span>{i18n(I18nKey.commentsOpenOnGithub)}</span>
+					<span aria-hidden="true">↗</span>
+				</a>
+			)}
 		</div>
 
 		{options.provider === "twikoo" && Twikoo && (

@@ -235,6 +235,7 @@ export const en: Translation = {
 	[Key.announcementClose]: "Close Announcement",
 
 	[Key.comments]: "Comments",
+	[Key.commentsOpenOnGithub]: "Comment on GitHub · images supported",
 	[Key.commentsEditor]: "Comment content",
 	[Key.commentsLoading]: "Loading comments...",
 	[Key.commentsLoadFailed]: "Failed to load comments.",
